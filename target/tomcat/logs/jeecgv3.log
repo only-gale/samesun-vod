@@ -34,3 +34,9 @@
 [INFO][2014-07-11 14:09:50,471][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：conf_recordsrv_rtspsrv]------ 生成完成。。。
 [INFO][2014-07-11 18:52:31,090][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:terminal_info]------- 生成中。。。
 [INFO][2014-07-11 18:52:33,883][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：terminal_info]------ 生成完成。。。
+[INFO][2014-07-15 17:45:05,589][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meeting_info_history]------- 生成中。。。
+[INFO][2014-07-15 17:45:07,978][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_info_history]------ 生成完成。。。
+[INFO][2014-07-15 17:46:54,775][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meeting_vod_session]------- 生成中。。。
+[INFO][2014-07-15 17:46:55,779][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_vod_session]------ 生成完成。。。
+[INFO][2014-07-15 17:48:16,396][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meeting_vod_section_record]------- 生成中。。。
+[INFO][2014-07-15 17:48:17,392][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_vod_section_record]------ 生成完成。。。

@@ -24,7 +24,7 @@ public class MeetingLiveSessionServiceImpl extends CommonServiceImpl implements 
 			e.printStackTrace();
 		}
 		save(liveSession);
-		return null;
+		return liveSession;
 	}
 	
 }

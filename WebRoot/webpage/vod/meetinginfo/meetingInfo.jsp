@@ -194,50 +194,12 @@ if("" == meetingId || "null" == meetingId){
 	$("#tempid").val(meetingId);
 }
 
-function afterEdit(index,row){
-	row.editing = false;
-	var url = 'appointmentChannelInfoController.do?save&meetingId=' + meetingId;
-	$.ajax({
-		url : url,
-		data : row,
-		dataType : 'json',
-		async : false,
-		success : function(r) {
-			if (r.success) {
-				$('#dg').datagrid('acceptChanges');
-				$.messager.show({
-					msg : r.msg,
-					title : '成功'
-				});
-				editRow = undefined;
-				/* $('#dg').datagrid('reload'); */
-			} else {
-				/* datagrid.datagrid('rejectChanges'); */
-				$('#dg').datagrid('beginEdit', editRow);
-				$.messager.alert('错误', r.msg, 'error');
-			}
-			$('#dg').datagrid('unselectAll');
-		}
-	});
-}
-
+/*当本次请求为查看时，屏蔽datagrid的菜单按钮*/
 function initParams(){
 	$("#dg").datagrid('options').queryParams['meetingid'] = meetingId;
 	//当是查看请求时，则隐藏工具栏
 	if('detail' == $("#load").val()){
 		$("#tb a").hide();
-	}
-}
-
-function onClickRow(index){
-	if (editIndex != index){
-		if (endEditing()){
-			/* $('#dg').datagrid('selectRow', index)
-					.datagrid('beginEdit', index); */
-			editIndex = index;
-		} else {
-			$('#dg').datagrid('selectRow', editIndex);
-		}
 	}
 }
 
@@ -255,33 +217,6 @@ function transCheckBox(value, row, index) {
 	} else if (String(value) == '0') {
 		return formatString('<input type="checkbox" {0} disabled />', '');
 	}
-}
-
-function afterEdit(index,row){
-	row.editing = false;
-	var url = 'appointmentChannelInfoController.do?save&meetingId=' + meetingId;
-	$.ajax({
-		url : url,
-		data : row,
-		dataType : 'json',
-		async : false,
-		success : function(r) {
-			if (r.success) {
-				$('#dg').datagrid('acceptChanges');
-				$.messager.show({
-					msg : r.msg,
-					title : '成功'
-				});
-				editRow = undefined;
-				/* $('#dg').datagrid('reload'); */
-			} else {
-				/* datagrid.datagrid('rejectChanges'); */
-				$('#dg').datagrid('beginEdit', editRow);
-				$.messager.alert('错误', r.msg, 'error');
-			}
-			$('#dg').datagrid('unselectAll');
-		}
-	});
 }
 
 /**检查相关------BEGIN------**/
@@ -307,8 +242,8 @@ function checkDg(){
 	}else return true;
 }
 
-/**
-* 获取已被之前的频道选择的编码器ID
+/*
+* 获取已被之前的频道选择的编码器ID，以便过滤当前频道可选择的编码器列表
 */
 function getexcepts(){
 	var ids = new Array();
@@ -323,8 +258,8 @@ function getexcepts(){
 	excepts = ids.join(",");
 }
 
-/**
-* 检查是否录制
+/*
+* 当点击“开始直播”按钮时需要先检查是否录制，以便控制“开始录制”按钮的可用与否
 */
 function isrecord(){
 	var flag = false;
@@ -340,8 +275,21 @@ function isrecord(){
 
 /**检查相关------END------**/
 
-/**datagrid菜单按钮操作相关------BEGIN------**/
+/**datagrid操作相关------BEGIN------**/
 
+function onClickRow(index){
+	if (editIndex != index){
+		if (endEditing()){
+			/* $('#dg').datagrid('selectRow', index)
+					.datagrid('beginEdit', index); */
+			editIndex = index;
+		} else {
+			$('#dg').datagrid('selectRow', editIndex);
+		}
+	}
+}
+
+/*结束编辑前调用*/
 function endEditing() {
 	if (editIndex == undefined) {
 		return true
@@ -380,6 +328,35 @@ function endEditing() {
 	}
 }
 
+/*结束编辑后调用*/
+function afterEdit(index,row){
+	row.editing = false;
+	var url = 'appointmentChannelInfoController.do?save&meetingId=' + meetingId;
+	$.ajax({
+		url : url,
+		data : row,
+		dataType : 'json',
+		async : false,
+		success : function(r) {
+			if (r.success) {
+				$('#dg').datagrid('acceptChanges');
+				$.messager.show({
+					msg : r.msg,
+					title : '成功'
+				});
+				editRow = undefined;
+				/* $('#dg').datagrid('reload'); */
+			} else {
+				/* datagrid.datagrid('rejectChanges'); */
+				$('#dg').datagrid('beginEdit', editRow);
+				$.messager.alert('错误', r.msg, 'error');
+			}
+			$('#dg').datagrid('unselectAll');
+		}
+	});
+}
+
+/*新增一行*/
 function append() {
 	if (endEditing()) {
 		$('#dg').datagrid('appendRow', {
@@ -391,7 +368,7 @@ function append() {
 	}
 }
 
-/**删除行，如果当前行无ID信息，则说明是新增的信息，直接删除即可；否则说明当前行信息已被保存在数据库，需要询问用户是否继续删除以便从数据库永久删除**/
+/*删除行，如果当前行无ID信息，则说明是新增的信息，直接删除即可；否则说明当前行信息已被保存在数据库，需要询问用户是否继续删除以便从数据库永久删除*/
 function removeit() {
 	/* if (editIndex == undefined) {
 		return
@@ -436,7 +413,7 @@ function removeit() {
 	editIndex = undefined;
 }
 
-/**保存已被编辑的数据**/
+/*保存已被编辑的数据*/
 function accept() {
 	if (endEditing()) {
 		$('#dg').datagrid('acceptChanges');
@@ -447,11 +424,11 @@ function reject() {
 	editIndex = undefined;
 }
 
-/**datagrid菜单按钮操作相关------END------**/
+/**datagrid操作相关------END------**/
 
 /**窗口按钮操作相关------BEGIN------**/
 
-/**
+/*
 * 开始直播
 */
 function save(flag){
@@ -487,7 +464,7 @@ function save(flag){
 	});
 }
 
-/**
+/*
 * 根据直播会议ID设置开始录制
 */
 function startRecord(id){
@@ -505,7 +482,25 @@ function startRecord(id){
 	});
 }
 
-/**
+/*
+* 根据直播会议ID设置停止录制
+*/
+function startRecord(id){
+	var url = "meetingInfoController.do?stopRecord&id="+id;
+	$.ajax({
+		url: url,
+		success: function(data){
+			var d = $.parseJSON(data);
+			if (d.success) {
+				var msg = d.msg;
+				tip(msg);
+			}
+		},
+		cache: false
+	});
+}
+
+/*
 * 根据直播会议ID设置停止直播
 */
 function stopLive(id){
