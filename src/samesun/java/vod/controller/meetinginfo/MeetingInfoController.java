@@ -35,6 +35,7 @@ import vod.samesun.util.SystemType;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
 import vod.service.confcodecinfo.ConfCodecInfoServiceI;
 import vod.service.livesectionrecord.LiveSectionRecordServiceI;
+import vod.service.meetinghistory.MeetingHistoryServiceI;
 import vod.service.meetinginfo.MeetingInfoServiceI;
 import vod.service.meetinglivesession.MeetingLiveSessionServiceI;
 
@@ -64,6 +65,8 @@ public class MeetingInfoController extends BaseController {
 	private MeetingLiveSessionServiceI meetingLiveSessionService;
 	@Autowired
 	private LiveSectionRecordServiceI liveSectionRecordService;
+	@Autowired
+	private MeetingHistoryServiceI meetingHistoryService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -259,44 +262,92 @@ public class MeetingInfoController extends BaseController {
 	public AjaxJson startRecord(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws ParseException {
 		AjaxJson j = new AjaxJson();
 		if(StringUtil.isNotEmpty(id)){
-			logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
-			String result = liveSectionRecordService.StartChannelSectionRecord(id);
-			logger.info(result);
-			logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
-			if(StringUtil.isNotEmpty(result)){
+			MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
+			if(SystemType.MEETING_STATE_2.equals(meeting.getMeetingstate().toString())){
 				message = "开始录制";
-			}else{
+			}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
 				message = "录制失败";
+			}else{
+				
+				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
+				String result = liveSectionRecordService.StartChannelSectionRecord(id);
+				logger.info(result);
+				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
+				if(StringUtil.isNotEmpty(result)){
+					message = "开始录制";
+				}else{
+					message = "录制失败";
+				}
 			}
 			j.setMsg(message);
 		}else{
-			message = "程序发生错误,没有直播会议ID值";
+			message = "程序发生错误,缺少直播会议ID值";
 		}
 		return j;
 	}
 	
 	/**
-	 * 开始直播
+	 * 停止录制
 	 * 
 	 * @return
 	 */
 	@RequestMapping(params = "stopRecord")
-	public void stopRecord(MeetingInfoEntity meetingInfo, HttpServletRequest req) {
-		
+	public AjaxJson stopRecord(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) {
+		AjaxJson j = new AjaxJson();
+		if(StringUtil.isNotEmpty(id)){
+			MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
+			if(SystemType.MEETING_STATE_1.equals(meeting.getMeetingstate().toString())){
+				message = "停止录制";
+			}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
+				message = "停止录制失败";
+			}else{
+				
+				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
+				String result = liveSectionRecordService.EndChannelSectionRecord(id);
+				logger.info(result);
+				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
+				if(StringUtil.isNotEmpty(result)){
+					message = "停止录制";
+				}else{
+					message = "停止录制失败";
+				}
+			}
+			j.setMsg(message);
+		}else{
+			message = "程序发生错误,缺少直播会议ID值";
+		}
+		return j;
 	}
 	
 	/**
 	 * 结束直播
 	 * 
 	 * @return
+	 * @throws Exception 
 	 */
 	@RequestMapping(params = "stopLive")
-	public AjaxJson stopLive(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) {
+	public AjaxJson stopLive(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws Exception {
 		AjaxJson j = new AjaxJson();
 		if(StringUtil.isNotEmpty(id)){
 			message = "结束直播";
 			MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class, id);
+			String state = t.getMeetingstate().toString();
+			
+			//改变状态
 			t.setMeetingstate(new Integer(SystemType.MEETING_STATE_3));
+			t.setBillduration((int) ((DataUtils.getMillis()-t.getBillstarttime().getTime()) / (60 * 1000)));
+			
+			//如果当前直播会议状态为“直播并录制中”，则在执行“结束直播”时要先执行“结束录制”
+			if(SystemType.MEETING_STATE_2.equals(state)){
+				liveSectionRecordService.EndChannelSectionRecord(id);
+			}
+
+			//生成会议日志
+			meetingHistoryService.getHistoryFromLive(t);
+			
+			//生成点播信息
+			
+			
 			meetingInfoService.updateEntitie(t);
 			
 			//释放编码器
@@ -304,6 +355,7 @@ public class MeetingInfoController extends BaseController {
 			for(AppointmentChannelInfoEntity channel : channels){
 				appointmentChannelInfoService.linkCodec(channel, SystemType.CODEC_AVILABLE_0);
 			}
+			
 		}else{
 			message = "结束直播失败";
 		}
