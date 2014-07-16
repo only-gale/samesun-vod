@@ -50,40 +50,46 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	@Override
 	public String SectionRecord4DB(String meetingId, String channelID,
 			String sessionID, String Codec, String Priority, String fileName) {
-		String strRecordSrvID = "", strRtspSrvID = "";
+		String liveSectionId = "", strRecordSrvID = "", strRtspSrvID = "";
 		// 据Codec可以查询到相应的RecordSrvID,RtspSrvID
 		Map<String, Object> srvsMap = confRecordSrvInfoService
 				.getRecordSrvAndRtspSrv(Codec);
-		ConfRecordSrvInfoEntity recordSrv = (ConfRecordSrvInfoEntity) srvsMap
-				.get("ConfRecordsrvInfoPage");
-		if (null != recordSrv) {
-			strRecordSrvID = recordSrv.getId();
+		if(srvsMap != null && srvsMap.size() > 0){
+			
+			ConfRecordSrvInfoEntity recordSrv = (ConfRecordSrvInfoEntity) srvsMap
+					.get("ConfRecordsrvInfoPage");
+			if (null != recordSrv) {
+				strRecordSrvID = recordSrv.getId();
+			}
+			ConfRtspSrvInfoEntity rtspSrv = (ConfRtspSrvInfoEntity) srvsMap
+					.get("ConfRtspsrvInfoPage");
+			if (null != rtspSrv) {
+				strRtspSrvID = rtspSrv.getId();
+			}
+			
+			LiveSectionRecordEntity liveSection = new LiveSectionRecordEntity();
+			liveSection.setMeetingid(meetingId);
+			liveSection.setChannelid(channelID);
+			liveSection.setSessionid(sessionID);
+			liveSection.setCodecpriorityflg(Integer.parseInt(Priority));
+			liveSection.setCodecsrvid(Codec);
+			liveSection.setRecordsrvid(strRecordSrvID);
+			liveSection.setRtspsrvid(strRtspSrvID);
+			try {
+				liveSection.setRecStartDt(DataUtils.parseDate(
+						DataUtils.getDataString(DataUtils.datetimeFormat),
+						DataUtils.datetimeFormat.toPattern()));
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			liveSection.setRtsprelativedir(DataUtils.yyyyMM.format(DataUtils
+					.getDate()));
+			save(liveSection);
+			liveSectionId = liveSection.getId();
+		}else{
+			System.out.println("由于无法查询到编码器的录制服务和点播服务信息，所以无法创建录制信息");
 		}
-		ConfRtspSrvInfoEntity rtspSrv = (ConfRtspSrvInfoEntity) srvsMap
-				.get("ConfRtspsrvInfoPage");
-		if (null != rtspSrv) {
-			strRtspSrvID = rtspSrv.getId();
-		}
-
-		LiveSectionRecordEntity liveSection = new LiveSectionRecordEntity();
-		liveSection.setMeetingid(meetingId);
-		liveSection.setChannelid(channelID);
-		liveSection.setSessionid(sessionID);
-		liveSection.setCodecpriorityflg(new Integer(Priority));
-		liveSection.setCodecsrvid(Codec);
-		liveSection.setRecordsrvid(strRecordSrvID);
-		liveSection.setRtspsrvid(strRtspSrvID);
-		try {
-			liveSection.setRecStartDt(DataUtils.parseDate(
-					DataUtils.datetimeFormat.format(DataUtils.getDate()),
-					DataUtils.datetimeFormat.toString()));
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		liveSection.setRtsprelativedir(DataUtils.yyyyMM.format(DataUtils
-				.getDate()));
-		save(liveSection);
-		return liveSection.getId();
+		return liveSectionId;
 	}
 
 	@Override
@@ -92,8 +98,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 		MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
 				meetingId);
 		// 改变直播会议状态到"直播并录制中"
-		t.setMeetingstate(new Integer(SystemType.MEETING_STATE_2));
-		meetingInfoService.updateEntitie(t);
+		t.setMeetingstate(Integer.parseInt(SystemType.MEETING_STATE_2));
 
 		// 创建直播session
 		MeetingLiveSessionEntity liveSession = meetingLiveSessionService
@@ -111,7 +116,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 				// 生成文件名
 				String fileNameUUID = UUID.randomUUID().toString();
 				// 主编码器级别为1
-				if (isrecord1 == new Integer(SystemType.IS_RECORD_TYPE_1)) {
+				if (isrecord1 == Integer.parseInt(SystemType.IS_RECORD_TYPE_1)) {
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec1id, "1", fileNameUUID);
 					// TELNET
@@ -119,7 +124,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 				}
 				// 备编码器级别为2
 				if (StringUtil.isNotEmpty(codec2id)
-						&& isrecord2 == new Integer(SystemType.IS_RECORD_TYPE_1)
+						&& isrecord2 == Integer.parseInt(SystemType.IS_RECORD_TYPE_1)
 						&& !codec1id.equals(codec2id)) {
 					// 当主备编码器不相同时需要重新为备编码器生成文件名
 					String newFileName = UUID.randomUUID().toString();
@@ -128,7 +133,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 					// TELNET
 					resultStr += SectionRecord4Telnet(newFileName, codec1id);
 				} else if (StringUtil.isNotEmpty(codec2id)
-						&& isrecord2 == new Integer(SystemType.IS_RECORD_TYPE_1)
+						&& isrecord2 == Integer.parseInt(SystemType.IS_RECORD_TYPE_1)
 						&& codec1id.equals(codec2id)) {
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec2id, "2", fileNameUUID);
@@ -138,6 +143,8 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 			}
 		}
 
+		meetingInfoService.updateEntitie(t);
+		
 		return resultStr;
 	}
 
@@ -160,7 +167,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 		ConfRecordSrvInfoEntity recordsrv = null;
 		Map<String, Object> srvsMap = confRecordSrvInfoService
 				.getRecordSrvAndRtspSrv(codecId);
-		if (srvsMap != null) {
+		if (srvsMap != null && srvsMap.size() > 0) {
 			recordsrv = (ConfRecordSrvInfoEntity) srvsMap
 					.get("ConfRecordsrvInfoPage");
 			if (recordsrv != null) {
@@ -176,29 +183,42 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 		}
 
 		// telnet成功时
-		NetTelnet telnet = new NetTelnet(strIP, strPort);
-		if (telnet.isAvailable()) {
-			// 获取编码器地址
-			codecUrl = codecinfo.getCodecurl();
-			// 拼接开始录制命令
-			String reportMessage = ReportTelnetMessageStartRec(meetingId,
-					codecUrl);
-			// 发送开始录制命令
-			result = telnet.sendCommand(reportMessage);
-
-			// 验证telnet是否执行成功
-			if (resultTelnetMessage(result)) {
-				strMessage = "Codec:为" + codecName + "录制成功 ！ ";
+		if(StringUtil.isNotEmpty(strIP) && StringUtil.isNotEmpty(strPort)){
+			NetTelnet telnet = new NetTelnet(strIP, strPort);
+			if (telnet.isAvailable()) {
+				// 获取编码器地址
+				codecUrl = codecinfo.getCodecurl();
+				// 拼接开始录制命令
+				String reportMessage = ReportTelnetMessageStartRec(meetingId,
+						codecUrl);
+				// 发送开始录制命令
+				result = telnet.sendCommand(reportMessage);
+				
+				// 验证telnet是否执行成功
+				if (resultTelnetMessage(result)) {
+					strMessage = "Codec:为" + codecName + "录制成功 ！ ";
+				} else {
+					strMessage = "Codec:为" + codecName + " 录制失败 ！";
+				}
 			} else {
-				strMessage = "Codec:为" + codecName + " 录制失败 ！";
+				strMessage = "Codec:为" + codecName
+						+ ",telnet通讯不正常，无法链接，请与技术支持人员联系!";
 			}
-		} else {
-			strMessage = "Codec:为" + codecName
-					+ ",telnet通讯不正常，无法链接，请与技术支持人员联系!";
+			// 最后一定要关闭
+			telnet.disconnect();
+		}else{
+			if(StringUtil.isEmpty(strIP)){
+				strMessage = "Codec:为" + codecName
+						+ ",无法获取编码器IP地址!";
+			}else if(StringUtil.isEmpty(strPort)){
+				strMessage = "Codec:为" + codecName
+						+ ",无法获取编码器端口号!";
+			}else{
+				strMessage = "Codec:为" + codecName
+						+ ",无法获取编码器IP地址和端口号!";
+			}
 		}
 
-		// 最后一定要关闭
-		telnet.disconnect();
 		return strMessage;
 	}
 

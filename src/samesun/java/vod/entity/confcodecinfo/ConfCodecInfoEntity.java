@@ -42,6 +42,8 @@ public class ConfCodecInfoEntity implements java.io.Serializable {
 	private java.lang.String codecurl;
 	/**是否启用*/
 	private java.lang.String disable;
+	/**与RECORD关联关系ID*/
+	private java.lang.String cr;
 	/**创建人*/
 	private java.lang.String createBy;
 	/**创建人名字*/
@@ -99,7 +101,7 @@ public class ConfCodecInfoEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  地理位置
 	 */
-	@Column(name ="GROUPID",nullable=true,length=36)
+	@Column(name ="GROUPID",nullable=false,length=36)
 	public java.lang.String getGroupid(){
 		return this.groupid;
 	}
@@ -115,7 +117,7 @@ public class ConfCodecInfoEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  路数占用情况
 	 */
-	@Column(name ="RESOURCES",nullable=true,length=2)
+	@Column(name ="RESOURCES",nullable=false,length=2)
 	public java.lang.String getResources(){
 		return this.resources;
 	}
@@ -207,6 +209,16 @@ public class ConfCodecInfoEntity implements java.io.Serializable {
 	public void setDisable(java.lang.String disable){
 		this.disable = disable;
 	}
+	
+	@Column(name ="CR",nullable=false,length=1)
+	public java.lang.String getCr() {
+		return cr;
+	}
+
+	public void setCr(java.lang.String cr) {
+		this.cr = cr;
+	}
+
 	/**
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  创建人

@@ -120,7 +120,7 @@
 			name: '停止录制',
             callback: function(){
             	iframe = this.iframe.contentWindow;
-            	alert('停止录制');
+            	iframe.stopRecord($("#id", iframe.document).val());
 				return false;
             },
             disabled: true

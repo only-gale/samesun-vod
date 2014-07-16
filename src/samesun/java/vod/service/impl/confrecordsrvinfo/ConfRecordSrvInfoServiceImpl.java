@@ -28,29 +28,33 @@ public class ConfRecordSrvInfoServiceImpl extends CommonServiceImpl implements C
 		srvsMap.put("ConfCodecInfoPage",codec);
 		List<ConfCodecRecordSrvEntity> recordSrves = this.findByProperty(ConfCodecRecordSrvEntity.class, "codecid", codecId);
 		Collections.reverse(recordSrves);
-		ConfCodecRecordSrvEntity recordSrv = recordSrves.get(0);
-		String recordSrvId = recordSrv.getRecordsrvid();
-		if(StringUtil.isNotEmpty(recordSrvId)){
-			
-			ConfRecordSrvInfoEntity recordSrvInfo = this.get(ConfRecordSrvInfoEntity.class, recordSrvId);
-			srvsMap.put("ConfRecordsrvInfoPage",recordSrvInfo);
-			
-			List<ConfRecordRtspSrvEntity> recordRtspSrves = this.findByProperty(ConfRecordRtspSrvEntity.class, "recordsrvid", recordSrvId);
-			Collections.reverse(recordRtspSrves);
-			ConfRecordRtspSrvEntity recordRtspSrv = recordRtspSrves.get(0);
-			
-			String recordRtspSrvId = recordRtspSrv.getRtspsrvid();
-			if(StringUtil.isNotEmpty(recordRtspSrvId)){
-				ConfRtspSrvInfoEntity rtspSrv = this.get(ConfRtspSrvInfoEntity.class, recordRtspSrvId);
-				srvsMap.put("ConfRtspsrvInfoPage", rtspSrv);
+		if(recordSrves != null && recordSrves.size() > 0){
+			ConfCodecRecordSrvEntity recordSrv = recordSrves.get(0);
+			String recordSrvId = recordSrv.getRecordsrvid();
+			if(StringUtil.isNotEmpty(recordSrvId)){
+				
+				ConfRecordSrvInfoEntity recordSrvInfo = this.get(ConfRecordSrvInfoEntity.class, recordSrvId);
+				srvsMap.put("ConfRecordsrvInfoPage",recordSrvInfo);
+				
+				List<ConfRecordRtspSrvEntity> recordRtspSrves = this.findByProperty(ConfRecordRtspSrvEntity.class, "recordsrvid", recordSrvId);
+				Collections.reverse(recordRtspSrves);
+				if(recordRtspSrves != null && recordRtspSrves.size() > 0){
+					ConfRecordRtspSrvEntity recordRtspSrv = recordRtspSrves.get(0);
+					
+					String recordRtspSrvId = recordRtspSrv.getRtspsrvid();
+					if(StringUtil.isNotEmpty(recordRtspSrvId)){
+						ConfRtspSrvInfoEntity rtspSrv = this.get(ConfRtspSrvInfoEntity.class, recordRtspSrvId);
+						srvsMap.put("ConfRtspsrvInfoPage", rtspSrv);
+					}else{
+						System.out.println("CRECORDSRVID服务器ID：" + recordSrvId + "没有配置相应的RTSP Server服务器");
+					}
+				}
 			}else{
-				System.out.println("CRECORDSRVID服务器ID：" + recordSrvId + "没有配置相应的RTSP Server服务器");
+				System.out.println("codec服务器ID：" + codecId + "没有配置相应的recordsrv录制服务器");
 			}
-		}else{
-			System.out.println("codec服务器ID：" + codecId + "没有配置相应的recordsrv录制服务器");
 		}
 		
-		
+		System.out.println("codec服务器ID：" + codecId + "没有配置相应的录制服务器和点播服务器");
 		return srvsMap;
 	}
 	

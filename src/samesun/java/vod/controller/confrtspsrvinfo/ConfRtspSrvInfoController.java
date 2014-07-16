@@ -20,6 +20,7 @@ import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.core.util.MyBeanUtils;
 
 import vod.entity.confrtspsrvinfo.ConfRtspSrvInfoEntity;
+import vod.samesun.util.SystemType;
 import vod.service.confrtspsrvinfo.ConfRtspSrvInfoServiceI;
 
 /**   
@@ -125,6 +126,8 @@ public class ConfRtspSrvInfoController extends BaseController {
 			}
 		} else {
 			message = "点播服务器添加成功";
+			//默认未启用
+			confRtspSrvInfo.setDisable(SystemType.CODEC_AVILABLE_0);
 			confRtspSrvInfoService.save(confRtspSrvInfo);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}

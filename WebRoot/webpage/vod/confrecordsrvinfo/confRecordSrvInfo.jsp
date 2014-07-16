@@ -85,6 +85,22 @@
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
+							点播服务器:
+						</label>
+					</td>
+					<td class="value">
+						<select id="rtsp" name="rtsp" class="easyui-combobox" data-options="panelHeight:'auto'" datatype="*">
+						<c:forEach items="${rtsps}" var="rtsp">
+							<option value="${rtsp.id }"
+								<c:if test="${confRecordSrvInfoPage.rtsp eq rtsp.id}"> selected='selected'</c:if>>${rtsp.name }</option>
+						</c:forEach>
+				</select>
+						<span class="Validform_checktip"></span>
+					</td>
+				</tr>
+				<%-- <tr>
+					<td align="right">
+						<label class="Validform_label">
 							是否启用:
 						</label>
 					</td>
@@ -93,91 +109,7 @@
 							   value="${confRecordSrvInfoPage.disable}" datatype="*">
 						<span class="Validform_checktip"></span>
 					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							创建人:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="crtuser" name="crtuser" ignore="ignore"
-							   value="${confRecordSrvInfoPage.crtuser}">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							创建人名字:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="crtuserName" name="crtuserName" ignore="ignore"
-							   value="${confRecordSrvInfoPage.crtuserName}">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							创建时间:
-						</label>
-					</td>
-					<td class="value">
-						<input class="Wdate" onClick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"  style="width: 150px" id="createDt" name="createDt" ignore="ignore"
-							     value="<fmt:formatDate value='${confRecordSrvInfoPage.createDt}' type="date" pattern="yyyy-MM-dd hh:mm:ss"/>">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							修改人:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="modifier" name="modifier" ignore="ignore"
-							   value="${confRecordSrvInfoPage.modifier}">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							修改人名字:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="modifierName" name="modifierName" ignore="ignore"
-							   value="${confRecordSrvInfoPage.modifierName}">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							修改时间:
-						</label>
-					</td>
-					<td class="value">
-						<input class="Wdate" onClick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"  style="width: 150px" id="modifyDt" name="modifyDt" ignore="ignore"
-							     value="<fmt:formatDate value='${confRecordSrvInfoPage.modifyDt}' type="date" pattern="yyyy-MM-dd hh:mm:ss"/>">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							删除时间:
-						</label>
-					</td>
-					<td class="value">
-						<input class="Wdate" onClick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"  style="width: 150px" id="delDt" name="delDt" ignore="ignore"
-							     value="<fmt:formatDate value='${confRecordSrvInfoPage.delDt}' type="date" pattern="yyyy-MM-dd hh:mm:ss"/>">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
+				</tr> --%>
 			</table>
 		</t:formvalid>
  </body>

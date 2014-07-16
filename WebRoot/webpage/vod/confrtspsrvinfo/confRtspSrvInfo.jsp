@@ -19,7 +19,7 @@
 					<td class="value">
 						<input class="inputxt" id="name" name="name" 
 							   value="${confRtspSrvInfoPage.name}" datatype="*">
-						<span class="Validform_checktip"></span>
+						<!-- <span class="Validform_checktip"></span> -->
 					</td>
 				</tr>
 				<tr>
@@ -70,7 +70,7 @@
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
-				<tr>
+				<%-- <tr>
 					<td align="right">
 						<label class="Validform_label">
 							是否启用:
@@ -81,7 +81,7 @@
 							   value="${confRtspSrvInfoPage.disable}" datatype="*">
 						<span class="Validform_checktip"></span>
 					</td>
-				</tr>
+				</tr> --%>
 			</table>
 		</t:formvalid>
  </body>

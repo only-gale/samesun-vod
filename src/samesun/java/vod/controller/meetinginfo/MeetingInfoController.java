@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
+import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.samesun.util.SystemType;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
@@ -38,6 +39,8 @@ import vod.service.livesectionrecord.LiveSectionRecordServiceI;
 import vod.service.meetinghistory.MeetingHistoryServiceI;
 import vod.service.meetinginfo.MeetingInfoServiceI;
 import vod.service.meetinglivesession.MeetingLiveSessionServiceI;
+import vod.service.vodsectionrecord.VodSectionRecordServiceI;
+import vod.service.vodsession.VodSessionServiceI;
 
 /**   
  * @Title: Controller
@@ -67,6 +70,10 @@ public class MeetingInfoController extends BaseController {
 	private LiveSectionRecordServiceI liveSectionRecordService;
 	@Autowired
 	private MeetingHistoryServiceI meetingHistoryService;
+	@Autowired
+	private VodSessionServiceI vodSessionService;
+	@Autowired
+	private VodSectionRecordServiceI vodSectionRecordService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -125,8 +132,25 @@ public class MeetingInfoController extends BaseController {
 		message = "会议信息删除成功";
 		//先删除频道信息
 		List<AppointmentChannelInfoEntity> channels = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingInfo.getId());
+		//释放编码器资源
+		for(AppointmentChannelInfoEntity c : channels){
+			String id1 = c.getCodec1id(), id2 = c.getCodec2id();
+			ConfCodecInfoEntity c1 = systemService.getEntity(ConfCodecInfoEntity.class, id1);
+			if(SystemType.CODEC_AVILABLE_1.equals(c1.getDisable())){
+				c1.setDisable(SystemType.CODEC_AVILABLE_0);
+				systemService.updateEntitie(c1);
+			}
+			if(StringUtil.isNotEmpty(id2) && !id2.equals(id1)){
+				ConfCodecInfoEntity c2 = systemService.getEntity(ConfCodecInfoEntity.class, id2);
+				if(SystemType.CODEC_AVILABLE_1.equals(c2.getDisable())){
+					c2.setDisable(SystemType.CODEC_AVILABLE_0);
+					systemService.updateEntitie(c2);
+				}
+			}
+		}
 		meetingInfoService.deleteAllEntitie(channels);
-		//再删除预约会议信息
+		
+		//最后删除预约会议信息
 		meetingInfoService.delete(meetingInfo);
 		systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 		
@@ -141,10 +165,11 @@ public class MeetingInfoController extends BaseController {
 	 * @param ids
 	 * @return
 	 * @throws IOException 
+	 * @throws ParseException 
 	 */
 	@RequestMapping(params = "save")
 	@ResponseBody
-	public AjaxJson save(MeetingInfoEntity meetingInfo, HttpServletRequest request, HttpServletResponse response, String tempid, String id, String typeid, String subject, String compere, String introduction) throws IOException {
+	public AjaxJson save(MeetingInfoEntity meetingInfo, HttpServletRequest request, HttpServletResponse response, String tempid, String id, String typeid, String subject, String compere, String introduction, String isrecord) throws IOException, ParseException {
 		System.out.println(request.getParameter("flag"));
 		AjaxJson j = new AjaxJson();
 		//记录会议ID值
@@ -174,6 +199,10 @@ public class MeetingInfoController extends BaseController {
 			meetingInfo.setIsasflive(new Integer(SystemType.LIVE_TYPE_1));
 			//设置直播状态为直播中
 			meetingInfo.setMeetingstate(new Integer(SystemType.MEETING_STATE_1));
+			//设置直播开始时间为现在
+			meetingInfo.setBillstarttime(DataUtils.parseDate(DataUtils.getDataString(DataUtils.datetimeFormat), DataUtils.datetimeFormat.toPattern()));
+			//设置是否录制标志
+			meetingInfo.setIsrecord(new Integer(isrecord));
 			
 			meetingInfoService.save(meetingInfo);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
@@ -269,20 +298,21 @@ public class MeetingInfoController extends BaseController {
 				message = "录制失败";
 			}else{
 				
-				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
+				logger.info("开始录制之前时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
 				String result = liveSectionRecordService.StartChannelSectionRecord(id);
 				logger.info(result);
-				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
-				if(StringUtil.isNotEmpty(result)){
+				logger.info("开始录制之后时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
+				message = "开始录制";
+				/*if(StringUtil.isNotEmpty(result)){
 					message = "开始录制";
 				}else{
 					message = "录制失败";
-				}
+				}*/
 			}
-			j.setMsg(message);
 		}else{
 			message = "程序发生错误,缺少直播会议ID值";
 		}
+		j.setMsg(message);
 		return j;
 	}
 	
@@ -335,7 +365,7 @@ public class MeetingInfoController extends BaseController {
 			
 			//改变状态
 			t.setMeetingstate(new Integer(SystemType.MEETING_STATE_3));
-			t.setBillduration((int) ((DataUtils.getMillis()-t.getBillstarttime().getTime()) / (60 * 1000)));
+			t.setBillduration((int) ((DataUtils.getMillis() - t.getBillstarttime().getTime()) / (60 * 1000)));
 			
 			//如果当前直播会议状态为“直播并录制中”，则在执行“结束直播”时要先执行“结束录制”
 			if(SystemType.MEETING_STATE_2.equals(state)){
@@ -345,8 +375,11 @@ public class MeetingInfoController extends BaseController {
 			//生成会议日志
 			meetingHistoryService.getHistoryFromLive(t);
 			
-			//生成点播信息
+			//生成点播会话信息
+			vodSessionService.getSessionByMeetingId(id);
 			
+			//生成点播明细
+			vodSectionRecordService.getVodSectionRecordByMeetingId(id);
 			
 			meetingInfoService.updateEntitie(t);
 			
@@ -357,7 +390,7 @@ public class MeetingInfoController extends BaseController {
 			}
 			
 		}else{
-			message = "结束直播失败";
+			message = "结束直播失败,缺少直播会议ID值";
 		}
 		j.setMsg(message);
 		return j;

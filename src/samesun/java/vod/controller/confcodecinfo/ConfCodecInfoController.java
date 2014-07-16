@@ -1,6 +1,7 @@
 package vod.controller.confcodecinfo;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,11 +23,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.alibaba.fastjson.JSON;
-
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
+import vod.entity.confcodecrecordsrv.ConfCodecRecordSrvEntity;
+import vod.page.confcodecinfo.ConfCodecInfoPage;
 import vod.samesun.util.ComboboxBean;
+import vod.samesun.util.RECORDComparator;
 import vod.service.confcodecinfo.ConfCodecInfoServiceI;
+
+import com.alibaba.fastjson.JSON;
 
 /**   
  * @Title: Controller
@@ -116,7 +120,7 @@ public class ConfCodecInfoController extends BaseController {
 	 */
 	@RequestMapping(params = "save")
 	@ResponseBody
-	public AjaxJson save(ConfCodecInfoEntity confCodecInfo, HttpServletRequest request) {
+	public AjaxJson save(ConfCodecInfoEntity confCodecInfo, HttpServletRequest request, String record) {
 		AjaxJson j = new AjaxJson();
 		if (StringUtil.isNotEmpty(confCodecInfo.getId())) {
 			message = "编码器配置信息更新成功";
@@ -125,6 +129,13 @@ public class ConfCodecInfoController extends BaseController {
 				MyBeanUtils.copyBeanNotNull2Bean(confCodecInfo, t);
 				confCodecInfoService.saveOrUpdate(t);
 				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
+				
+				ConfCodecRecordSrvEntity ccr = confCodecInfoService.get(ConfCodecRecordSrvEntity.class, t.getCr());
+				if(ccr != null && StringUtil.isNotEmpty(record) && !record.equals(ccr.getRecordsrvid())){
+					ccr.setRecordsrvid(record);
+					confCodecInfoService.updateEntitie(ccr);
+				}
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				message = "编码器配置信息更新失败";
@@ -133,7 +144,17 @@ public class ConfCodecInfoController extends BaseController {
 			message = "编码器配置信息添加成功";
 			confCodecInfoService.save(confCodecInfo);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+			
+			ConfCodecRecordSrvEntity cr = new ConfCodecRecordSrvEntity();
+			cr.setCodecid(confCodecInfo.getId());
+			cr.setRecordsrvid(record);
+			confCodecInfoService.save(cr);
+			
+			confCodecInfo.setCr(cr.getId());
+			confCodecInfoService.updateEntitie(confCodecInfo);
 		}
+		
+		
 		j.setMsg(message);
 		return j;
 	}
@@ -142,13 +163,23 @@ public class ConfCodecInfoController extends BaseController {
 	 * 编码器配置信息列表页面跳转
 	 * 
 	 * @return
+	 * @throws Exception 
 	 */
 	@RequestMapping(params = "addorupdate")
-	public ModelAndView addorupdate(ConfCodecInfoEntity confCodecInfo, HttpServletRequest req) {
+	public ModelAndView addorupdate(ConfCodecInfoEntity confCodecInfo, HttpServletRequest req) throws Exception {
 		if (StringUtil.isNotEmpty(confCodecInfo.getId())) {
 			confCodecInfo = confCodecInfoService.getEntity(ConfCodecInfoEntity.class, confCodecInfo.getId());
-			req.setAttribute("confCodecInfoPage", confCodecInfo);
+			ConfCodecInfoPage page = new ConfCodecInfoPage();
+			MyBeanUtils.copyBeanNotNull2Bean(confCodecInfo, page);
+			ConfCodecRecordSrvEntity cr = confCodecInfoService.get(ConfCodecRecordSrvEntity.class, confCodecInfo.getCr());
+			page.setRecord(cr.getRecordsrvid());
+			req.setAttribute("confCodecInfoPage", page);
 		}
+		
+		List<ConfCodecInfoEntity> records = confCodecInfoService.loadAll(ConfCodecInfoEntity.class);
+		Collections.sort(records, new RECORDComparator());
+		req.setAttribute("records", records);
+		
 		return new ModelAndView("vod/confcodecinfo/confCodecInfo");
 	}
 	

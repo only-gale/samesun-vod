@@ -97,6 +97,20 @@
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
+							录制服务器:
+						</label>
+					</td>
+					<td class="value">
+						<select id="record" name="record" class="easyui-combobox" data-options="panelHeight:'auto'" datatype="*">
+						<c:forEach items="${records}" var="record">
+							<option value="${record.id }"
+								<c:if test="${confCodecInfoPage.record eq record.id}"> selected='selected'</c:if>>${record.name }</option>
+						</c:forEach>
+				</select>
+				</td>
+				<%-- <tr>
+					<td align="right">
+						<label class="Validform_label">
 							是否启用:
 						</label>
 					</td>
@@ -105,7 +119,7 @@
 							   value="${confCodecInfoPage.disable}" datatype="*">
 						<span class="Validform_checktip"></span>
 					</td>
-				</tr>
+				</tr> --%>
 			</table>
 		</t:formvalid>
  </body>

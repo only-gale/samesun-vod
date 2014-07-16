@@ -440,6 +440,14 @@ function save(flag){
 	var subject = $("#subject").val();
 	var compere = $("#compere").val();
 	var introduction = $("#introduction").val();
+	var isrecord = 0;
+	var rows = $("#dg").datagrid("getRows");
+	for(var i = 0; i < rows.length; i++){
+		if(rows[i].isrecord1 == '1' || rows[i].isrecord2 == '1'){
+			isrecord = 1;
+			break;
+		}
+	}
 	var jsonData = {
 			id: id,
 			load: load,
@@ -447,7 +455,8 @@ function save(flag){
 			typeid: typeid,
 			subject: subject,
 			compere: compere,
-			introduction: introduction
+			introduction: introduction,
+			isrecord: isrecord
 	}
 	$.ajax({
 		url: url,
@@ -468,9 +477,13 @@ function save(flag){
 * 根据直播会议ID设置开始录制
 */
 function startRecord(id){
-	var url = "meetingInfoController.do?startRecord&id="+id;
+	var url = "meetingInfoController.do?startRecord";
+	var jsonData = {
+			id: id
+	};
 	$.ajax({
 		url: url,
+		data: jsonData,
 		success: function(data){
 			var d = $.parseJSON(data);
 			if (d.success) {
@@ -485,7 +498,7 @@ function startRecord(id){
 /*
 * 根据直播会议ID设置停止录制
 */
-function startRecord(id){
+function stopRecord(id){
 	var url = "meetingInfoController.do?stopRecord&id="+id;
 	$.ajax({
 		url: url,

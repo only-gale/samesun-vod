@@ -40,6 +40,8 @@ public class ConfRecordSrvInfoEntity implements java.io.Serializable {
 	private java.lang.String path;
 	/**是否启用*/
 	private java.lang.String disable;
+	/**与RTSP关联表ID*/
+	private java.lang.String rr;
 	/**创建人*/
 	private java.lang.String crtuser;
 	/**创建人名字*/
@@ -189,6 +191,16 @@ public class ConfRecordSrvInfoEntity implements java.io.Serializable {
 	public void setDisable(java.lang.String disable){
 		this.disable = disable;
 	}
+	
+	@Column(name ="RR",nullable=false,length=1)
+	public java.lang.String getRr() {
+		return rr;
+	}
+
+	public void setRr(java.lang.String rr) {
+		this.rr = rr;
+	}
+
 	/**
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  创建人

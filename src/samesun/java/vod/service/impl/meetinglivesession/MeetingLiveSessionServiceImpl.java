@@ -19,7 +19,7 @@ public class MeetingLiveSessionServiceImpl extends CommonServiceImpl implements 
 		MeetingLiveSessionEntity liveSession = new MeetingLiveSessionEntity();
 		try {
 			liveSession.setMeetingid(meetingId);
-			liveSession.setBegindt(DataUtils.parseDate(DataUtils.datetimeFormat.format(DataUtils.getDate()), DataUtils.datetimeFormat.toString()));
+			liveSession.setBegindt(DataUtils.parseDate(DataUtils.getDataString(DataUtils.datetimeFormat), DataUtils.datetimeFormat.toPattern()));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
