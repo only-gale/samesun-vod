@@ -178,11 +178,4 @@ public class ConfCodecInfoController extends BaseController {
 			e.printStackTrace();
 		}
 	}
-	
-	@RequestMapping(params = "availableCodecs")
-	public AjaxJson getAvailableCodecs(HttpServletRequest request, HttpServletResponse response, String meetingType, String excepts, String appointmentStarttime, String appointmentDuration){
-		AjaxJson j = new AjaxJson();
-		List<ConfCodecInfoEntity> availables = confCodecInfoService.getAvailableCodecs(meetingType, appointmentStarttime, appointmentDuration);
-		return j;
-	}
 }

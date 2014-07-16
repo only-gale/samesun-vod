@@ -19,14 +19,12 @@ import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
-import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.core.util.MyBeanUtils;
 
 import com.alibaba.fastjson.JSON;
 
 import vod.entity.authoritygroup.AuthorityGroupEntity;
-import vod.entity.authorityusergroup.AuthorityUserGroupEntity;
 import vod.samesun.util.ComboboxBean;
 import vod.service.authoritygroup.AuthorityGroupServiceI;
 
@@ -44,6 +42,7 @@ public class AuthorityGroupController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
+	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AuthorityGroupController.class);
 
 	@Autowired
@@ -80,6 +79,7 @@ public class AuthorityGroupController extends BaseController {
 	 * @param user
 	 */
 
+	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(AuthorityGroupEntity authorityGroup,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
 		CriteriaQuery cq = new CriteriaQuery(AuthorityGroupEntity.class, dataGrid);

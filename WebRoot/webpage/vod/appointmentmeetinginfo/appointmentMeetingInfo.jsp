@@ -411,6 +411,7 @@
 			tip('请填写预约时间和预约持续时间');
 			return false
 		}else{
+			//获取当前频道之外已被选择的编码器id值并以逗号分隔，用于过滤当前频道可选择的编码器
 			var ids = new Array();
 			var index = 0;
 			var rows = $("#dg").datagrid('getRows');

@@ -2,6 +2,7 @@ package vod.samesun.util;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+
 import org.apache.commons.net.telnet.TelnetClient;
 
 /**
@@ -25,8 +26,10 @@ public class NetTelnet {
 	// telnet端口
 	private String port;
 	// 用户
+	@SuppressWarnings("unused")
 	private String user;
 	// 密码
+	@SuppressWarnings("unused")
 	private String password;
 	// IP地址
 	private String ip;

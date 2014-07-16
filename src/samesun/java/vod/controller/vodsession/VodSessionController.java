@@ -1,5 +1,4 @@
 package vod.controller.vodsession;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.json.AjaxJson;
@@ -18,7 +16,6 @@ import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
-import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.core.util.MyBeanUtils;
 
@@ -39,6 +36,7 @@ public class VodSessionController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
+	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(VodSessionController.class);
 
 	@Autowired
@@ -75,6 +73,7 @@ public class VodSessionController extends BaseController {
 	 * @param user
 	 */
 
+	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(VodSessionEntity vodSession,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
 		CriteriaQuery cq = new CriteriaQuery(VodSessionEntity.class, dataGrid);

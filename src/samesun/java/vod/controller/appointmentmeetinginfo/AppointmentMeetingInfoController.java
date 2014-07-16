@@ -49,6 +49,7 @@ public class AppointmentMeetingInfoController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
+	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AppointmentMeetingInfoController.class);
 
 	@Autowired
@@ -89,6 +90,7 @@ public class AppointmentMeetingInfoController extends BaseController {
 	 * @param user
 	 */
 
+	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(AppointmentMeetingInfoEntity appointmentMeetingInfo,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
 		//按照预约时间倒序排列
