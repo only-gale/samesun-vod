@@ -1,8 +1,6 @@
 package vod.service.impl.confrecordsrvinfo;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
@@ -26,35 +24,33 @@ public class ConfRecordSrvInfoServiceImpl extends CommonServiceImpl implements C
 		Map<String, Object> srvsMap=new HashMap<String, Object>();
 		ConfCodecInfoEntity codec = this.get(ConfCodecInfoEntity.class, codecId);
 		srvsMap.put("ConfCodecInfoPage",codec);
-		List<ConfCodecRecordSrvEntity> recordSrves = this.findByProperty(ConfCodecRecordSrvEntity.class, "codecid", codecId);
-		Collections.reverse(recordSrves);
-		if(recordSrves != null && recordSrves.size() > 0){
-			ConfCodecRecordSrvEntity recordSrv = recordSrves.get(0);
+		//根据编码器查找与录制服务器的依赖关系
+		ConfCodecRecordSrvEntity recordSrv = this.get(ConfCodecRecordSrvEntity.class, codec.getCr());
+		if(recordSrv != null){
+			//得到编码器依赖的录制服务器
 			String recordSrvId = recordSrv.getRecordsrvid();
-			if(StringUtil.isNotEmpty(recordSrvId)){
-				
-				ConfRecordSrvInfoEntity recordSrvInfo = this.get(ConfRecordSrvInfoEntity.class, recordSrvId);
-				srvsMap.put("ConfRecordsrvInfoPage",recordSrvInfo);
-				
-				List<ConfRecordRtspSrvEntity> recordRtspSrves = this.findByProperty(ConfRecordRtspSrvEntity.class, "recordsrvid", recordSrvId);
-				Collections.reverse(recordRtspSrves);
-				if(recordRtspSrves != null && recordRtspSrves.size() > 0){
-					ConfRecordRtspSrvEntity recordRtspSrv = recordRtspSrves.get(0);
-					
+			ConfRecordSrvInfoEntity recordSrvInfo = this.get(ConfRecordSrvInfoEntity.class, recordSrvId);
+			srvsMap.put("ConfRecordsrvInfoPage",recordSrvInfo);
+			if(recordSrvInfo != null){
+				//根据录制服务器查找与点播服务器的依赖关系
+				ConfRecordRtspSrvEntity recordRtspSrv = this.get(ConfRecordRtspSrvEntity.class, recordSrvInfo.getRr());
+				if(recordRtspSrv != null){
+					//得到录制服务器依赖的点播服务器
 					String recordRtspSrvId = recordRtspSrv.getRtspsrvid();
 					if(StringUtil.isNotEmpty(recordRtspSrvId)){
 						ConfRtspSrvInfoEntity rtspSrv = this.get(ConfRtspSrvInfoEntity.class, recordRtspSrvId);
 						srvsMap.put("ConfRtspsrvInfoPage", rtspSrv);
 					}else{
-						System.out.println("CRECORDSRVID服务器ID：" + recordSrvId + "没有配置相应的RTSP Server服务器");
+						System.out.println("录制服务器ID：" + recordSrvId + "没有配置相应的点播服务器");
 					}
 				}
 			}else{
-				System.out.println("codec服务器ID：" + codecId + "没有配置相应的recordsrv录制服务器");
+				System.out.println("编码器ID：" + codecId + "没有配置相应的录制服务器");
 			}
+		}else{
+			System.out.println("编码器ID：" + codecId + "没有配置相应的录制服务器和点播服务器");
 		}
 		
-		System.out.println("codec服务器ID：" + codecId + "没有配置相应的录制服务器和点播服务器");
 		return srvsMap;
 	}
 	

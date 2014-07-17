@@ -1,5 +1,6 @@
 package vod.service.impl.livesectionrecord;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,6 +13,7 @@ import org.jeecgframework.core.util.DataUtils;
 import org.jeecgframework.core.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
@@ -93,6 +95,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	}
 
 	@Override
+	@Transactional(propagation=Propagation.REQUIRED,readOnly=false,rollbackFor=IOException.class)
 	public String StartChannelSectionRecord(String meetingId) {
 		String resultStr = "";
 		MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
@@ -120,7 +123,12 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec1id, "1", fileNameUUID);
 					// TELNET
-					resultStr += SectionRecord4Telnet(fileNameUUID, codec1id);
+					try {
+						resultStr += SectionRecord4Telnet(fileNameUUID, codec1id);
+					} catch (IOException e) {
+						resultStr += e.getMessage();
+						e.printStackTrace();
+					}
 				}
 				// 备编码器级别为2
 				if (StringUtil.isNotEmpty(codec2id)
@@ -131,14 +139,24 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec2id, "2", newFileName);
 					// TELNET
-					resultStr += SectionRecord4Telnet(newFileName, codec1id);
+					try {
+						resultStr += SectionRecord4Telnet(newFileName, codec1id);
+					} catch (IOException e) {
+						resultStr += e.getMessage();
+						e.printStackTrace();
+					}
 				} else if (StringUtil.isNotEmpty(codec2id)
 						&& isrecord2 == Integer.parseInt(SystemType.IS_RECORD_TYPE_1)
 						&& codec1id.equals(codec2id)) {
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec2id, "2", fileNameUUID);
 					// TELNET
-					resultStr += SectionRecord4Telnet(fileNameUUID, codec2id);
+					try {
+						resultStr += SectionRecord4Telnet(fileNameUUID, codec2id);
+					} catch (IOException e) {
+						resultStr += e.getMessage();
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -155,8 +173,9 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	 * @param Codec
 	 *            codec服务器Id,可以查询出录制服务器ID及RtspServer服务器ID
 	 * @return 返回Json String
+	 * @throws IOException 
 	 */
-	private String SectionRecord4Telnet(String meetingId, String codecId) {
+	private String SectionRecord4Telnet(String meetingId, String codecId) throws IOException {
 		String strMessage = "Telnet通讯成功!";
 		String strIP = "";
 		String strPort = "";
@@ -196,13 +215,15 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 				
 				// 验证telnet是否执行成功
 				if (resultTelnetMessage(result)) {
-					strMessage = "Codec:为" + codecName + "录制成功 ！ ";
+					strMessage = "Codec:为" + codecName + " 录制成功 ！ ";
 				} else {
 					strMessage = "Codec:为" + codecName + " 录制失败 ！";
+					throw new IOException(strMessage);
 				}
 			} else {
 				strMessage = "Codec:为" + codecName
 						+ ",telnet通讯不正常，无法链接，请与技术支持人员联系!";
+				throw new IOException(strMessage);
 			}
 			// 最后一定要关闭
 			telnet.disconnect();
@@ -210,12 +231,15 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 			if(StringUtil.isEmpty(strIP)){
 				strMessage = "Codec:为" + codecName
 						+ ",无法获取编码器IP地址!";
+				throw new IOException(strMessage);
 			}else if(StringUtil.isEmpty(strPort)){
 				strMessage = "Codec:为" + codecName
 						+ ",无法获取编码器端口号!";
+				throw new IOException(strMessage);
 			}else{
 				strMessage = "Codec:为" + codecName
 						+ ",无法获取编码器IP地址和端口号!";
+				throw new IOException(strMessage);
 			}
 		}
 

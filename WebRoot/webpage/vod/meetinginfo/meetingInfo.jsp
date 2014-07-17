@@ -180,6 +180,7 @@
 					<a href="javascript:void(0)" class="easyui-linkbutton"
 						data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">删除</a>
 				</div>
+				<input type="submit" id="submit" style="display:none"/>
 			</div>
 		</div>
 
@@ -488,6 +489,7 @@ function startRecord(id){
 			var d = $.parseJSON(data);
 			if (d.success) {
 				var msg = d.msg;
+				alert(msg);
 				tip(msg);
 			}
 		},

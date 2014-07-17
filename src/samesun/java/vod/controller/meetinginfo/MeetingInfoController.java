@@ -288,29 +288,35 @@ public class MeetingInfoController extends BaseController {
 	 * @throws ParseException 
 	 */
 	@RequestMapping(params = "startRecord")
+	@ResponseBody
 	public AjaxJson startRecord(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws ParseException {
 		AjaxJson j = new AjaxJson();
-		if(StringUtil.isNotEmpty(id)){
-			MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
-			if(SystemType.MEETING_STATE_2.equals(meeting.getMeetingstate().toString())){
-				message = "开始录制";
-			}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
-				message = "录制失败";
-			}else{
-				
-				logger.info("开始录制之前时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
-				String result = liveSectionRecordService.StartChannelSectionRecord(id);
-				logger.info(result);
-				logger.info("开始录制之后时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
-				message = "开始录制";
-				/*if(StringUtil.isNotEmpty(result)){
+		try {
+			if(StringUtil.isNotEmpty(id)){
+				MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
+				if(SystemType.MEETING_STATE_2.equals(meeting.getMeetingstate().toString())){
 					message = "开始录制";
-				}else{
+				}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
 					message = "录制失败";
-				}*/
+				}else{
+					
+					logger.info("开始录制之前时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
+					String result = liveSectionRecordService.StartChannelSectionRecord(id);
+					logger.info(result);
+					logger.info("开始录制之后时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
+					message = result;
+					/*if(StringUtil.isNotEmpty(result)){
+						message = "开始录制";
+					}else{
+						message = "录制失败";
+					}*/
+				}
+			}else{
+				message = "程序发生错误,缺少直播会议ID值";
 			}
-		}else{
-			message = "程序发生错误,缺少直播会议ID值";
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = e.getMessage();
 		}
 		j.setMsg(message);
 		return j;

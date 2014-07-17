@@ -25,6 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.confcodecrecordsrv.ConfCodecRecordSrvEntity;
+import vod.entity.confrecordsrvinfo.ConfRecordSrvInfoEntity;
 import vod.page.confcodecinfo.ConfCodecInfoPage;
 import vod.samesun.util.ComboboxBean;
 import vod.samesun.util.RECORDComparator;
@@ -176,7 +177,7 @@ public class ConfCodecInfoController extends BaseController {
 			req.setAttribute("confCodecInfoPage", page);
 		}
 		
-		List<ConfCodecInfoEntity> records = confCodecInfoService.loadAll(ConfCodecInfoEntity.class);
+		List<ConfRecordSrvInfoEntity> records = confCodecInfoService.loadAll(ConfRecordSrvInfoEntity.class);
 		Collections.sort(records, new RECORDComparator());
 		req.setAttribute("records", records);
 		

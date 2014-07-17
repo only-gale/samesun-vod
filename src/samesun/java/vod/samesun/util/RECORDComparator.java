@@ -2,12 +2,12 @@ package vod.samesun.util;
 
 import java.util.Comparator;
 
-import vod.entity.confcodecinfo.ConfCodecInfoEntity;
+import vod.entity.confrecordsrvinfo.ConfRecordSrvInfoEntity;
 
-public class RECORDComparator implements Comparator<ConfCodecInfoEntity> {
+public class RECORDComparator implements Comparator<ConfRecordSrvInfoEntity> {
 
 	@Override
-	public int compare(ConfCodecInfoEntity o1, ConfCodecInfoEntity o2) {
+	public int compare(ConfRecordSrvInfoEntity o1, ConfRecordSrvInfoEntity o2) {
 		String name1 = o1.getName(), name2 = o2.getName();
 		
 		return name1.compareToIgnoreCase(name2);
