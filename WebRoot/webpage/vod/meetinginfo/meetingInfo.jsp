@@ -489,7 +489,6 @@ function startRecord(id){
 			var d = $.parseJSON(data);
 			if (d.success) {
 				var msg = d.msg;
-				alert(msg);
 				tip(msg);
 			}
 		},

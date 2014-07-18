@@ -20,7 +20,6 @@ import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.core.util.MyBeanUtils;
 
 import vod.entity.livesectionrecord.LiveSectionRecordEntity;
-import vod.service.livesectionrecord.LiveSectionRecordServiceI;
 
 /**   
  * @Title: Controller
@@ -39,8 +38,6 @@ public class LiveSectionRecordController extends BaseController {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(LiveSectionRecordController.class);
 
-	@Autowired
-	private LiveSectionRecordServiceI liveSectionRecordService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -79,7 +76,7 @@ public class LiveSectionRecordController extends BaseController {
 		CriteriaQuery cq = new CriteriaQuery(LiveSectionRecordEntity.class, dataGrid);
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, liveSectionRecord, request.getParameterMap());
-		this.liveSectionRecordService.getDataGridReturn(cq, true);
+		this.systemService.getDataGridReturn(cq, true);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -94,7 +91,7 @@ public class LiveSectionRecordController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		liveSectionRecord = systemService.getEntity(LiveSectionRecordEntity.class, liveSectionRecord.getId());
 		message = "直播会议录制分表删除成功";
-		liveSectionRecordService.delete(liveSectionRecord);
+		systemService.delete(liveSectionRecord);
 		systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 		
 		j.setMsg(message);
@@ -114,10 +111,10 @@ public class LiveSectionRecordController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		if (StringUtil.isNotEmpty(liveSectionRecord.getId())) {
 			message = "直播会议录制分表更新成功";
-			LiveSectionRecordEntity t = liveSectionRecordService.get(LiveSectionRecordEntity.class, liveSectionRecord.getId());
+			LiveSectionRecordEntity t = systemService.get(LiveSectionRecordEntity.class, liveSectionRecord.getId());
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(liveSectionRecord, t);
-				liveSectionRecordService.saveOrUpdate(t);
+				systemService.saveOrUpdate(t);
 				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -125,7 +122,7 @@ public class LiveSectionRecordController extends BaseController {
 			}
 		} else {
 			message = "直播会议录制分表添加成功";
-			liveSectionRecordService.save(liveSectionRecord);
+			systemService.save(liveSectionRecord);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
 		j.setMsg(message);
@@ -140,7 +137,7 @@ public class LiveSectionRecordController extends BaseController {
 	@RequestMapping(params = "addorupdate")
 	public ModelAndView addorupdate(LiveSectionRecordEntity liveSectionRecord, HttpServletRequest req) {
 		if (StringUtil.isNotEmpty(liveSectionRecord.getId())) {
-			liveSectionRecord = liveSectionRecordService.getEntity(LiveSectionRecordEntity.class, liveSectionRecord.getId());
+			liveSectionRecord = systemService.getEntity(LiveSectionRecordEntity.class, liveSectionRecord.getId());
 			req.setAttribute("liveSectionRecordPage", liveSectionRecord);
 		}
 		return new ModelAndView("vod/livesectionrecord/liveSectionRecord");

@@ -27,7 +27,6 @@ import vod.entity.confrtspsrvinfo.ConfRtspSrvInfoEntity;
 import vod.entity.recordrtspsrv.ConfRecordRtspSrvEntity;
 import vod.page.confrecordsrvinfo.ConfRecordSrvInfoPage;
 import vod.samesun.util.RTSPComparator;
-import vod.service.confrecordsrvinfo.ConfRecordSrvInfoServiceI;
 
 /**   
  * @Title: Controller
@@ -46,8 +45,6 @@ public class ConfRecordSrvInfoController extends BaseController {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ConfRecordSrvInfoController.class);
 
-	@Autowired
-	private ConfRecordSrvInfoServiceI confRecordSrvInfoService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -86,7 +83,7 @@ public class ConfRecordSrvInfoController extends BaseController {
 		CriteriaQuery cq = new CriteriaQuery(ConfRecordSrvInfoEntity.class, dataGrid);
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, confRecordSrvInfo, request.getParameterMap());
-		this.confRecordSrvInfoService.getDataGridReturn(cq, true);
+		systemService.getDataGridReturn(cq, true);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -101,7 +98,7 @@ public class ConfRecordSrvInfoController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		confRecordSrvInfo = systemService.getEntity(ConfRecordSrvInfoEntity.class, confRecordSrvInfo.getId());
 		message = "录制服务器删除成功";
-		confRecordSrvInfoService.delete(confRecordSrvInfo);
+		systemService.delete(confRecordSrvInfo);
 		systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 		
 		j.setMsg(message);
@@ -121,16 +118,16 @@ public class ConfRecordSrvInfoController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		if (StringUtil.isNotEmpty(confRecordSrvInfo.getId())) {
 			message = "录制服务器更新成功";
-			ConfRecordSrvInfoEntity t = confRecordSrvInfoService.get(ConfRecordSrvInfoEntity.class, confRecordSrvInfo.getId());
+			ConfRecordSrvInfoEntity t = systemService.get(ConfRecordSrvInfoEntity.class, confRecordSrvInfo.getId());
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(confRecordSrvInfo, t);
-				confRecordSrvInfoService.saveOrUpdate(t);
+				systemService.saveOrUpdate(t);
 				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 				
-				ConfRecordRtspSrvEntity crr = confRecordSrvInfoService.get(ConfRecordRtspSrvEntity.class, t.getRr());
+				ConfRecordRtspSrvEntity crr = systemService.get(ConfRecordRtspSrvEntity.class, t.getRr());
 				if(crr != null && StringUtil.isNotEmpty(rtsp) && !rtsp.equals(crr.getRtspsrvid())){
 					crr.setRtspsrvid(rtsp);
-					confRecordSrvInfoService.updateEntitie(crr);
+					systemService.updateEntitie(crr);
 				}
 				
 			} catch (Exception e) {
@@ -139,16 +136,16 @@ public class ConfRecordSrvInfoController extends BaseController {
 			}
 		} else {
 			message = "录制服务器添加成功";
-			confRecordSrvInfoService.save(confRecordSrvInfo);
+			systemService.save(confRecordSrvInfo);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 			
 			ConfRecordRtspSrvEntity rr = new ConfRecordRtspSrvEntity();
 			rr.setRtspsrvid(rtsp);
 			rr.setRecordsrvid(confRecordSrvInfo.getId());
-			confRecordSrvInfoService.save(rr);
+			systemService.save(rr);
 			
 			confRecordSrvInfo.setRr(rr.getId());
-			confRecordSrvInfoService.updateEntitie(confRecordSrvInfo);
+			systemService.updateEntitie(confRecordSrvInfo);
 		}
 		
 		
@@ -165,14 +162,14 @@ public class ConfRecordSrvInfoController extends BaseController {
 	@RequestMapping(params = "addorupdate")
 	public ModelAndView addorupdate(ConfRecordSrvInfoEntity confRecordSrvInfo, HttpServletRequest req) throws Exception {
 		if (StringUtil.isNotEmpty(confRecordSrvInfo.getId())) {
-			confRecordSrvInfo = confRecordSrvInfoService.getEntity(ConfRecordSrvInfoEntity.class, confRecordSrvInfo.getId());
+			confRecordSrvInfo = systemService.getEntity(ConfRecordSrvInfoEntity.class, confRecordSrvInfo.getId());
 			ConfRecordSrvInfoPage page = new ConfRecordSrvInfoPage();
 			MyBeanUtils.copyBeanNotNull2Bean(confRecordSrvInfo, page);
-			ConfRecordRtspSrvEntity rr = confRecordSrvInfoService.get(ConfRecordRtspSrvEntity.class, confRecordSrvInfo.getRr());
+			ConfRecordRtspSrvEntity rr = systemService.get(ConfRecordRtspSrvEntity.class, confRecordSrvInfo.getRr());
 			page.setRtsp(rr.getRtspsrvid());
 			req.setAttribute("confRecordSrvInfoPage", page);
 		}
-		List<ConfRtspSrvInfoEntity> rtsps = confRecordSrvInfoService.loadAll(ConfRtspSrvInfoEntity.class);
+		List<ConfRtspSrvInfoEntity> rtsps = systemService.loadAll(ConfRtspSrvInfoEntity.class);
 		Collections.sort(rtsps, new RTSPComparator());
 		req.setAttribute("rtsps", rtsps);
 		return new ModelAndView("vod/confrecordsrvinfo/confRecordSrvInfo");

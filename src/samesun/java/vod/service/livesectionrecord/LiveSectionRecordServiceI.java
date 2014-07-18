@@ -1,8 +1,6 @@
 package vod.service.livesectionrecord;
 
-import org.jeecgframework.core.common.service.CommonService;
-
-public interface LiveSectionRecordServiceI extends CommonService{
+public interface LiveSectionRecordServiceI{
 
 	public String StartChannelSectionRecord(String meetingId) throws Exception;
 	

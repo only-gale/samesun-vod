@@ -112,7 +112,6 @@
             		name: '停止录制',
             		disabled: true
             	});
-            	alert($("#id", iframe.document).val());
             	iframe.startRecord($("#id", iframe.document).val());
 				return false;
             },

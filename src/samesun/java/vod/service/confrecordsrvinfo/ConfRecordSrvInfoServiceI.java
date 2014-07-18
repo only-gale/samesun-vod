@@ -2,9 +2,7 @@ package vod.service.confrecordsrvinfo;
 
 import java.util.Map;
 
-import org.jeecgframework.core.common.service.CommonService;
-
-public interface ConfRecordSrvInfoServiceI extends CommonService{
+public interface ConfRecordSrvInfoServiceI{
 
 	/**
 	 * 据codec id号，返回录制及点播服务器

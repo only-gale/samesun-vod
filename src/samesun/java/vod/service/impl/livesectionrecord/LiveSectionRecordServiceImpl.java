@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
+import org.jeecgframework.core.common.dao.ICommonDao;
 import org.jeecgframework.core.util.DataUtils;
 import org.jeecgframework.core.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +32,22 @@ import vod.service.livesectionrecord.LiveSectionRecordServiceI;
 import vod.service.meetinginfo.MeetingInfoServiceI;
 import vod.service.meetinglivesession.MeetingLiveSessionServiceI;
 
+/**
+ * 此服务不支持事物管理<br>
+ * 需要事物管理的方法用@Transactional标注即可<br>
+ * 需要回滚的事物不能嵌套事物<br>
+ * @author gale
+ * @since 2014-07-18
+ *
+ */
 @Service("liveSectionRecordService")
-@Transactional
-public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
+public class LiveSectionRecordServiceImpl implements
 		LiveSectionRecordServiceI {
 
 	@Autowired
+	private ICommonDao commonDao;
+	@Autowired
 	private ConfRecordSrvInfoServiceI confRecordSrvInfoService;
-
 	@Autowired
 	private MeetingInfoServiceI meetingInfoService;
 	@Autowired
@@ -49,6 +57,10 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	@Autowired
 	private MeetingLiveSessionServiceI meetingLiveSessionService;
 
+	private static String SUCCESS = "录制成功！";
+	
+	private static String FAILED = "录制失败！";
+	
 	@Override
 	public String SectionRecord4DB(String meetingId, String channelID,
 			String sessionID, String Codec, String Priority, String fileName) {
@@ -86,7 +98,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 			}
 			liveSection.setRtsprelativedir(DataUtils.yyyyMM.format(DataUtils
 					.getDate()));
-			save(liveSection);
+			commonDao.save(liveSection);
 			liveSectionId = liveSection.getId();
 		}else{
 			System.out.println("由于无法查询到编码器的录制服务和点播服务信息，所以无法创建录制信息");
@@ -95,20 +107,26 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	}
 
 	@Override
-	@Transactional(propagation=Propagation.REQUIRED,readOnly=false,rollbackFor=IOException.class)
-	public String StartChannelSectionRecord(String meetingId) {
+	@Transactional(rollbackFor=IOException.class)
+	public String StartChannelSectionRecord(String meetingId) throws IOException {
 		String resultStr = "";
-		MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
+		MeetingInfoEntity t = commonDao.get(MeetingInfoEntity.class,
 				meetingId);
 		// 改变直播会议状态到"直播并录制中"
 		t.setMeetingstate(Integer.parseInt(SystemType.MEETING_STATE_2));
 
 		// 创建直播session
-		MeetingLiveSessionEntity liveSession = meetingLiveSessionService
-				.create(meetingId);
+		MeetingLiveSessionEntity liveSession = new MeetingLiveSessionEntity();
+		try {
+			liveSession.setMeetingid(meetingId);
+			liveSession.setBegindt(DataUtils.parseDate(DataUtils.getDataString(DataUtils.datetimeFormat), DataUtils.datetimeFormat.toPattern()));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		commonDao.save(liveSession);
 
 		// 根据codecid查找到录制服务和点播服务，然后对每一个codec生成分段录制记录，但是需要针对相同的codec设置相同的文件名，这样只需发送一次telnet
-		List<AppointmentChannelInfoEntity> channels = meetingInfoService
+		List<AppointmentChannelInfoEntity> channels = commonDao
 				.findByProperty(AppointmentChannelInfoEntity.class,
 						"meetingid", meetingId);
 		for (AppointmentChannelInfoEntity c : channels) {
@@ -123,12 +141,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec1id, "1", fileNameUUID);
 					// TELNET
-					try {
 						resultStr += SectionRecord4Telnet(fileNameUUID, codec1id);
-					} catch (IOException e) {
-						resultStr += e.getMessage();
-						e.printStackTrace();
-					}
 				}
 				// 备编码器级别为2
 				if (StringUtil.isNotEmpty(codec2id)
@@ -139,29 +152,23 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec2id, "2", newFileName);
 					// TELNET
-					try {
 						resultStr += SectionRecord4Telnet(newFileName, codec1id);
-					} catch (IOException e) {
-						resultStr += e.getMessage();
-						e.printStackTrace();
-					}
 				} else if (StringUtil.isNotEmpty(codec2id)
 						&& isrecord2 == Integer.parseInt(SystemType.IS_RECORD_TYPE_1)
 						&& codec1id.equals(codec2id)) {
 					SectionRecord4DB(meetingId, c.getId(), liveSession.getId(),
 							codec2id, "2", fileNameUUID);
 					// TELNET
-					try {
 						resultStr += SectionRecord4Telnet(fileNameUUID, codec2id);
-					} catch (IOException e) {
-						resultStr += e.getMessage();
-						e.printStackTrace();
-					}
 				}
 			}
 		}
 
-		meetingInfoService.updateEntitie(t);
+		commonDao.updateEntitie(t);
+		
+		if(!resultStr.contains(SUCCESS)){
+			throw new IOException(resultStr);
+		}
 		
 		return resultStr;
 	}
@@ -173,9 +180,9 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	 * @param Codec
 	 *            codec服务器Id,可以查询出录制服务器ID及RtspServer服务器ID
 	 * @return 返回Json String
-	 * @throws IOException 
 	 */
-	private String SectionRecord4Telnet(String meetingId, String codecId) throws IOException {
+	@Transactional(propagation=Propagation.NEVER)
+	private String SectionRecord4Telnet(String meetingId, String codecId) {
 		String strMessage = "Telnet通讯成功!";
 		String strIP = "";
 		String strPort = "";
@@ -215,15 +222,13 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 				
 				// 验证telnet是否执行成功
 				if (resultTelnetMessage(result)) {
-					strMessage = "Codec:为" + codecName + " 录制成功 ！ ";
+					strMessage = "Codec:为  " + codecName + SUCCESS;
 				} else {
-					strMessage = "Codec:为" + codecName + " 录制失败 ！";
-					throw new IOException(strMessage);
+					strMessage = "Codec:为  " + codecName + FAILED;
 				}
 			} else {
 				strMessage = "Codec:为" + codecName
 						+ ",telnet通讯不正常，无法链接，请与技术支持人员联系!";
-				throw new IOException(strMessage);
 			}
 			// 最后一定要关闭
 			telnet.disconnect();
@@ -231,15 +236,12 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 			if(StringUtil.isEmpty(strIP)){
 				strMessage = "Codec:为" + codecName
 						+ ",无法获取编码器IP地址!";
-				throw new IOException(strMessage);
 			}else if(StringUtil.isEmpty(strPort)){
 				strMessage = "Codec:为" + codecName
 						+ ",无法获取编码器端口号!";
-				throw new IOException(strMessage);
 			}else{
 				strMessage = "Codec:为" + codecName
 						+ ",无法获取编码器IP地址和端口号!";
-				throw new IOException(strMessage);
 			}
 		}
 
@@ -252,6 +254,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	 * @param CodecURL
 	 * @return
 	 */
+	@Transactional(propagation=Propagation.NEVER)
 	private String ReportTelnetMessageStartRec(String recordObid,
 			String CodecURL) {
 		String filename = "000000000000000000000000000000000000"; // 文件名的长度为36位；
@@ -290,6 +293,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	 * @param strtelnetResult
 	 * @return true:表示成功；false:表示失败；
 	 */
+	@Transactional(propagation=Propagation.NEVER)
 	private boolean resultTelnetMessage(String strtelnetResult) {
 		String temp = "";
 		if (strtelnetResult != null && strtelnetResult.length() > 36) {
@@ -305,10 +309,11 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 	}
 
 	@Override
+	@Transactional
 	public String EndChannelSectionRecord(String meetingId) {
 		String message="";
 		//根据直播id查找所有录制片段
-		List<LiveSectionRecordEntity> all = this.findByProperty(LiveSectionRecordEntity.class, "meetingid", meetingId);
+		List<LiveSectionRecordEntity> all = commonDao.findByProperty(LiveSectionRecordEntity.class, "meetingid", meetingId);
 		List<LiveSectionRecordEntity> distinctRecords = new ArrayList<LiveSectionRecordEntity>();
 		for(LiveSectionRecordEntity r : all){
 			LiveSectionRecordEntity record = new LiveSectionRecordEntity();
@@ -322,7 +327,7 @@ public class LiveSectionRecordServiceImpl extends CommonServiceImpl implements
 		//更新状态为“已结束”
 		String end = DataUtils.datetimeFormat.format(DataUtils.getDate());
 		String sql = "update meeting_live_section_record set Rec_State="+SystemType.MEETING_STATE_3+",Rec_End_DT='"+end+"' where meetingid="+meetingId;
-		this.updateBySqlString(sql);
+		commonDao.updateBySqlString(sql);
 		
 		for(LiveSectionRecordEntity sr : distinctRecords){
 			String fname = sr.getFilename();
