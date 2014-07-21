@@ -521,7 +521,7 @@ public class DataGridTag extends TagSupport {
 		sb.append("loadMsg: \'数据加载中...\',");
 		sb.append("pageSize: " + pageSize + ",");
 		sb.append("pagination:" + pagination + ",");
-		sb.append("pageList:[" + pageSize * 1 + "," + pageSize * 2 + "," + pageSize * 3 + "],");
+		sb.append("pageList:[" + pageSize * 1.5 + "," + pageSize * 2 + "," + pageSize * 2.5 + "],");
 		if(StringUtils.isNotBlank(sortName)){
 			sb.append("sortName:'" +sortName +"',");
 		}

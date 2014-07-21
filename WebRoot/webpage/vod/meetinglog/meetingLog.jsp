@@ -13,18 +13,6 @@
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							终端ID:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="edgeid" name="edgeid" 
-							   value="${meetingLogPage.edgeid}" datatype="*">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
 							终端MAC:
 						</label>
 					</td>
@@ -43,18 +31,6 @@
 					<td class="value">
 						<input class="inputxt" id="edgename" name="edgename" ignore="ignore"
 							   value="${meetingLogPage.edgename}">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							当前状态:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="state" name="state" ignore="ignore"
-							   value="${meetingLogPage.state}" datatype="n">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>

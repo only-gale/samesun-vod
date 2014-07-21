@@ -1,24 +1,28 @@
 package vod.controller.meetinglog;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
+import org.jeecgframework.core.util.MyBeanUtils;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
+import org.jeecgframework.tag.vo.datatable.SortDirection;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
+import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.entity.meetinglog.MeetingLogEntity;
 import vod.service.meetinglog.MeetingLogServiceI;
 
@@ -76,10 +80,26 @@ public class MeetingLogController extends BaseController {
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(MeetingLogEntity meetingLog,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+		dataGrid.setSort("date");
+		dataGrid.setOrder(SortDirection.desc);
+		String name = meetingLog.getEdgename(), mac = meetingLog.getEdgemac();
+		if(StringUtil.isNotEmpty(name) || StringUtil.isNotEmpty(mac)){
+			meetingLog.setEdgename("*"+ name +"*");
+			meetingLog.setEdgemac("*"+ mac +"*");
+		}
 		CriteriaQuery cq = new CriteriaQuery(MeetingLogEntity.class, dataGrid);
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, meetingLog, request.getParameterMap());
 		this.meetingLogService.getDataGridReturn(cq, true);
+		
+		//将会议id值转换成会议主题，用于前台显示
+		List<MeetingLogEntity> logs = dataGrid.getResults();
+		for(MeetingLogEntity l : logs){
+			MeetingInfoEntity meeting = systemService.get(MeetingInfoEntity.class, l.getMeetingid());
+			l.setMeetingid(meeting == null ? "" : meeting.getSubject());
+		}
+		
+		dataGrid.setResults(logs);
 		TagUtil.datagrid(response, dataGrid);
 	}
 

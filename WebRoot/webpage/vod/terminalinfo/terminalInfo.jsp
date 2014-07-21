@@ -30,7 +30,7 @@
 					</td>
 					<td class="value">
 						<input class="inputxt" id="descript" name="descript" 
-							   value="${terminalInfoPage.descript}" datatype="*">
+							   value="${terminalInfoPage.descript}">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
@@ -65,20 +65,20 @@
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="groupid" name="groupid" 
+						<input id="groupid" name="groupid" style="width:160px;"
 							   value="${terminalInfoPage.groupid}" datatype="*">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
-				<tr>
+				<%-- <tr>
 					<td align="right">
 						<label class="Validform_label">
 							当前状态:
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="state" name="state" ignore="ignore"
-							   value="${terminalInfoPage.state}" datatype="n">
+						<input class="inputxt" id="status" name="status" ignore="ignore"
+							   value="${terminalInfoPage.status}" datatype="n">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
@@ -105,7 +105,15 @@
 							   value="${terminalInfoPage.subject}">
 						<span class="Validform_checktip"></span>
 					</td>
-				</tr>
+				</tr> --%>
 			</table>
 		</t:formvalid>
  </body>
+ 
+ <script type="text/javascript">
+	$(function() {
+		$('#groupid').combotree({
+			url : 'terminalInfoController.do?getChildren'
+		});
+	});
+</script>

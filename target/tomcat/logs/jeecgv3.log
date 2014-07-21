@@ -40,3 +40,5 @@
 [INFO][2014-07-15 17:46:55,779][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_vod_session]------ 生成完成。。。
 [INFO][2014-07-15 17:48:16,396][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meeting_vod_section_record]------- 生成中。。。
 [INFO][2014-07-15 17:48:17,392][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_vod_section_record]------ 生成完成。。。
+[INFO][2014-07-21 13:06:30,785][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:terminal_heart_request]------- 生成中。。。
+[INFO][2014-07-21 13:06:33,493][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：terminal_heart_request]------ 生成完成。。。

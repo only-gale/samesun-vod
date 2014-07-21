@@ -64,4 +64,15 @@ public class SystemType {
 	public static String CODEC_AVILABLE_0 = "0";
 	/**编码器是否启用: 已启用*/
 	public static String CODEC_AVILABLE_1 = "1";
+	
+	/**终端状态编码*/
+	public static String TERMINAL_STATE = "tState";
+	/**终端状态名称*/
+	public static String TERMINAL_STATE_NAME = "终端状态";
+	/**终端状态: 未激活*/
+	public static String TERMINAL_STATE_0 = "0";
+	/**终端状态: 离线*/
+	public static String TERMINAL_STATE_1 = "1";
+	/**终端状态: 在线*/
+	public static String TERMINAL_STATE_2 = "2";
 }
