@@ -42,3 +42,13 @@
 [INFO][2014-07-15 17:48:17,392][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_vod_section_record]------ 生成完成。。。
 [INFO][2014-07-21 13:06:30,785][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:terminal_heart_request]------- 生成中。。。
 [INFO][2014-07-21 13:06:33,493][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：terminal_heart_request]------ 生成完成。。。
+[INFO][2014-07-23 10:44:54,550][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:appointment_training_info]------- 生成中。。。
+[INFO][2014-07-23 10:44:56,455][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：appointment_training_info]------ 生成完成。。。
+[INFO][2014-07-23 10:45:26,093][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:training_info]------- 生成中。。。
+[INFO][2014-07-23 10:45:27,210][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：training_info]------ 生成完成。。。
+[INFO][2014-07-23 10:45:56,539][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:training_info_history]------- 生成中。。。
+[INFO][2014-07-23 10:45:57,593][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：training_info_history]------ 生成完成。。。
+[INFO][2014-07-23 15:34:27,850][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:appointment_training_info]------- 生成中。。。
+[INFO][2014-07-23 15:34:30,604][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：appointment_training_info]------ 生成完成。。。
+[INFO][2014-07-23 15:35:12,137][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:training_info]------- 生成中。。。
+[INFO][2014-07-23 15:35:13,166][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：training_info]------ 生成完成。。。

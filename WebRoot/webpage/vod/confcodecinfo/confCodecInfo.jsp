@@ -29,12 +29,12 @@
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="groupid" name="groupid" ignore="ignore"
+						<input class="inputxt" id="groupid" name="groupid" ignore="ignore" style="width:160px;"
 							   value="${confCodecInfoPage.groupid}">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
-				<tr>
+				<%-- <tr>
 					<td align="right">
 						<label class="Validform_label">
 							路数占用情况:
@@ -45,7 +45,7 @@
 							   value="${confCodecInfoPage.resources}">
 						<span class="Validform_checktip"></span>
 					</td>
-				</tr>
+				</tr> --%>
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
@@ -123,3 +123,10 @@
 			</table>
 		</t:formvalid>
  </body>
+<script type="text/javascript">
+	$(function() {
+		$('#groupid').combotree({
+			url : 'terminalInfoController.do?getChildren'
+		});
+	});
+</script>

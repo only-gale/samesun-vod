@@ -26,10 +26,6 @@
    <t:dgToolBar title="录入" icon="icon-add" funname="addmeeting"></t:dgToolBar>
    <%-- <t:dgToolBar title="编辑" icon="icon-edit" url="meetingInfoController.do?addorupdate" funname="editmeeting"></t:dgToolBar> --%>
    <t:dgToolBar title="查看" icon="icon-search" url="meetingInfoController.do?addorupdate" funname="detail"></t:dgToolBar>
-   <%-- <t:dgToolBar title="开始直播" icon="icon-ok" url="meetingInfoController.do?startLive" funname="beforeStartLive"></t:dgToolBar>
-   <t:dgToolBar title="开始录制" icon="icon-ok" url="meetingInfoController.do?startRecord" funname="beforeStartRecord"></t:dgToolBar>
-   <t:dgToolBar title="结束录制" icon="icon-no" url="meetingInfoController.do?stopRecord" funname="beforeStopRecord"></t:dgToolBar>
-   <t:dgToolBar title="结束直播" icon="icon-no" url="meetingInfoController.do?stopLive" funname="beforeStopLive"></t:dgToolBar> --%>
   </t:datagrid>
   </div>
  </div>

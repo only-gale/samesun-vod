@@ -5,6 +5,7 @@ import java.util.List;
 import org.jeecgframework.core.common.service.CommonService;
 
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.appointmenttraining.AppointmentTrainingEntity;
 
 public interface AppointmentMeetingInfoServiceI extends CommonService{
 
@@ -16,4 +17,6 @@ public interface AppointmentMeetingInfoServiceI extends CommonService{
 	 * @return
 	 */
 	public String isRecord(AppointmentMeetingInfoEntity app);
+	
+	public String isRecord(AppointmentTrainingEntity app);
 }

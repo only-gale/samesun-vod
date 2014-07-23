@@ -1,19 +1,14 @@
 package vod.entity.heartrequest;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
-import javax.persistence.SequenceGenerator;
 
 /**   
  * @Title: Entity
@@ -38,7 +33,7 @@ public class HeartRequestEntity implements java.io.Serializable {
 	/**请求时间 */
 	private java.util.Date requestDt;
 	/**处理状态*/
-	private java.lang.String state;
+	private java.lang.String status;
 	/**创建人*/
 	private java.lang.String createBy;
 	/**创建人名字*/
@@ -129,16 +124,16 @@ public class HeartRequestEntity implements java.io.Serializable {
 	 *@return: java.lang.String  处理状态
 	 */
 	@Column(name ="STATE",nullable=false,length=1)
-	public java.lang.String getState(){
-		return this.state;
+	public java.lang.String getStatus(){
+		return this.status;
 	}
 
 	/**
 	 *方法: 设置java.lang.String
 	 *@param: java.lang.String  处理状态
 	 */
-	public void setState(java.lang.String state){
-		this.state = state;
+	public void setStatus(java.lang.String status){
+		this.status = status;
 	}
 	/**
 	 *方法: 取得java.lang.String

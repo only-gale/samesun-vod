@@ -4,23 +4,25 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
+import org.jeecgframework.core.util.MyBeanUtils;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.heartrequest.HeartRequestEntity;
+import vod.entity.terminalinfo.TerminalInfoEntity;
 import vod.service.heartrequest.HeartRequestServiceI;
+import vod.service.terminalinfo.TerminalInfoServiceI;
 
 /**   
  * @Title: Controller
@@ -41,6 +43,8 @@ public class HeartRequestController extends BaseController {
 
 	@Autowired
 	private HeartRequestServiceI heartRequestService;
+	@Autowired
+	private TerminalInfoServiceI terminalInfoService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -144,5 +148,38 @@ public class HeartRequestController extends BaseController {
 			req.setAttribute("heartRequestPage", heartRequest);
 		}
 		return new ModelAndView("vod/heartrequest/heartRequest");
+	}
+	
+	/**
+	 * 心跳信息注册页面跳转
+	 * 
+	 * @return
+	 */
+	@RequestMapping(params = "toRegiste")
+	public ModelAndView toRegiste(TerminalInfoEntity terminal, HttpServletRequest req) {
+		req.setAttribute("terminalInfoPage", terminal);
+		return new ModelAndView("vod/heartrequest/heartRequest");
+	}
+	
+	/**
+	 * 注册
+	 * 
+	 * @param ids
+	 * @return
+	 */
+	@RequestMapping(params = "registe")
+	@ResponseBody
+	public AjaxJson registe(TerminalInfoEntity terminalInfo, HttpServletRequest request) {
+		AjaxJson j = new AjaxJson();
+		
+		message = "注册成功";
+		String heartRequestId = terminalInfo.getId();
+		terminalInfo.setId(null);
+		terminalInfoService.save(terminalInfo);
+		//注册成功后删除异常心跳信息
+		heartRequestService.delete(heartRequestService.get(HeartRequestEntity.class, heartRequestId));
+		systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
+		j.setMsg(message);
+		return j;
 	}
 }

@@ -9,6 +9,9 @@
  <body style="overflow-y: hidden" scroll="no">
   <t:formvalid formid="formobj" dialog="true" usePlugin="password" layout="table" action="terminalInfoController.do?save">
 			<input id="id" name="id" type="hidden" value="${terminalInfoPage.id }">
+			<input id="status" name="status" type="hidden" value="${terminalInfoPage.status}">
+			<input id="nowvideo" name="nowvideo" type="hidden" value="${terminalInfoPage.nowvideo}">
+			<input id="subject" name="subject" type="hidden" value="${terminalInfoPage.subject}">
 			<table style="width: 600px;" cellpadding="0" cellspacing="1" class="formtable">
 				<tr>
 					<td align="right">
@@ -19,7 +22,6 @@
 					<td class="value">
 						<input class="inputxt" id="name" name="name" 
 							   value="${terminalInfoPage.name}" datatype="*">
-						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
@@ -31,7 +33,6 @@
 					<td class="value">
 						<input class="inputxt" id="descript" name="descript" 
 							   value="${terminalInfoPage.descript}">
-						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
@@ -43,7 +44,6 @@
 					<td class="value">
 						<input class="inputxt" id="macaddress" name="macaddress" 
 							   value="${terminalInfoPage.macaddress}" datatype="*">
-						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
@@ -55,7 +55,6 @@
 					<td class="value">
 						<input class="inputxt" id="ipaddress" name="ipaddress" 
 							   value="${terminalInfoPage.ipaddress}" datatype="*">
-						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
@@ -67,7 +66,6 @@
 					<td class="value">
 						<input id="groupid" name="groupid" style="width:160px;"
 							   value="${terminalInfoPage.groupid}" datatype="*">
-						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<%-- <tr>
@@ -110,7 +108,7 @@
 		</t:formvalid>
  </body>
  
- <script type="text/javascript">
+<script type="text/javascript">
 	$(function() {
 		$('#groupid').combotree({
 			url : 'terminalInfoController.do?getChildren'

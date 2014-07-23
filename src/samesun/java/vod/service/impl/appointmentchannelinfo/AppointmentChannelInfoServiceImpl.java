@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.appointmenttraining.AppointmentTrainingEntity;
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
+import vod.entity.traininginfo.TrainingInfoEntity;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
 
 @Service("appointmentChannelInfoService")
@@ -37,6 +39,22 @@ public class AppointmentChannelInfoServiceImpl extends CommonServiceImpl impleme
 	@Override
 	public void linkChannel(AppointmentMeetingInfoEntity from,
 			MeetingInfoEntity to) {
+		List<AppointmentChannelInfoEntity> channels = this.findByProperty(AppointmentChannelInfoEntity.class, "appointmentid", from.getId());
+		//以,分隔的id   用于批量更新
+		String ids = "";
+		for(AppointmentChannelInfoEntity channel : channels){
+			channel.setMeetingid(to.getId());
+			ids += ("," + channel.getId());
+		}
+		if(StringUtil.isNotEmpty(ids)){
+			this.updateBySqlString("update appointment_channel_info set meetingID='"+to.getId()+"' where ID in('"+ids.substring(1)+"')");
+		}
+		
+	}
+	
+	@Override
+	public void linkChannel(AppointmentTrainingEntity from,
+			TrainingInfoEntity to) {
 		List<AppointmentChannelInfoEntity> channels = this.findByProperty(AppointmentChannelInfoEntity.class, "appointmentid", from.getId());
 		//以,分隔的id   用于批量更新
 		String ids = "";

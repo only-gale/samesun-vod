@@ -17,7 +17,7 @@
    <t:dgDelOpt title="删除" url="appointmentMeetingInfoController.do?del&id={id}" />
    <t:dgToolBar title="录入" icon="icon-add" url="appointmentMeetingInfoController.do?addorupdate&appointment" funname="add"></t:dgToolBar>
    <%-- <t:dgToolBar title="录入" icon="icon-add" onclick="addmeeting()"></t:dgToolBar> --%>
-   <t:dgToolBar title="编辑" icon="icon-edit" operationCode="appointment" url="appointmentMeetingInfoController.do?addorupdate" funname="update"></t:dgToolBar>
+   <t:dgToolBar title="编辑" icon="icon-edit" url="appointmentMeetingInfoController.do?addorupdate" funname="update"></t:dgToolBar>
    <%-- <t:dgToolBar title="编辑" icon="icon-edit" operationCode="appointment" onclick="editmeeting()"></t:dgToolBar> --%>
    <t:dgToolBar title="查看" icon="icon-search" url="appointmentMeetingInfoController.do?addorupdate" funname="detail"></t:dgToolBar>
   </t:datagrid>

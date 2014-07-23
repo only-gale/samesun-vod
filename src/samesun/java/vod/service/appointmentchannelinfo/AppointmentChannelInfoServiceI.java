@@ -4,7 +4,9 @@ import org.jeecgframework.core.common.service.CommonService;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.appointmenttraining.AppointmentTrainingEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
+import vod.entity.traininginfo.TrainingInfoEntity;
 
 public interface AppointmentChannelInfoServiceI extends CommonService{
 
@@ -19,6 +21,9 @@ public interface AppointmentChannelInfoServiceI extends CommonService{
 	 * @param meeting
 	 */
 	public void linkChannel(AppointmentMeetingInfoEntity from, MeetingInfoEntity to);
+	
+	public void linkChannel(AppointmentTrainingEntity from,
+			TrainingInfoEntity to);
 	
 	/**
 	 * 设置指定频道主备编码器是否启用
