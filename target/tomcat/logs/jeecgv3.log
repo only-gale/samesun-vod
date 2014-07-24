@@ -52,3 +52,9 @@
 [INFO][2014-07-23 15:34:30,604][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：appointment_training_info]------ 生成完成。。。
 [INFO][2014-07-23 15:35:12,137][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:training_info]------- 生成中。。。
 [INFO][2014-07-23 15:35:13,166][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：training_info]------ 生成完成。。。
+[INFO][2014-07-24 11:14:09,384][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meeting_authority_usergroup]------- 生成中。。。
+[INFO][2014-07-24 11:14:12,203][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_authority_usergroup]------ 生成完成。。。
+[INFO][2014-07-24 11:15:22,102][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meeting_authority_group]------- 生成中。。。
+[INFO][2014-07-24 11:15:23,163][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meeting_authority_group]------ 生成完成。。。
+[INFO][2014-07-24 11:35:29,853][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meetingautusergroup_user]------- 生成中。。。
+[INFO][2014-07-24 11:35:30,208][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meetingautusergroup_user]------ 生成完成。。。

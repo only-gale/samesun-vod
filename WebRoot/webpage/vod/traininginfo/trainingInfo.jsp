@@ -25,7 +25,7 @@
 		<table style="width: 100%;" cellpadding="0" cellspacing="1"
 			class="formtable">
 			<tr>
-				<td align="right" width="15%"><label class="Validform_label"> 所属类型:
+				<td align="right" width="10%"><label class="Validform_label"> 所属类型:
 				</label></td>
 				<td class="value" colspan="3">
 					<%-- <input class="inputxt" id="typeid"
@@ -40,19 +40,19 @@
 				</td>
 			</tr>
 			<tr>
-				<td align="right"><label class="Validform_label"> 培训主题:
+				<td align="right" width="15%"><label class="Validform_label"> 培训主题:
 				</label></td>
-				<td class="value"><input class="inputxt" id="subject"
-					name="subject" datatype="*" nullmsg=" " errormsg=" " sucmsg=" "
-					value="${meetingInfoPage.subject}"> <span
-					class="Validform_checktip"></span></td>
+				<td class="value" width="35%"><input class="inputxt" id="subject"
+					name="subject" datatype="*" nullmsg=" " errormsg=" " sucmsg=" " 
+					value="${meetingInfoPage.subject}">
+					<span class="Validform_checktip"></span></td>
 				
 				<td align="right" width="15%"><label class="Validform_label">
 						主讲人: </label></td>
-				<td class="value"><input class="inputxt" id="compere"
-					name="compere" ignore="ignore"
-					value="${meetingInfoPage.compere}"> <span
-					class="Validform_checktip"></span></td>
+				<td class="value" width="35%"><input class="inputxt" id="compere"
+					name="compere" datatype="*" nullmsg=" " errormsg=" " sucmsg=" "
+					value="${meetingInfoPage.compere}">
+					<span class="Validform_checktip"></span></td>
 			</tr>
 			<tr>
 				<td align="right"><label class="Validform_label"> 培训简介:
@@ -194,6 +194,9 @@ if("" == meetingId || "null" == meetingId){
 	meetingId = new Date().getTime();
 	$("#tempid").val(meetingId);
 }
+//$.Tipmsg.tit="Message Box";
+//$("#formobj").Validform().tipmsg.s="error! no message inputed.";
+//$("#formobj").Validform().config({tiptype:function(msg,o,css){msg: null}});
 
 /*当本次请求为查看时，屏蔽datagrid的菜单按钮*/
 function initParams(){

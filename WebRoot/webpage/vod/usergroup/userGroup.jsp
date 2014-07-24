@@ -3,23 +3,21 @@
 <!DOCTYPE html>
 <html>
  <head>
-  <title>权限分组</title>
+  <title>用户分组</title>
   <t:base type="jquery,easyui,tools,DatePicker"></t:base>
   <script type="text/javascript">
 	$(function() {
-		$("#userIDs").combotree({
-			width : '200',
+		$("#creattype").combotree({
 			url : 'authorityUserGroupController.do?getChildren',
 			multiple : true,
-			separator : ",",
-			cascadeCheck:$(this).is(':checked')
+			separator : ","
 		});
 	});
 </script>
  </head>
  <body style="overflow-y: hidden" scroll="no">
-  <t:formvalid formid="formobj" dialog="true" usePlugin="password" layout="table" action="authorityUserGroupController.do?save">
-			<input id="id" name="id" type="hidden" value="${authorityUserGroupPage.id }">
+  <t:formvalid formid="formobj" dialog="true" usePlugin="password" layout="table" action="userGroupController.do?save">
+			<input id="id" name="id" type="hidden" value="${userGroupPage.id }">
 			<table style="width: 600px;" cellpadding="0" cellspacing="1" class="formtable">
 				<tr>
 					<td align="right">
@@ -29,7 +27,7 @@
 					</td>
 					<td class="value">
 						<input class="inputxt" id="name" name="name" 
-							   value="${authorityUserGroupPage.name}" datatype="*">
+							   value="${userGroupPage.name}" datatype="*">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
@@ -41,19 +39,31 @@
 					</td>
 					<td class="value">
 						<input class="inputxt" id="desc" name="desc" ignore="ignore"
-							   value="${authorityUserGroupPage.desc}">
+							   value="${userGroupPage.desc}">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							用户清单:
+							权限类型:
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="userIDs" name="userIDs" ignore="ignore"
-							   value="${authorityUserGroupPage.userIDs}">
+						<input class="inputxt" id="authtype" name="authtype" ignore="ignore"
+							   value="${userGroupPage.authtype}">
+						<span class="Validform_checktip"></span>
+					</td>
+				</tr>
+				<tr>
+					<td align="right">
+						<label class="Validform_label">
+							创建类型:
+						</label>
+					</td>
+					<td class="value">
+						<input class="inputxt" id="creattype" name="creattype" ignore="ignore"
+							   value="${userGroupPage.creattype}" />
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>

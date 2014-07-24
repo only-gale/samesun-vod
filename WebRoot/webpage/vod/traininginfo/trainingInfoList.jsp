@@ -6,10 +6,10 @@
    <t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
    <t:dgCol title="VRS_ID号" field="billid" hidden="false" ></t:dgCol>
    <t:dgCol title="设备名" field="billname" hidden="false" ></t:dgCol>
-   <t:dgCol title="时间" field="billstarttime" formatter="yyyy-MM-dd hh:mm:ss" query="true" queryMode="group"></t:dgCol>
+   <t:dgCol title="开始时间" field="billstarttime" formatter="yyyy-MM-dd hh:mm:ss" query="true" queryMode="group"></t:dgCol>
    <t:dgCol title="持续时长" field="billduration" align="center" ></t:dgCol>
    <t:dgCol title="Live类型" field="isasflive" replace="直播_1,录播_2" align="center" ></t:dgCol>
-   <t:dgCol title="是否录音" field="isrecord" replace="否_0,是_1" align="center" ></t:dgCol>
+   <t:dgCol title="是否录制" field="isrecord" replace="否_0,是_1" align="center" ></t:dgCol>
    <t:dgCol title="培训状态" field="meetingstate" replace="直播中_1,直播并录制中_2,已结束_3,已延时_4" align="center" ></t:dgCol>
    <t:dgCol title="培训有限状态机" field="fsmstate" hidden="false" ></t:dgCol>
    <t:dgCol title="预约录制时间" field="appointmentdt" hidden="false" ></t:dgCol>

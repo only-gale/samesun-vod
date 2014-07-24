@@ -2,7 +2,7 @@
 <%@include file="/context/mytags.jsp"%>
 <div class="easyui-layout" fit="true">
   <div region="center" style="padding:1px;">
-  <t:datagrid name="authorityGroupList" title="权限分组" actionUrl="authorityGroupController.do?datagrid" idField="id" fit="true">
+  <t:datagrid name="authorityGroupList" title="终端分组" actionUrl="authorityGroupController.do?datagrid" idField="id" fit="true">
    <t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
    <t:dgCol title="自定义权限组名" field="name" ></t:dgCol>
    <t:dgCol title="描述" field="desc" ></t:dgCol>

@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.pojo.base.TSUser;
-
 import org.jeecgframework.core.common.model.common.UploadFile;
 import org.jeecgframework.core.common.model.json.ComboTree;
 import org.jeecgframework.core.common.model.json.ImportFile;
@@ -62,6 +61,15 @@ public interface ICommonDao extends IGenericBaseCommonDao{
 	 * @return
 	 */
 	public  List<ComboTree> ComboTree(List all,ComboTreeModel comboTreeModel,List in);
+	/**
+	 * 根据模型生成JSON
+	 * @param all 全部对象
+	 * @param in  已拥有的对象
+	 * @param comboBox 模型
+	 * @return
+	 */
+	public List<ComboTree> ComboTreeWithUser(List<Object> all,
+			ComboTreeModel comboTreeModel, List<Object> in, String str);
 	public  List<TreeGrid> treegrid(List all,TreeGridModel treeGridModel);
 }
 

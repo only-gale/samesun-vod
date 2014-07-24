@@ -7,26 +7,34 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.jeecgframework.core.common.controller.BaseController;
+import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
+import org.jeecgframework.core.common.model.json.AjaxJson;
+import org.jeecgframework.core.common.model.json.ComboTree;
+import org.jeecgframework.core.common.model.json.DataGrid;
+import org.jeecgframework.core.constant.Globals;
+import org.jeecgframework.core.util.MyBeanUtils;
+import org.jeecgframework.core.util.StringUtil;
+import org.jeecgframework.tag.core.easyui.TagUtil;
+import org.jeecgframework.tag.vo.datatable.SortDirection;
+import org.jeecgframework.tag.vo.easyui.ComboTreeModel;
+import org.jeecgframework.web.system.pojo.base.TSBaseUser;
+import org.jeecgframework.web.system.pojo.base.TSTerritory;
+import org.jeecgframework.web.system.pojo.base.TSUser;
+import org.jeecgframework.web.system.service.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.jeecgframework.core.common.controller.BaseController;
-import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
-import org.jeecgframework.core.common.model.json.AjaxJson;
-import org.jeecgframework.core.common.model.json.DataGrid;
-import org.jeecgframework.core.constant.Globals;
-import org.jeecgframework.core.util.StringUtil;
-import org.jeecgframework.tag.core.easyui.TagUtil;
-import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
 
-import com.alibaba.fastjson.JSON;
-
+import vod.entity.authgroupuser.AuthGroupUserEntity;
 import vod.entity.authorityusergroup.AuthorityUserGroupEntity;
+import vod.page.authorityusergroup.AuthorityUserGroupPage;
 import vod.samesun.util.ComboboxBean;
 import vod.service.authorityusergroup.AuthorityUserGroupServiceI;
+
+import com.alibaba.fastjson.JSON;
 
 /**   
  * @Title: Controller
@@ -77,15 +85,39 @@ public class AuthorityUserGroupController extends BaseController {
 	 * @param response
 	 * @param dataGrid
 	 * @param user
+	 * @throws Exception 
 	 */
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
-	public void datagrid(AuthorityUserGroupEntity authorityUserGroup,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+	public void datagrid(AuthorityUserGroupEntity authorityUserGroup,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) throws Exception {
+		//如果有查询条件，则设置为模糊查询
+		String name = authorityUserGroup.getName(), des = authorityUserGroup.getDesc();
+		if(StringUtil.isNotEmpty(name) || StringUtil.isNotEmpty(des)){
+			authorityUserGroup.setName("*" + name + "*");
+			authorityUserGroup.setDesc("*" + des + "*");
+		}
 		CriteriaQuery cq = new CriteriaQuery(AuthorityUserGroupEntity.class, dataGrid);
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, authorityUserGroup, request.getParameterMap());
 		this.authorityUserGroupService.getDataGridReturn(cq, true);
+		List<AuthorityUserGroupEntity> entyties = dataGrid.getResults();
+		List<AuthorityUserGroupPage> pages = new ArrayList<AuthorityUserGroupPage>();
+		for(AuthorityUserGroupEntity e : entyties){
+			AuthorityUserGroupPage page = new AuthorityUserGroupPage();
+			MyBeanUtils.copyBeanNotNull2Bean(e, page);
+			String ids="", names="";
+			List<AuthGroupUserEntity> users = systemService.findByProperty(AuthGroupUserEntity.class, "authid", e.getId());
+			for(AuthGroupUserEntity u : users){
+				ids += ("," + u.getUserid());
+				TSUser user = systemService.get(TSUser.class, u.getUserid());
+				names += ("、" + user.getRealName());
+			}
+			page.setUserIDs(ids.substring(1));
+			page.setUserNames(names.substring(1));
+			pages.add(page);
+		}
+		dataGrid.setResults(pages);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -101,6 +133,7 @@ public class AuthorityUserGroupController extends BaseController {
 		authorityUserGroup = systemService.getEntity(AuthorityUserGroupEntity.class, authorityUserGroup.getId());
 		message = "权限分组删除成功";
 		authorityUserGroupService.delete(authorityUserGroup);
+		systemService.deleteAllEntitie(systemService.findByProperty(AuthGroupUserEntity.class, "authid", authorityUserGroup.getId()));
 		systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 		
 		j.setMsg(message);
@@ -116,7 +149,7 @@ public class AuthorityUserGroupController extends BaseController {
 	 */
 	@RequestMapping(params = "save")
 	@ResponseBody
-	public AjaxJson save(AuthorityUserGroupEntity authorityUserGroup, HttpServletRequest request) {
+	public AjaxJson save(AuthorityUserGroupPage authorityUserGroup, HttpServletRequest request) {
 		AjaxJson j = new AjaxJson();
 		if (StringUtil.isNotEmpty(authorityUserGroup.getId())) {
 			message = "权限分组更新成功";
@@ -124,6 +157,15 @@ public class AuthorityUserGroupController extends BaseController {
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(authorityUserGroup, t);
 				authorityUserGroupService.saveOrUpdate(t);
+				systemService.deleteAllEntitie(systemService.findByProperty(AuthGroupUserEntity.class, "authid", t.getId()));
+				for(String id : authorityUserGroup.getUserIDs().split(",")){
+					if(StringUtil.isNotEmpty(id)){
+						AuthGroupUserEntity gu = new AuthGroupUserEntity();
+						gu.setAuthid(t.getId());
+						gu.setUserid(id);
+						systemService.save(gu);
+					}
+				}
 				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -131,7 +173,23 @@ public class AuthorityUserGroupController extends BaseController {
 			}
 		} else {
 			message = "权限分组添加成功";
-			authorityUserGroupService.save(authorityUserGroup);
+			AuthorityUserGroupEntity entity = new AuthorityUserGroupEntity();
+			try {
+				entity.setName(authorityUserGroup.getName());
+				entity.setDesc(authorityUserGroup.getDesc());
+				authorityUserGroupService.save(entity);
+				for(String id : authorityUserGroup.getUserIDs().split(",")){
+					if(StringUtil.isNotEmpty(id)){
+						AuthGroupUserEntity gu = new AuthGroupUserEntity();
+						gu.setAuthid(entity.getId());
+						gu.setUserid(id);
+						systemService.save(gu);
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				message = "权限分组更新失败了";
+			}
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
 		j.setMsg(message);
@@ -142,13 +200,26 @@ public class AuthorityUserGroupController extends BaseController {
 	 * 权限分组列表页面跳转
 	 * 
 	 * @return
+	 * @throws Exception 
 	 */
 	@RequestMapping(params = "addorupdate")
-	public ModelAndView addorupdate(AuthorityUserGroupEntity authorityUserGroup, HttpServletRequest req) {
+	public ModelAndView addorupdate(AuthorityUserGroupEntity authorityUserGroup, HttpServletRequest req) throws Exception {
 		if (StringUtil.isNotEmpty(authorityUserGroup.getId())) {
 			authorityUserGroup = authorityUserGroupService.getEntity(AuthorityUserGroupEntity.class, authorityUserGroup.getId());
-			req.setAttribute("authorityUserGroupPage", authorityUserGroup);
+			AuthorityUserGroupPage page = new AuthorityUserGroupPage();
+			MyBeanUtils.copyBeanNotNull2Bean(authorityUserGroup, page);
+			List<TSBaseUser> users = systemService.findByProperty(TSBaseUser.class, "territoryid", page.getId());
+			String ids = "", names = "";
+			for(TSBaseUser u : users){
+				ids += ("," + u.getId());
+				names += ("," + u.getRealName());
+			}
+			page.setUserIDs(ids);
+			page.setUserNames(names);
+			
+			req.setAttribute("authorityUserGroupPage", page);
 		}
+		
 		return new ModelAndView("vod/authorityusergroup/authorityUserGroup");
 	}
 	
@@ -173,5 +244,23 @@ public class AuthorityUserGroupController extends BaseController {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@RequestMapping(params = "getChildren")
+	@ResponseBody
+	public List<ComboTree> getChildren(HttpServletRequest request, ComboTree comboTree) {
+		CriteriaQuery cq = new CriteriaQuery(TSTerritory.class);
+		if (comboTree.getId() != null) {
+			cq.eq("TSTerritory.id", comboTree.getId());
+		} else {
+			cq.eq("TSTerritory.id", "1");//这个是全国最高级
+		}
+		cq.addOrder("territoryCode", SortDirection.asc);
+		cq.add();
+		List<TSTerritory> list = systemService.getListByCriteriaQuery(cq, false);
+		ComboTreeModel comboTreeModel = new ComboTreeModel("id", "territoryName", "TSTerritorys");
+		List<ComboTree> comboTrees = systemService.ComboTreeWithUser(list, comboTreeModel, null);
+		return comboTrees;
+
 	}
 }

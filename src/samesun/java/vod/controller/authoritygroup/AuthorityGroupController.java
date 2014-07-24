@@ -1,6 +1,4 @@
 package vod.controller.authoritygroup;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.json.AjaxJson;
@@ -19,20 +18,18 @@ import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
+import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.core.util.MyBeanUtils;
 
-import com.alibaba.fastjson.JSON;
-
 import vod.entity.authoritygroup.AuthorityGroupEntity;
-import vod.samesun.util.ComboboxBean;
 import vod.service.authoritygroup.AuthorityGroupServiceI;
 
 /**   
  * @Title: Controller
- * @Description: 权限分组
+ * @Description: 终端分组
  * @author zhangdaihao
- * @date 2014-06-19 10:54:05
+ * @date 2014-07-24 11:15:22
  * @version V1.0   
  *
  */
@@ -42,7 +39,6 @@ public class AuthorityGroupController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AuthorityGroupController.class);
 
 	@Autowired
@@ -61,7 +57,7 @@ public class AuthorityGroupController extends BaseController {
 
 
 	/**
-	 * 权限分组列表 页面跳转
+	 * 终端分组列表 页面跳转
 	 * 
 	 * @return
 	 */
@@ -79,7 +75,6 @@ public class AuthorityGroupController extends BaseController {
 	 * @param user
 	 */
 
-	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(AuthorityGroupEntity authorityGroup,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
 		CriteriaQuery cq = new CriteriaQuery(AuthorityGroupEntity.class, dataGrid);
@@ -90,7 +85,7 @@ public class AuthorityGroupController extends BaseController {
 	}
 
 	/**
-	 * 删除权限分组
+	 * 删除终端分组
 	 * 
 	 * @return
 	 */
@@ -99,7 +94,7 @@ public class AuthorityGroupController extends BaseController {
 	public AjaxJson del(AuthorityGroupEntity authorityGroup, HttpServletRequest request) {
 		AjaxJson j = new AjaxJson();
 		authorityGroup = systemService.getEntity(AuthorityGroupEntity.class, authorityGroup.getId());
-		message = "权限分组删除成功";
+		message = "终端分组删除成功";
 		authorityGroupService.delete(authorityGroup);
 		systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 		
@@ -109,7 +104,7 @@ public class AuthorityGroupController extends BaseController {
 
 
 	/**
-	 * 添加权限分组
+	 * 添加终端分组
 	 * 
 	 * @param ids
 	 * @return
@@ -119,7 +114,7 @@ public class AuthorityGroupController extends BaseController {
 	public AjaxJson save(AuthorityGroupEntity authorityGroup, HttpServletRequest request) {
 		AjaxJson j = new AjaxJson();
 		if (StringUtil.isNotEmpty(authorityGroup.getId())) {
-			message = "权限分组更新成功";
+			message = "终端分组更新成功";
 			AuthorityGroupEntity t = authorityGroupService.get(AuthorityGroupEntity.class, authorityGroup.getId());
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(authorityGroup, t);
@@ -127,10 +122,10 @@ public class AuthorityGroupController extends BaseController {
 				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 			} catch (Exception e) {
 				e.printStackTrace();
-				message = "权限分组更新失败";
+				message = "终端分组更新失败";
 			}
 		} else {
-			message = "权限分组添加成功";
+			message = "终端分组添加成功";
 			authorityGroupService.save(authorityGroup);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
@@ -139,7 +134,7 @@ public class AuthorityGroupController extends BaseController {
 	}
 
 	/**
-	 * 权限分组列表页面跳转
+	 * 终端分组列表页面跳转
 	 * 
 	 * @return
 	 */
@@ -150,28 +145,5 @@ public class AuthorityGroupController extends BaseController {
 			req.setAttribute("authorityGroupPage", authorityGroup);
 		}
 		return new ModelAndView("vod/authoritygroup/authorityGroup");
-	}
-	
-	/**
-	 * 获得无分页的所有数据,用于填充下拉框
-	 */
-	@RequestMapping(params = "combox")
-	public void combox(HttpServletRequest request, HttpServletResponse response, String excepts){
-		try {
-			List<AuthorityGroupEntity> list = authorityGroupService.loadAll(AuthorityGroupEntity.class);
-			List<ComboboxBean> result = new ArrayList<ComboboxBean>();
-			for(AuthorityGroupEntity c : list){
-				ComboboxBean b = new ComboboxBean();
-				b.setId(c.getId());
-				b.setName(c.getName());
-				result.add(b);
-			}
-			response.setContentType("text/html;charset=utf-8");
-			String json = JSON.toJSONStringWithDateFormat(result, "yyyy-MM-dd HH:mm:ss");
-			response.getWriter().write(json);
-			response.getWriter().flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 }

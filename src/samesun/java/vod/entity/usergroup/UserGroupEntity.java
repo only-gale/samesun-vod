@@ -1,4 +1,4 @@
-package vod.entity.authoritygroup;
+package vod.entity.usergroup;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -17,18 +17,18 @@ import javax.persistence.SequenceGenerator;
 
 /**   
  * @Title: Entity
- * @Description: 终端分组
+ * @Description: 用户分组
  * @author zhangdaihao
- * @date 2014-07-24 11:15:22
+ * @date 2014-07-24 11:14:11
  * @version V1.0   
  *
  */
 @Entity
-@Table(name = "meeting_authority_group", schema = "")
+@Table(name = "meeting_authority_usergroup", schema = "")
 @DynamicUpdate(true)
 @DynamicInsert(true)
 @SuppressWarnings("serial")
-public class AuthorityGroupEntity implements java.io.Serializable {
+public class UserGroupEntity implements java.io.Serializable {
 	/**主键*/
 	private java.lang.String id;
 	/**自定义权限组名*/
@@ -112,7 +112,7 @@ public class AuthorityGroupEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  权限类型
 	 */
-	@Column(name ="AUTHTYPE",nullable=false,length=100)
+	@Column(name ="AUTHTYPE",nullable=true,length=100)
 	public java.lang.String getAuthtype(){
 		return this.authtype;
 	}
@@ -128,7 +128,7 @@ public class AuthorityGroupEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  创建类型
 	 */
-	@Column(name ="CREATTYPE",nullable=false,length=100)
+	@Column(name ="CREATTYPE",nullable=true,length=100)
 	public java.lang.String getCreattype(){
 		return this.creattype;
 	}

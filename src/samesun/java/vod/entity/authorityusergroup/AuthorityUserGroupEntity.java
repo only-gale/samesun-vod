@@ -91,7 +91,7 @@ public class AuthorityUserGroupEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  描述
 	 */
-	@Column(name ="DESC",nullable=true,length=200)
+	@Column(name ="DES",nullable=true,length=200)
 	public java.lang.String getDesc(){
 		return this.desc;
 	}
@@ -107,7 +107,7 @@ public class AuthorityUserGroupEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  权限类型
 	 */
-	@Column(name ="AUTHTYPE",nullable=true,length=100)
+	@Column(name ="AUTHTYPE",nullable=false,length=100)
 	public java.lang.String getAuthtype(){
 		return this.authtype;
 	}
@@ -123,7 +123,7 @@ public class AuthorityUserGroupEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  创建类型
 	 */
-	@Column(name ="CREATTYPE",nullable=true,length=100)
+	@Column(name ="CREATTYPE",nullable=false,length=100)
 	public java.lang.String getCreattype(){
 		return this.creattype;
 	}

@@ -5,6 +5,13 @@
 <head>
 <title>用户信息</title>
 <t:base type="jquery,easyui,tools"></t:base>
+<script type="text/javascript">
+	$(function() {
+		$("#territoryid").combotree({
+			url : 'terminalInfoController.do?getChildren'
+		});
+	});
+</script>
 </head>
 <body style="overflow-y: hidden" scroll="no">
 <t:formvalid formid="formobj" dialog="true" usePlugin="password" layout="table" action="userController.do?saveUser">
@@ -35,6 +42,11 @@
 					class="Validform_checktip">重复个人密码</span></td>
 			</tr>
 		</c:if>
+		<tr>
+			<td align="right"><label class="Validform_label"> 组织机构: </label></td>
+			<td class="value"><input id="territoryid" name="TSTerritory.id" class="inputxt" style="width:155px" 
+							   value="${user.TSTerritory.id}" /> <span class="Validform_checktip">请选择组织机构</span></td>
+		</tr>
 		<tr>
 			<td align="right"><label class="Validform_label"> 部门: </label></td>
 			<td class="value"><select id="TSDepart.id" name="TSDepart.id" datatype="*">

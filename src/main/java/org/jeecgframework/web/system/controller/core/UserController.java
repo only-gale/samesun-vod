@@ -16,10 +16,10 @@ import org.jeecgframework.web.system.pojo.base.TSFunction;
 import org.jeecgframework.web.system.pojo.base.TSRole;
 import org.jeecgframework.web.system.pojo.base.TSRoleFunction;
 import org.jeecgframework.web.system.pojo.base.TSRoleUser;
+import org.jeecgframework.web.system.pojo.base.TSTerritory;
 import org.jeecgframework.web.system.pojo.base.TSUser;
 import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.web.system.service.UserService;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.criterion.DetachedCriteria;
@@ -358,6 +358,7 @@ public class UserController {
 			users.setOfficePhone(user.getOfficePhone());
 			users.setMobilePhone(user.getMobilePhone());
 			users.setTSDepart(user.getTSDepart());
+			users.setTSTerritory(user.getTSTerritory());
 			users.setRealName(user.getRealName());
 			users.setStatus(Globals.User_Normal);
 			users.setActivitiSync(user.getActivitiSync());
@@ -446,6 +447,8 @@ public class UserController {
 		}else {
 			departList.addAll((List)systemService.getList(TSDepart.class));
 		}
+		List<TSTerritory> territories = systemService.getList(TSTerritory.class);
+		req.setAttribute("territories", territories);
 		req.setAttribute("departList", departList);
 		if (StringUtil.isNotEmpty(user.getId())) {
 			user = systemService.getEntity(TSUser.class, user.getId());
@@ -462,12 +465,12 @@ public class UserController {
 		String roleName = "";
 		if (roleUsers.size() > 0) {
 			for (TSRoleUser tRoleUser : roleUsers) {
-				roleId += tRoleUser.getTSRole().getId() + ",";
-				roleName += tRoleUser.getTSRole().getRoleName() + ",";
+				roleId += ("," + tRoleUser.getTSRole().getId());
+				roleName += ("," + tRoleUser.getTSRole().getRoleName());
 			}
 		}
-		req.setAttribute("id", roleId);
-		req.setAttribute("roleName", roleName);
+		req.setAttribute("id", roleId.substring(1));
+		req.setAttribute("roleName", roleName.substring(1));
 
 	}
 

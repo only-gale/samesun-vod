@@ -22,12 +22,13 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeecgframework.web.system.pojo.base.TSBaseUser;
 import org.jeecgframework.web.system.pojo.base.TSDepart;
 import org.jeecgframework.web.system.pojo.base.TSOperation;
 import org.jeecgframework.web.system.pojo.base.TSRoleFunction;
 import org.jeecgframework.web.system.pojo.base.TSRoleUser;
 import org.jeecgframework.web.system.pojo.base.TSUser;
-
+import org.jeecgframework.web.system.service.SystemService;
 import org.apache.commons.lang.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -507,6 +508,73 @@ public class CommonDao extends GenericBaseCommonDao implements ICommonDao, IGene
 			/*
 			 * if (recursive) {// 递归查询子节点 List<TSFunction> functionList = new ArrayList<TSFunction>(tsFunctions); Collections.sort(functionList, new SetListSort());// 排序 List<ComboTree> children = new ArrayList<ComboTree>(); for (TSFunction f : functionList) { ComboTree t = comboTree(f,comboTreeModel,in, true); children.add(t); } tree.setChildren(children); }
 			 */
+		}
+		return tree;
+	}
+	
+	/**
+	 * 根据模型生成ComboTree JSON
+	 * 
+	 * @param all全部对象
+	 * @param in已拥有的对象
+	 * @param comboTreeModel模型
+	 * @return
+	 */
+	@Override
+	public List<ComboTree> ComboTreeWithUser(List<Object> all, ComboTreeModel comboTreeModel, List<Object> in, String str) {
+		List<ComboTree> trees = new ArrayList<ComboTree>();
+		for (Object obj : all) {
+			trees.add(comboTreeWithUser(obj, comboTreeModel, in));
+		}
+		return trees;
+
+	}
+	
+	// 构建ComboTree
+	@SuppressWarnings("unchecked")
+	private ComboTree comboTreeWithUser(Object obj, ComboTreeModel comboTreeModel, List<Object> in) {
+		ComboTree tree = new ComboTree();
+		Map<String, Object> attributes = new HashMap<String, Object>();
+		ReflectHelper reflectHelper = new ReflectHelper(obj);
+		String id = oConvertUtils.getString(reflectHelper.getMethodValue(comboTreeModel.getIdField()));
+		tree.setId(id);
+		tree.setText(oConvertUtils.getString(reflectHelper.getMethodValue(comboTreeModel.getTextField())));
+		if (comboTreeModel.getSrcField() != null) {
+			attributes.put("href", oConvertUtils.getString(reflectHelper.getMethodValue(comboTreeModel.getSrcField())));
+			tree.setAttributes(attributes);
+		}
+		if (in == null) {
+		} else {
+			if (in.size() > 0) {
+				for (Object inobj : in) {
+					ReflectHelper reflectHelper2 = new ReflectHelper(inobj);
+					String inId = oConvertUtils.getString(reflectHelper2.getMethodValue(comboTreeModel.getIdField()));
+					if (inId == id) {
+						tree.setChecked(true);
+					}
+				}
+			}
+		}
+		List<Object> tsFunctions = (List<Object>) reflectHelper.getMethodValue(comboTreeModel.getChildField());
+		tree.setIconCls("tree-folder");
+		tree.setState("closed");
+		tree.setChecked(false);
+		if (tsFunctions != null && tsFunctions.size() > 0) {
+			/*
+			 * if (recursive) {// 递归查询子节点 List<TSFunction> functionList = new ArrayList<TSFunction>(tsFunctions); Collections.sort(functionList, new SetListSort());// 排序 List<ComboTree> children = new ArrayList<ComboTree>(); for (TSFunction f : functionList) { ComboTree t = comboTree(f,comboTreeModel,in, true); children.add(t); } tree.setChildren(children); }
+			 */
+		}else{
+			List<ComboTree> children = new ArrayList<ComboTree>();
+			List<TSBaseUser> users = findByProperty(TSBaseUser.class, "TSTerritory.id", id);
+			for(TSBaseUser u : users){
+				ComboTree ct = new ComboTree();
+				ct.setId(u.getId());
+				ct.setText(u.getRealName());
+				ct.setIconCls("tree-file");
+				children.add(ct);
+			}
+			tree.setChildren(children);
+			
 		}
 		return tree;
 	}
