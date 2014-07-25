@@ -1,44 +1,35 @@
-package vod.entity.usergroup;
-
-import java.math.BigDecimal;
-import java.util.Date;
+package vod.entity.authgroupterminal;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
-import javax.persistence.SequenceGenerator;
 
 /**   
  * @Title: Entity
- * @Description: 用户分组
+ * @Description: 终端与分组关系
  * @author zhangdaihao
- * @date 2014-07-24 11:14:11
+ * @date 2014-07-25 17:05:52
  * @version V1.0   
  *
  */
 @Entity
-@Table(name = "meeting_authority_usergroup", schema = "")
+@Table(name = "meetingauthgroup_terminal", schema = "")
 @DynamicUpdate(true)
 @DynamicInsert(true)
 @SuppressWarnings("serial")
-public class UserGroupEntity implements java.io.Serializable {
+public class AuthGroupTerminalEntity implements java.io.Serializable {
 	/**主键*/
 	private java.lang.String id;
-	/**自定义权限组名*/
-	private java.lang.String name;
-	/**描述*/
-	private java.lang.String desc;
-	/**权限类型*/
-	private java.lang.String authtype;
-	/**创建类型*/
-	private java.lang.String creattype;
+	/**权限主键*/
+	private java.lang.String authid;
+	/**终端主键*/
+	private java.lang.String terminalid;
 	/**创建人*/
 	private java.lang.String createBy;
 	/**创建人名字*/
@@ -78,67 +69,35 @@ public class UserGroupEntity implements java.io.Serializable {
 	}
 	/**
 	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  自定义权限组名
+	 *@return: java.lang.String  权限主键
 	 */
-	@Column(name ="NAME",nullable=false,length=100)
-	public java.lang.String getName(){
-		return this.name;
+	@Column(name ="AUTHID",nullable=true,length=36)
+	public java.lang.String getAuthid(){
+		return this.authid;
 	}
 
 	/**
 	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  自定义权限组名
+	 *@param: java.lang.String  权限主键
 	 */
-	public void setName(java.lang.String name){
-		this.name = name;
+	public void setAuthid(java.lang.String authid){
+		this.authid = authid;
 	}
 	/**
 	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  描述
+	 *@return: java.lang.String  终端主键
 	 */
-	@Column(name ="DESC",nullable=true,length=200)
-	public java.lang.String getDesc(){
-		return this.desc;
+	@Column(name ="TERMINALID",nullable=true,length=36)
+	public java.lang.String getTerminalid(){
+		return this.terminalid;
 	}
 
 	/**
 	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  描述
+	 *@param: java.lang.String  终端主键
 	 */
-	public void setDesc(java.lang.String desc){
-		this.desc = desc;
-	}
-	/**
-	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  权限类型
-	 */
-	@Column(name ="AUTHTYPE",nullable=true,length=100)
-	public java.lang.String getAuthtype(){
-		return this.authtype;
-	}
-
-	/**
-	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  权限类型
-	 */
-	public void setAuthtype(java.lang.String authtype){
-		this.authtype = authtype;
-	}
-	/**
-	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  创建类型
-	 */
-	@Column(name ="CREATTYPE",nullable=true,length=100)
-	public java.lang.String getCreattype(){
-		return this.creattype;
-	}
-
-	/**
-	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  创建类型
-	 */
-	public void setCreattype(java.lang.String creattype){
-		this.creattype = creattype;
+	public void setTerminalid(java.lang.String terminalid){
+		this.terminalid = terminalid;
 	}
 	/**
 	 *方法: 取得java.lang.String

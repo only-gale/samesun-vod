@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
-import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
 import vod.entity.appointmenttraining.AppointmentTrainingEntity;
 import vod.entity.traininginfo.TrainingInfoEntity;
 import vod.samesun.util.CommandUtil;

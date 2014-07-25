@@ -276,6 +276,20 @@ public interface CommonService {
 	 */
 	public List<ComboTree> ComboTreeWithUser(List all, ComboTreeModel comboTreeModel,
 			List in);
+	
+	/**
+	 * 根据模型生成JSON
+	 * 
+	 * @param all
+	 *            全部对象
+	 * @param in
+	 *            已拥有的对象
+	 * @param comboBox
+	 *            模型
+	 * @return
+	 */
+	public List<ComboTree> ComboTreeFull(List all, ComboTreeModel comboTreeModel,
+			List in, String flag);
 
 	/**
 	 * 构建树形数据表

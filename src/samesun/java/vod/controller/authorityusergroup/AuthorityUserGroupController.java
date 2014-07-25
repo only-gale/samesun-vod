@@ -18,7 +18,6 @@ import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.tag.vo.datatable.SortDirection;
 import org.jeecgframework.tag.vo.easyui.ComboTreeModel;
-import org.jeecgframework.web.system.pojo.base.TSBaseUser;
 import org.jeecgframework.web.system.pojo.base.TSTerritory;
 import org.jeecgframework.web.system.pojo.base.TSUser;
 import org.jeecgframework.web.system.service.SystemService;
@@ -102,22 +101,26 @@ public class AuthorityUserGroupController extends BaseController {
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, authorityUserGroup, request.getParameterMap());
 		this.authorityUserGroupService.getDataGridReturn(cq, true);
 		List<AuthorityUserGroupEntity> entyties = dataGrid.getResults();
-		List<AuthorityUserGroupPage> pages = new ArrayList<AuthorityUserGroupPage>();
-		for(AuthorityUserGroupEntity e : entyties){
-			AuthorityUserGroupPage page = new AuthorityUserGroupPage();
-			MyBeanUtils.copyBeanNotNull2Bean(e, page);
-			String ids="", names="";
-			List<AuthGroupUserEntity> users = systemService.findByProperty(AuthGroupUserEntity.class, "authid", e.getId());
-			for(AuthGroupUserEntity u : users){
-				ids += ("," + u.getUserid());
-				TSUser user = systemService.get(TSUser.class, u.getUserid());
-				names += ("、" + user.getRealName());
+		if(null != entyties && entyties.size() > 0){
+			List<AuthorityUserGroupPage> pages = new ArrayList<AuthorityUserGroupPage>();
+			for(AuthorityUserGroupEntity e : entyties){
+				AuthorityUserGroupPage page = new AuthorityUserGroupPage();
+				MyBeanUtils.copyBeanNotNull2Bean(e, page);
+				String ids="", names="";
+				List<AuthGroupUserEntity> users = systemService.findByProperty(AuthGroupUserEntity.class, "authid", e.getId());
+				for(AuthGroupUserEntity u : users){
+					ids += ("," + u.getUserid());
+					TSUser user = systemService.get(TSUser.class, u.getUserid());
+					if(null != user){
+						names += ("、" + user.getRealName());
+					}
+				}
+				page.setUserIDs(ids.length() > 1 ? ids.substring(1) : ids);
+				page.setUserNames(names.length() > 1 ? names.substring(1) : names);
+				pages.add(page);
 			}
-			page.setUserIDs(ids.substring(1));
-			page.setUserNames(names.substring(1));
-			pages.add(page);
+			dataGrid.setResults(pages);
 		}
-		dataGrid.setResults(pages);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -157,7 +160,9 @@ public class AuthorityUserGroupController extends BaseController {
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(authorityUserGroup, t);
 				authorityUserGroupService.saveOrUpdate(t);
+				//删除已有用户与分组的关联关系
 				systemService.deleteAllEntitie(systemService.findByProperty(AuthGroupUserEntity.class, "authid", t.getId()));
+				//维护新的用户与分组的关联关系
 				for(String id : authorityUserGroup.getUserIDs().split(",")){
 					if(StringUtil.isNotEmpty(id)){
 						AuthGroupUserEntity gu = new AuthGroupUserEntity();
@@ -178,6 +183,7 @@ public class AuthorityUserGroupController extends BaseController {
 				entity.setName(authorityUserGroup.getName());
 				entity.setDesc(authorityUserGroup.getDesc());
 				authorityUserGroupService.save(entity);
+				//维护用户与分组的关联关系
 				for(String id : authorityUserGroup.getUserIDs().split(",")){
 					if(StringUtil.isNotEmpty(id)){
 						AuthGroupUserEntity gu = new AuthGroupUserEntity();
@@ -188,7 +194,7 @@ public class AuthorityUserGroupController extends BaseController {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				message = "权限分组更新失败了";
+				message = "权限分组更新失败";
 			}
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
@@ -208,14 +214,12 @@ public class AuthorityUserGroupController extends BaseController {
 			authorityUserGroup = authorityUserGroupService.getEntity(AuthorityUserGroupEntity.class, authorityUserGroup.getId());
 			AuthorityUserGroupPage page = new AuthorityUserGroupPage();
 			MyBeanUtils.copyBeanNotNull2Bean(authorityUserGroup, page);
-			List<TSBaseUser> users = systemService.findByProperty(TSBaseUser.class, "territoryid", page.getId());
-			String ids = "", names = "";
-			for(TSBaseUser u : users){
-				ids += ("," + u.getId());
-				names += ("," + u.getRealName());
+			List<AuthGroupUserEntity> users = systemService.findByProperty(AuthGroupUserEntity.class, "authid", page.getId());
+			String ids = "";
+			for(AuthGroupUserEntity u : users){
+				ids += ("," + u.getUserid());
 			}
-			page.setUserIDs(ids);
-			page.setUserNames(names);
+			page.setUserIDs(ids.substring(1));
 			
 			req.setAttribute("authorityUserGroupPage", page);
 		}

@@ -366,6 +366,22 @@ public class CommonServiceImpl implements CommonService {
 			List in) {
 		return commonDao.ComboTreeWithUser(all, comboTreeModel, in, null);
 	}
+	
+	/**
+	 * 根据模型生成JSON
+	 * 
+	 * @param all
+	 *            全部对象
+	 * @param in
+	 *            已拥有的对象
+	 * @param comboBox
+	 *            模型
+	 * @return
+	 */
+	public List<ComboTree> ComboTreeFull(List all, ComboTreeModel comboTreeModel,
+			List in, String flag) {
+		return commonDao.ComboTreeFull(all, comboTreeModel, in, flag);
+	}
 
 	/**
 	 * 构建树形数据表

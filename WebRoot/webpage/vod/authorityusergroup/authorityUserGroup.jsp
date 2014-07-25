@@ -12,8 +12,12 @@
 			url : 'authorityUserGroupController.do?getChildren',
 			multiple : true,
 			separator : ",",
-			cascadeCheck:$(this).is(':checked')
+			cascadeCheck: false
 		});
+		var str = "${authorityUserGroupPage.userIDs}";
+		if(null != str && "" != str){
+			$("#userIDs").combotree('setValues', str.split(","));
+		}
 	});
 </script>
  </head>
@@ -52,8 +56,7 @@
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="userIDs" name="userIDs" ignore="ignore"
-							   value="${authorityUserGroupPage.userIDs}">
+						<input class="inputxt" id="userIDs" name="userIDs" ignore="ignore" />
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>

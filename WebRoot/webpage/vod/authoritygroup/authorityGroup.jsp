@@ -5,6 +5,21 @@
  <head>
   <title>终端分组</title>
   <t:base type="jquery,easyui,tools,DatePicker"></t:base>
+    <script type="text/javascript">
+	$(function() {
+		$("#terminalIDs").combotree({
+			width : '200',
+			url : 'authorityGroupController.do?getChildren',
+			multiple : true,
+			separator : ",",
+			cascadeCheck: false
+		});
+		var str = "${authorityGroupPage.terminalIDs}";
+		if(null != str && "" != str){
+			$("#terminalIDs").combotree('setValues', str.split(","));
+		}
+	});
+</script>
  </head>
  <body style="overflow-y: hidden" scroll="no">
   <t:formvalid formid="formobj" dialog="true" usePlugin="password" layout="table" action="authorityGroupController.do?save">
@@ -37,24 +52,11 @@
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							权限类型:
+							终端清单:
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="authtype" name="authtype" 
-							   value="${authorityGroupPage.authtype}" datatype="*">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							创建类型:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="creattype" name="creattype" 
-							   value="${authorityGroupPage.creattype}" datatype="*">
+						<input class="inputxt" id="terminalIDs" name="terminalIDs">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
