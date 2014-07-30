@@ -80,8 +80,8 @@
 <footer class="footer">
 <div class="container">
 <ul class="footer-links">
-	<li style="display: inline;">&copy; 版权所有<a href="http://www.jeecg.org" title="JEECG Framework 3.4.3 GA">JEECG Framework 3.4.3 GA</a></li>
-	<li style="display: inline;">&nbsp;(推荐谷歌浏览器，获得更快响应速度) 技术支持:<a title="JEECG Framework 3.4.3 GA版本" href="http://www.jeecg.org">JEECG Framework 3.4.3 GA</a></li>
+	<li style="display: inline;">&copy; 版权所有<a href="#">上海斯尚信息科技有限公司</a></li>
+	<li style="display: inline;">&nbsp;(推荐谷歌浏览器，获得更快响应速度) 技术支持:<a href="#">上海斯尚信息科技有限公司</a></li>
 </ul>
 </div>
 </footer>

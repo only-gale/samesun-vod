@@ -267,6 +267,31 @@ public class UserController {
 		cq.in("status", userstate);
 		cq.add();
 		this.systemService.getDataGridReturn(cq, true);
+		//改造用户的组织机构名称为：从非根机构的顶级机构依次往下直到当前机构的名称相连
+		@SuppressWarnings("unchecked")
+		List<TSUser> result = dataGrid.getResults();
+		for(TSUser u : result){
+			TSTerritory self = u.getTSTerritory();
+			String name = "";
+			List<TSTerritory> ts = new ArrayList<TSTerritory>();
+			ts.add(self);
+			TSTerritory parent = self.getTSTerritory();
+			String pid = parent.getId();
+			//当父组织机构不为根机构时，查找父机构
+			while(!"1".equals(pid)){
+				ts.add(parent);
+				parent = parent.getTSTerritory();
+				pid = parent.getId();
+			}
+			//按照添加顺序逆序
+			Collections.reverse(ts);
+			for(TSTerritory t : ts){
+				name += t.getTerritoryName(); 
+			}
+			self.setTerritoryName(name);
+			
+		}
+		dataGrid.setResults(result);
 		TagUtil.datagrid(response, dataGrid);
 	}
 

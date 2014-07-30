@@ -115,7 +115,7 @@ label.iPhoneCheckLabelOn span {
     <!--Login div-->
     <div class="clear"></div>
     <div id="versionBar">
-        <div class="copyright">&copy; 版权所有 <span class="tip"><a href="#" title="JEECG 微云快速开发平台">jeecg</a> (推荐使用IE8+,谷歌浏览器可以获得更快,更安全的页面响应速度)技术支持:<a href="#" title="JEECG 微云快速开发平台">jeecg</a></span></div>
+        <div class="copyright">&copy; 版权所有 <span class="tip"><a href="#">上海斯尚信息科技有限公司</a> (推荐使用IE8+,谷歌浏览器可以获得更快,更安全的页面响应速度)技术支持:<a href="#">上海斯尚信息科技有限公司</a></span></div>
     </div>
     <!-- Link JScript-->
     <script type="text/javascript" src="plug-in/jquery/jquery-1.8.3.min.js"></script>

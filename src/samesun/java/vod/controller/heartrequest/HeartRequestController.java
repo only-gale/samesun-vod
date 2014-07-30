@@ -1,5 +1,9 @@
 package vod.controller.heartrequest;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -21,7 +25,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.heartrequest.HeartRequestEntity;
 import vod.entity.terminalinfo.TerminalInfoEntity;
+import vod.samesun.util.SystemType;
 import vod.service.heartrequest.HeartRequestServiceI;
+import vod.service.meetinginfo.MeetingInfoServiceI;
 import vod.service.terminalinfo.TerminalInfoServiceI;
 
 /**   
@@ -38,13 +44,14 @@ public class HeartRequestController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(HeartRequestController.class);
 
 	@Autowired
 	private HeartRequestServiceI heartRequestService;
 	@Autowired
 	private TerminalInfoServiceI terminalInfoService;
+	@Autowired
+	private MeetingInfoServiceI meetingInfoService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -181,5 +188,68 @@ public class HeartRequestController extends BaseController {
 		systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		j.setMsg(message);
 		return j;
+	}
+	@RequestMapping(params = "heartBeat")
+	public void dealHeartRequest(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response, String playid, String live){
+		PrintWriter write = null;
+		try {
+			response.setContentType("text/xml;charset=UTF-8");
+			request.setCharacterEncoding("UTF-8");
+			String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
+			String meetingid = playid.split("_")[0];
+			if(heartRequestService.hearBeatTask(heartRequest, meetingid, live)){
+				strXML +="<state>success</state>";
+			}else{
+				strXML +="<state>fault</state>";
+			}
+			
+			//当直播结束时
+			if(SystemType.LIVE_TYPE_1.equals(live) && meetingInfoService.isFinish(playid)){
+				strXML += "<state>finish</state>";
+			}
+			
+			write = response.getWriter();
+			write.write(strXML);
+			write.flush();
+			
+		} catch (UnsupportedEncodingException e) {
+			logger.info("不支持UTF-8编码格式,请联系技术支持人员");
+			e.printStackTrace();
+		} catch (IOException e) {
+			logger.info("获取输出流失败,请联系技术支持人员");
+			e.printStackTrace();
+		} finally{
+			if(null != write){
+				write.close();
+			}
+		}
+		
+	}
+	
+	@RequestMapping(params = "epg")
+	public void getEPG(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response){
+		PrintWriter write = null;
+		try {
+			response.setContentType("text/xml;charset=UTF-8");
+			request.setCharacterEncoding("UTF-8");
+			String mac = heartRequest.getMacaddress();
+			String epg = "";
+			if(StringUtil.isNotEmpty(mac)){
+				epg = heartRequestService.getEPG(mac);
+			}
+			write = response.getWriter();
+			write.write(epg);
+			write.flush();
+		} catch (UnsupportedEncodingException e) {
+			logger.info("不支持UTF-8编码格式,请联系技术支持人员");
+			e.printStackTrace();
+		} catch (IOException e) {
+			logger.info("获取输出流失败,请联系技术支持人员");
+			e.printStackTrace();
+		}finally{
+			if(null != write){
+				write.close();
+			}
+		}
 	}
 }

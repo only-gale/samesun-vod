@@ -75,4 +75,15 @@ public class SystemType {
 	public static String TERMINAL_STATE_1 = "1";
 	/**终端状态: 在线*/
 	public static String TERMINAL_STATE_2 = "2";
+	
+	/**会议类型编码*/
+	public static String MEETING_TYPE = "meetingType";
+	/**会议类型名称*/
+	public static String MEETING_TYPE_NAME = "会议类型";
+	/**会议类型: 公共类*/
+	public static String MEETING_TYPE_1 = "1";
+	/**会议类型: 专题类*/
+	public static String MEETING_TYPE_2 = "2";
+	/**会议类型: 讨论类*/
+	public static String MEETING_TYPE_3 = "3";
 }

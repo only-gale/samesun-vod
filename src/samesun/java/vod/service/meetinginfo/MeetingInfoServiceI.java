@@ -15,4 +15,5 @@ public interface MeetingInfoServiceI extends CommonService{
 	 */
 	public MeetingInfoEntity getMeetingInfoFromAppointment(AppointmentMeetingInfoEntity app);
 	
+	public boolean isFinish(String id);
 }

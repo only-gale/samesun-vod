@@ -179,7 +179,7 @@ a:hover {
 </div>
 <!-- 底部 -->
 <div region="south" border="false" style="height: 25px; overflow: hidden;">
-<div align="center" style="color: #CC99FF; padding-top: 2px">&copy; 版权所有 <span class="tip"><a href="http://www.jeecg.org" title=" JEECG Framework 3.4.3 GA"> JEECG Framework 3.4.3 GA</a> (推荐谷歌浏览器，获得更快响应速度) 技术支持:<a href="#" title=" JEECG Framework 3.4.3 GA">JEECG Framework 3.4.3 GA</a> </span></div>
+<div align="center" style="color: #CC99FF; padding-top: 2px">&copy; 版权所有 <span class="tip">上海斯尚信息科技有限公司 (推荐谷歌浏览器，获得更快响应速度) </span></div>
 </div>
 <div id="mm" class="easyui-menu" style="width: 150px;">
 <div id="mm-tabupdate">刷新</div>

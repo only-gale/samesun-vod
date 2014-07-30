@@ -2,6 +2,7 @@ package vod.service.impl.meetinginfo;
 
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import org.jeecgframework.core.util.DataUtils;
+import org.jeecgframework.core.util.StringUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,17 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 		meeting.setTypeid(app.getTypeid());
 		meeting.setMeetingstate(new Integer(SystemType.MEETING_STATE_1));
 		return meeting;
+	}
+
+	@Override
+	public boolean isFinish(String id) {
+		if(StringUtil.isNotEmpty(id)){
+			MeetingInfoEntity meeting = get(MeetingInfoEntity.class, id);
+			if(meeting.getMeetingstate().equals(SystemType.MEETING_STATE_3)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }

@@ -30,7 +30,7 @@ public class TSBaseUser extends IdEntity implements java.io.Serializable {
 	private Short status;// 状态1：在线,2：离线,0：禁用
 	private byte[] signature;// 签名文件
 	private TSDepart TSDepart = new TSDepart();// 部门
-	private TSTerritory TSTerritory = new TSTerritory();// 部门
+	private TSTerritory TSTerritory = new TSTerritory();// 组织机构
 	
 	@Column(name = "signature",length=3000)
 	public byte[] getSignature() {
