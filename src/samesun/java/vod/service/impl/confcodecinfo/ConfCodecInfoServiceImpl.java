@@ -40,7 +40,7 @@ public class ConfCodecInfoServiceImpl extends CommonServiceImpl implements ConfC
 			
 			for(String id : excepts.split(",")){
 				ConfCodecInfoEntity c = this.getEntity(ConfCodecInfoEntity.class, id);
-				if(!tmpList.contains(c)){
+				if(null != c && !tmpList.contains(c)){
 					tmpList.add(c);
 				}
 			}

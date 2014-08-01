@@ -123,10 +123,10 @@ a:hover {
 <div region="north" border="false" title="" style="BACKGROUND: #A8D7E9; height: 105px; padding: 1px; overflow: hidden;">
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
 	<tr>
-		<td align="left" style="vertical-align: text-bottom"><img src="plug-in/login/images/logo.jpg"> <!--
-		        <img src="plug-in/login/images/toplogo.png" width="550" height="52" alt="">-->
+		<!-- <td align="left" style="vertical-align: text-bottom"><img src="plug-in/login/images/logo.jpg"> 
+		        <img src="plug-in/login/images/toplogo.png" width="550" height="52" alt="">
 		<div style="position: absolute; top: 78px; left: 33px;">JEECG Framework <span style="letter-spacing: -1px;">3.4.3 GA</span></div>
-		</td>
+		</td> -->
 		<td align="right" nowrap>
 		<table border="0" cellpadding="0" cellspacing="0">
 			<tr style="height: 25px;" align="right">

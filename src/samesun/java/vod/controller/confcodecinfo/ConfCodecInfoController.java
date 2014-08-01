@@ -1,5 +1,6 @@
 package vod.controller.confcodecinfo;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -193,6 +194,7 @@ public class ConfCodecInfoController extends BaseController {
 	 */
 	@RequestMapping(params = "combox")
 	public void combox(HttpServletRequest request, HttpServletResponse response, String meetingType, String excepts, String appointmentStarttime, String appointmentDuration){
+		PrintWriter pw = null;
 		try {
 			List<ConfCodecInfoEntity> list = confCodecInfoService.combox(meetingType, excepts, appointmentStarttime, appointmentDuration);
 			List<ComboboxBean> result = new ArrayList<ComboboxBean>();
@@ -204,10 +206,15 @@ public class ConfCodecInfoController extends BaseController {
 			}
 			response.setContentType("text/html;charset=utf-8");
 			String json = JSON.toJSONStringWithDateFormat(result, "yyyy-MM-dd HH:mm:ss");
-			response.getWriter().write(json);
-			response.getWriter().flush();
+			pw = response.getWriter();
+			pw.write(json);
+			pw.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally{
+			if(null != pw){
+				pw.close();
+			}
 		}
 	}
 }

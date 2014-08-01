@@ -22,6 +22,9 @@
 
 		<input id="tempid" name="tempid" type="hidden" />
 
+		<input id="meetingstate" name="meetingstate" type="hidden"
+			value="${meetingInfoPage.meetingstate }" />
+
 		<table style="width: 100%;" cellpadding="0" cellspacing="1"
 			class="formtable">
 			<tr>
@@ -62,26 +65,14 @@
 				<span class="Validform_checktip"></span></td>
 			</tr>
 		</table>
-		<div class="easyui-accordion" style="width:700px;height:230px">
-			<div title="频道信息" style="padding:10px" data-options="selected:true">
-				<c:choose>
-				<c:when test="${load eq 'detail' }">
+		<div id="accord">
+			<div id="channelInfo" title="频道信息" style="padding:10px">
 				<table id="dg" class="easyui-datagrid"
-					data-options="iconCls: 'icon-edit',toolbar: '#tb',
-					fit:true,fitColumns:true,singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
-		   queryParams:{
-		           meetingid: meetingId
-	               },idField : 'id',onAfterEdit:afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:when>
-	               <c:otherwise>
-	               <table id="dg" class="easyui-datagrid"
 					data-options="iconCls: 'icon-edit',toolbar: '#tb',
 					fit:true,fitColumns:true,pagination:true,pageSize:5,pageList:[5],singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
 		   queryParams:{
 		           meetingid: meetingId
-	               },idField : 'id',onAfterEdit: afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:otherwise>
-	               </c:choose>
+	               },idField : 'id',onAfterEdit: afterEdit, onBeforeLoad: initParams">
 					<thead>
 						<th data-options="field:'id',hidden:true"></th>
 						<th data-options="field:'appoinementid',hidden:true"></th>
@@ -97,6 +88,9 @@
 								onBeforeLoad:function(param){
 									getexcepts();
 									param.excepts = excepts;
+								},
+								onSelect:function(record){
+									tofixcombox2(record.id);
 								}
 							}
 						},
@@ -127,6 +121,9 @@
 								onBeforeLoad:function(param){
 									getexcepts();
 									param.excepts = excepts;
+								},
+								onSelect:function(record){
+									tofixcombox1(record.id);
 								}
 							}
 						},
@@ -184,6 +181,36 @@
 			</div>
 		</div>
 
+		<div id="appRec" style="display: none;">
+			<table>
+				<tr height="50px">
+					<td colspan="4"><c:if
+							test="${meetingInfoPage.appointmentdt ne '' and meetingInfoPage.appointmentdt ne null }">
+							<span>该直播会议将在 <font color="red">${meetingInfoPage.appointmentdt}</font>
+								开始录制
+							</span>
+						</c:if></td>
+				</tr>
+				<tr>
+					<td width="30%"></td>
+					<td colspan="2"><input id="timersetting" class="easyui-slider"
+						style="width:300px"
+						data-options="showTip:true,value:10,max:60,tipFormatter: function(value){
+								        return value + ' 分钟后开始录制';
+								    }">
+					</td>
+					<td width="20%"></td>
+				</tr>
+				<tr>
+					<td width="30%"></td>
+					<td align="right"><input type="button" name="btn_timerSetting"
+						id="btn_timerSetting" class="" value="启用" /></td>
+					<td align="left"><input type="button" name="btn_timercancel"
+						id="btn_timercancel" class="" value="取消" /></td>
+					<td width="20%"></td>
+				</tr>
+			</table>
+		</div>
 	</t:formvalid>
 
 </body>
@@ -198,11 +225,60 @@ if("" == meetingId || "null" == meetingId){
 //$("#formobj").Validform().tipmsg.s="error! no message inputed.";
 //$("#formobj").Validform().config({tiptype:function(msg,o,css){msg: null}});
 
+	$(function() {
+		$("#accord").accordion({
+			width : 700,
+			height : 235,
+			fit : false
+		});
+		
+		if ('editlive' == $("#load").val()) {
+			$(":input").attr("disabled","true");
+			$(":select").attr("disabled","true");
+		}
+		
+		$("#btn_timerSetting").click(function(){
+			var m = $("#timersetting").slider('getValue');
+			var id = $("#id").val();
+			alert(id);
+			var url = "meetingInfoController.do?beginApp&m=" + m + "&id=" + id;
+			$.ajax({
+				url : url,
+				success : function(data) {
+					var d = $.parseJSON(data);
+					if (d.success) {
+						var msg = d.msg;
+						tip(msg);
+					}
+				},
+				cache : false
+			});
+		})
+		
+		$("#btn_timercancel").click(function(){
+			var id = $("#id").val();
+			alert(id);
+			var url = "meetingInfoController.do?cancelApp&id=" + id;
+			$.ajax({
+				url : url,
+				success : function(data) {
+					var d = $.parseJSON(data);
+					if (d.success) {
+						var msg = d.msg;
+						tip(msg);
+					}
+				},
+				cache : false
+			});
+		})
+	});
+
 /*当本次请求为查看时，屏蔽datagrid的菜单按钮*/
 function initParams(){
 	$("#dg").datagrid('options').queryParams['meetingid'] = meetingId;
 	//当是查看请求时，则隐藏工具栏
-	if('detail' == $("#load").val()){
+	var load = $("#load").val();
+	if('detail' == load || 'editlive' == load){
 		$("#tb a").hide();
 	}
 }
@@ -275,6 +351,28 @@ function isrecord(){
 		}
 	}
 	return flag;
+}
+
+function tofixcombox1(id){
+	var codec1id_ed = $('#dg').datagrid('getEditor', {
+		index : editIndex,
+		field : 'codec1id'
+	});
+	excepts = excepts.concat("," + id);
+	var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+	$(codec1id_ed.target).combobox('reload', url);
+	return false;
+}
+
+function tofixcombox2(id){
+	var codec2id_ed = $('#dg').datagrid('getEditor', {
+		index : editIndex,
+		field : 'codec2id'
+	});
+	excepts = excepts.concat("," + id);
+	var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+	$(codec2id_ed.target).combobox('reload', url);
+	return false;
 }
 
 /**检查相关------END------**/
@@ -539,4 +637,37 @@ function stopLive(id){
 	});
 }
 /**窗口按钮操作相关------END------**/
+
+	function initaccord(id) {
+		if(!hasbegin(id)){
+			
+			$('#accord').accordion('add', {
+				title : '预约录制',
+				content : $("#appRec").show(),
+				selected : true
+			});
+			$("#channelInfo").toggle();
+		}
+	}
+	
+	function hasbegin(id) {
+		//默认没开始录制
+		var flag = false;
+		var url = "trainingInfoController.do?hasBegin&id=" + id;
+		$.ajax({
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				if (d.success) {
+					var msg = d.msg;
+					if("false" != msg){
+						flag = true;
+					}
+				}
+			},
+			cache : false
+		});
+		
+		return flag;
+	}
 </script>

@@ -5,12 +5,12 @@
   <t:datagrid name="appointmentMeetingInfoList" title="会议预约" actionUrl="appointmentMeetingInfoController.do?datagrid" idField="id" fitColumns="true" fit="true" queryMode="group" checkbox="true">
    <t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
    <t:dgCol title="预约时间" field="appointmentStarttime" formatter="yyyy-MM-dd hh:mm:ss" query="true" queryMode="group"></t:dgCol>
-   <t:dgCol title="预约持续时长" field="appointmentDuration" align="center"></t:dgCol>
+   <t:dgCol title="预约持续时长(分钟)" field="appointmentDuration" align="center"></t:dgCol>
    <t:dgCol title="预约状态" field="appointmentState" align="center" replace="新建_0,启用_1,过期_2"></t:dgCol>
    <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3"></t:dgCol>
-   <t:dgCol title="会议主题" field="subject" query="true"></t:dgCol>
+   <t:dgCol title="会议主题" field="subject" query="true" width="100"></t:dgCol>
    <t:dgCol title="会议主持人" field="compere" align="center"></t:dgCol>
-   <t:dgCol title="会议简介" field="introduction" width="250"></t:dgCol>
+   <t:dgCol title="会议简介" field="introduction" width="200"></t:dgCol>
    <t:dgCol title="操作" field="opt" width="70"></t:dgCol>
    <t:dgFunOpt title="启用" funname="tostart(id)" exp="appointmentState#eq#0" />
    <t:dgFunOpt title="取消" funname="tocancel(id, appointmentState)" exp="appointmentState#eq#0" />

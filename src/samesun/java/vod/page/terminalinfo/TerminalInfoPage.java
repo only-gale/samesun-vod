@@ -26,7 +26,7 @@ public class TerminalInfoPage {
 	private java.lang.String groupname;
 	/**当前状态*/
 	private java.lang.Integer status;
-	/**正在观看节目*/
+	/**正在观看节目id*/
 	private java.lang.String nowvideo;
 	/**会议主题*/
 	private java.lang.String subject;

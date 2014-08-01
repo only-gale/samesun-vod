@@ -116,6 +116,12 @@ public class MeetingInfoController extends BaseController {
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, meetingInfo, request.getParameterMap());
 		this.meetingInfoService.getDataGridReturn(cq, true);
+		List<MeetingInfoEntity> mts = dataGrid.getResults();
+		for(MeetingInfoEntity m : mts){
+			//设置已持续时长，单位分钟
+			m.setBillduration((int) ((DataUtils.getMillis() - m.getBillstarttime().getTime()) / (60 * 1000)));
+		}
+		dataGrid.setResults(mts);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -205,6 +211,7 @@ public class MeetingInfoController extends BaseController {
 			meetingInfo.setIsrecord(new Integer(isrecord));
 			
 			meetingInfoService.save(meetingInfo);
+			
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
 		
@@ -227,6 +234,21 @@ public class MeetingInfoController extends BaseController {
 				meetingInfoService.updateEntitie(e);
 			}
 		}
+		
+		/*//关联设备
+		List<AppointmentChannelInfoEntity> channels = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingID);
+		List<AuthGroupTerminalEntity> tids = new ArrayList<AuthGroupTerminalEntity>();
+		for(AppointmentChannelInfoEntity c : channels){
+			String authGroupid = c.getAuthortiyGroupCid();
+			tids.addAll(systemService.findByProperty(AuthGroupTerminalEntity.class, "authid", authGroupid));
+		}
+		for(AuthGroupTerminalEntity e : tids){
+			if(null != e){
+				TerminalInfoEntity t = systemService.get(TerminalInfoEntity.class, e.getTerminalid());
+				t.setNowvideo(meetingID);
+				systemService.updateEntitie(t);
+			}
+		}*/
 		
 		j.setMsg(message);
 		Map<String, Object> attrs = new HashMap<String, Object>();
@@ -293,23 +315,22 @@ public class MeetingInfoController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		try {
 			if(StringUtil.isNotEmpty(id)){
+				message = "开始录制";
 				MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
-				if(SystemType.MEETING_STATE_2.equals(meeting.getMeetingstate().toString())){
-					message = "开始录制";
-				}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
-					message = "录制失败";
-				}else{
-					
-					logger.info("开始录制之前时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
-					String result = liveSectionRecordService.StartChannelSectionRecord(id);
-					logger.info(result);
-					logger.info("开始录制之后时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
-					message = result;
-					/*if(StringUtil.isNotEmpty(result)){
+				if(null != meeting && !SystemType.MEETING_STATE_4.equals(meeting.getMeetingstate().toString())){
+						
+						logger.info("开始录制之前时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
+						String result = liveSectionRecordService.StartChannelSectionRecord(meeting, "MeetingInfoEntity");
+						logger.info(result);
+						logger.info("开始录制之后时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
+						message = result;
+						/*if(StringUtil.isNotEmpty(result)){
 						message = "开始录制";
 					}else{
 						message = "录制失败";
 					}*/
+				}else{
+					message = "录制失败";
 				}
 			}else{
 				message = "程序发生错误,缺少直播会议ID值";
@@ -328,30 +349,25 @@ public class MeetingInfoController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(params = "stopRecord")
+	@ResponseBody
 	public AjaxJson stopRecord(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) {
 		AjaxJson j = new AjaxJson();
 		if(StringUtil.isNotEmpty(id)){
+			message = "停止录制";
 			MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
-			if(SystemType.MEETING_STATE_1.equals(meeting.getMeetingstate().toString())){
-				message = "停止录制";
-			}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
-				message = "停止录制失败";
-			}else{
-				
+			if(null != meeting && SystemType.MEETING_STATE_2.equals(meeting.getMeetingstate().toString())){
 				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
-				String result = liveSectionRecordService.EndChannelSectionRecord(id);
+				String result = liveSectionRecordService.EndChannelSectionRecord(meeting, "MeetingInfoEntity");
 				logger.info(result);
 				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
-				if(StringUtil.isNotEmpty(result)){
-					message = "停止录制";
-				}else{
+				if(StringUtil.isEmpty(result)){
 					message = "停止录制失败";
 				}
 			}
-			j.setMsg(message);
 		}else{
 			message = "程序发生错误,缺少直播会议ID值";
 		}
+		j.setMsg(message);
 		return j;
 	}
 	
@@ -362,37 +378,43 @@ public class MeetingInfoController extends BaseController {
 	 * @throws Exception 
 	 */
 	@RequestMapping(params = "stopLive")
+	@ResponseBody
 	public AjaxJson stopLive(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws Exception {
 		AjaxJson j = new AjaxJson();
 		if(StringUtil.isNotEmpty(id)){
 			message = "结束直播";
 			MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class, id);
-			String state = t.getMeetingstate().toString();
-			
-			//改变状态
-			t.setMeetingstate(new Integer(SystemType.MEETING_STATE_3));
-			t.setBillduration((int) ((DataUtils.getMillis() - t.getBillstarttime().getTime()) / (60 * 1000)));
-			
-			//如果当前直播会议状态为“直播并录制中”，则在执行“结束直播”时要先执行“结束录制”
-			if(SystemType.MEETING_STATE_2.equals(state)){
-				liveSectionRecordService.EndChannelSectionRecord(id);
-			}
-
-			//生成会议日志
-			meetingHistoryService.getHistoryFromLive(t);
-			
-			//生成点播会话信息
-			vodSessionService.getSessionByMeetingId(id);
-			
-			//生成点播明细
-			vodSectionRecordService.getVodSectionRecordByMeetingId(id);
-			
-			meetingInfoService.updateEntitie(t);
-			
-			//释放编码器
-			List<AppointmentChannelInfoEntity> channels = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", id);
-			for(AppointmentChannelInfoEntity channel : channels){
-				appointmentChannelInfoService.linkCodec(channel, SystemType.CODEC_AVILABLE_0);
+			if(null != t){
+				
+				String state = t.getMeetingstate().toString();
+				
+				//改变状态
+				t.setMeetingstate(new Integer(SystemType.MEETING_STATE_3));
+				t.setBillduration((int) ((DataUtils.getMillis() - t.getBillstarttime().getTime()) / (60 * 1000)));
+				
+				//如果当前直播会议状态为“直播并录制中”，则在执行“结束直播”时要先执行“结束录制”，然后生成点播信息
+				if(SystemType.MEETING_STATE_2.equals(state)){
+					liveSectionRecordService.EndChannelSectionRecord4StopLive(id);
+				}
+				
+				if(SystemType.MEETING_STATE_2.equals(state) || SystemType.MEETING_STATE_4.equals(state)){
+					//生成点播会话信息
+					vodSessionService.getSessionByMeetingId(id);
+					
+					//生成点播明细
+					vodSectionRecordService.getVodSectionRecordByMeetingId(id);
+				}
+				
+				//生成会议日志
+				meetingHistoryService.getHistoryFromLive(t);
+				
+				meetingInfoService.updateEntitie(t);
+				
+				//释放编码器
+				List<AppointmentChannelInfoEntity> channels = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", id);
+				for(AppointmentChannelInfoEntity channel : channels){
+					appointmentChannelInfoService.linkCodec(channel, SystemType.CODEC_AVILABLE_0);
+				}
 			}
 			
 		}else{
@@ -400,5 +422,109 @@ public class MeetingInfoController extends BaseController {
 		}
 		j.setMsg(message);
 		return j;
+	}
+	
+	/**
+	 * 根据id判断有没有开始录制
+	 * @param meetingInfo
+	 * @param req
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(params = "hasBegin")
+	@ResponseBody
+	public AjaxJson hasBegin(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws Exception {
+		AjaxJson j = new AjaxJson();
+		if(StringUtil.isNotEmpty(id) && !hasBegin(id)){
+			message = "false";
+		}else{
+			message = "";
+		}
+		j.setMsg(message);
+		return j;
+	}
+	
+	/**
+	 * 启用预约录制
+	 * @param meetingInfo
+	 * @param req
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(params = "beginApp")
+	@ResponseBody
+	public AjaxJson beginApp(MeetingInfoEntity meetingInfo, HttpServletRequest req, String m, String id) throws Exception {
+		AjaxJson j = new AjaxJson();
+		message = "启用预约录制成功";
+		if(StringUtil.isNotEmpty(id)){
+			if(!hasBegin(id)){
+				MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
+						id);
+				if (null != t) {
+					
+					//设置预约录制时间为当前时间的m分钟后
+					t.setAppointmentdt(DataUtils.datetimeFormat.format(DataUtils.getDate(DataUtils.getMillis() + Integer.valueOf(m) * 60 * 1000)));
+					t.setAppointmentstate(Integer.valueOf(SystemType.APP_RECORD_1));
+					systemService.updateEntitie(t);
+				}
+			}else{
+				message = "启用预约录制失败,当前直播会议正在录制";
+			}
+		}else{
+			message = "启用预约录制失败,缺少直播会议ID值";
+		}
+		j.setMsg(message);
+		return j;
+	}
+	
+	/**
+	 * 取消预约录制
+	 * @param meetingInfo
+	 * @param req
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(params = "cancelApp")
+	@ResponseBody
+	public AjaxJson cancelApp(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws Exception {
+		AjaxJson j = new AjaxJson();
+		message = "取消预约录制成功";
+		if(StringUtil.isNotEmpty(id)){
+			if(!hasBegin(id)){
+				MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
+						id);
+				if (null != t) {
+					
+					//设置预约录制时间为当前时间的m分钟后
+					t.setAppointmentdt("");
+					t.setAppointmentstate(Integer.valueOf(SystemType.APP_RECORD_2));
+					systemService.updateEntitie(t);
+				}
+			}else{
+				message = "取消预约录制失败,当前直播会议正在录制";
+			}
+		}else{
+			message = "取消预约录制失败,缺少直播会议ID值";
+		}
+		j.setMsg(message);
+		return j;
+	}
+	
+	private boolean hasBegin(String id) {
+		MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
+				id);
+		if (null != t
+				&& t.getMeetingstate() != Integer
+						.valueOf(SystemType.MEETING_STATE_2)) {
+
+			//未开始录制
+			return false;
+		} else {
+			//开始录制
+			return true;
+		}
 	}
 }

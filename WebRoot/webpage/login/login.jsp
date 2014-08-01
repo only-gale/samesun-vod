@@ -70,7 +70,7 @@ label.iPhoneCheckLabelOn span {
     <div id="login">
         <div class="ribbon" style="background-image: url(plug-in/login/images/typelogin.png);"></div>
         <div class="inner">
-            <div class="logo"><img src="plug-in/login/images/head.png" /><img src="plug-in/login/images/foot.png" /></div>
+            <div class="logo"><!-- <img src="plug-in/login/images/head.png" /><img src="plug-in/login/images/foot.png" /> --><font size='45' weight='bold' face='楷体'>高清视频录播管理系统</font></div>
             <div class="formLogin">
                 <form name="formLogin" id="formLogin" action="loginController.do?login" check="loginController.do?checkuser" method="post">
                     <input name="userKey" type="hidden" id="userKey" value="D1B5CC2FE46C4CC983C073BCA897935608D926CD32992B5900" />

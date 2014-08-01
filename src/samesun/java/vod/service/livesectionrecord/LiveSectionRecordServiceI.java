@@ -2,7 +2,7 @@ package vod.service.livesectionrecord;
 
 public interface LiveSectionRecordServiceI{
 
-	public String StartChannelSectionRecord(String meetingId) throws Exception;
+	public String StartChannelSectionRecord(Object o, String entityName) throws Exception;
 	
 	/**
 	 * 生成录制记录
@@ -17,9 +17,16 @@ public interface LiveSectionRecordServiceI{
 	public String SectionRecord4DB(String meetingId, String channelID, String sessionID, String Codec, String Priority, String fileName);
 	
 	/**
+	 * 结束直播前的结束录制功能(不涉及直播状态的改变)
+	 * @param meetingId
+	 * @return
+	 */
+	public String EndChannelSectionRecord4StopLive(String meetingId);
+	
+	/**
 	 * 结束录制
 	 * @param meetingId
 	 * @return
 	 */
-	public String EndChannelSectionRecord(String meetingId);
+	public String EndChannelSectionRecord(Object o, String entityName);
 }

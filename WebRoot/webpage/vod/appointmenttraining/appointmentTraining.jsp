@@ -139,6 +139,9 @@
 										param.appointmentDuration = $('#appointmentDuration').val();
 										param.excepts = excepts;
 									}
+								},
+								onSelect:function(record){
+									tofixcombox2(record.id);
 								}
 							}
 						},
@@ -170,6 +173,9 @@
 										param.appointmentDuration = $('#appointmentDuration').val();
 										param.excepts = excepts;
 									}
+								},
+								onSelect:function(record){
+									tofixcombox2(record.id);
 								}
 							}
 						},
@@ -415,5 +421,27 @@
 			excepts = ids.join(",");
 			return true;
 		}
+	}
+	
+	function tofixcombox1(id){
+		var codec1id_ed = $('#dg').datagrid('getEditor', {
+			index : editIndex,
+			field : 'codec1id'
+		});
+		excepts = excepts.concat("," + id);
+		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+		$(codec1id_ed.target).combobox('reload', url);
+		return false;
+	}
+
+	function tofixcombox2(id){
+		var codec2id_ed = $('#dg').datagrid('getEditor', {
+			index : editIndex,
+			field : 'codec2id'
+		});
+		excepts = excepts.concat("," + id);
+		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+		$(codec2id_ed.target).combobox('reload', url);
+		return false;
 	}
 </script>

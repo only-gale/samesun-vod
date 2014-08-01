@@ -9,11 +9,11 @@
 </head>
 <body style="overflow-y: hidden" scroll="no">
 	<t:formvalid formid="formobj" dialog="true" usePlugin="password"
-		layout="table" action="meetingInfoController.do?save" beforeSubmit="checkDg">
+		layout="table" action="meetingInfoController.do?save"
+		beforeSubmit="checkDg">
 		<%--会议ID --%>
-		<input id="id" name="id" type="hidden"
-			value="${meetingInfoPage.id }">
-			
+		<input id="id" name="id" type="hidden" value="${meetingInfoPage.id }">
+
 		<%--预约ID --%>
 		<input id="billid" name="billid" type="hidden"
 			value="${meetingInfoPage.billid }">
@@ -22,11 +22,20 @@
 
 		<input id="tempid" name="tempid" type="hidden" />
 
+		<input id="meetingstate" name="meetingstate" type="hidden"
+			value="${meetingInfoPage.meetingstate }" />
+			
+		<input id="appointmentdt" name="appointmentdt" type="hidden"
+			value="${meetingInfoPage.appointmentdt }" />
+			
+		<input id="appointmentstate" name="appointmentstate" type="hidden"
+			value="${meetingInfoPage.appointmentstate }" />
+
 		<table style="width: 100%;" cellpadding="0" cellspacing="1"
 			class="formtable">
 			<tr>
-				<td align="right" width="15%"><label class="Validform_label"> 所属类型:
-				</label></td>
+				<td align="right" width="15%"><label class="Validform_label">
+						所属类型: </label></td>
 				<td class="value" colspan="3">
 					<%-- <input class="inputxt" id="typeid"
 					name="typeid" ignore="ignore"
@@ -42,51 +51,51 @@
 			<tr>
 				<td align="right"><label class="Validform_label"> 会议主题:
 				</label></td>
-				<td class="value"><input class="inputxt" id="subject"
-					name="subject" datatype="*" nullmsg=" " errormsg=" " sucmsg=" "
-					value="${meetingInfoPage.subject}"> <span
-					class="Validform_checktip"></span></td>
-				
-				<td align="right" width="15%"><label class="Validform_label">
-						会议主持人: </label></td>
-				<td class="value"><input class="inputxt" id="compere"
-					name="compere" ignore="ignore"
-					value="${meetingInfoPage.compere}"> <span
+				<td class="value" width="35%"><input class="inputxt"
+					id="subject" name="subject" datatype="*" nullmsg=" " errormsg=" "
+					sucmsg=" " value="${meetingInfoPage.subject}"> <span
 					class="Validform_checktip"></span></td>
 			</tr>
 			<tr>
+				<td align="right" width="15%"><label class="Validform_label">
+						会议主持人: </label></td>
+				<td class="value"><input class="inputxt" id="compere"
+					name="compere" ignore="ignore" value="${meetingInfoPage.compere}">
+					<span class="Validform_checktip"></span></td>
+			</tr>
+			<%-- <tr>
 				<td align="right"><label class="Validform_label"> 会议简介:
 				</label></td>
-				<td class="value" colspan="3">
-				<textarea cols="97" rows="4" style="margin:5px auto; resize:none" id="introduction" name="introduction" ignore="ignore" value="${meetingInfoPage.introduction}"></textarea>
+				<td class="value" colspan="3"><textarea cols="97" rows="4"
+						style="margin:5px auto; resize:none" id="introduction"
+						name="introduction" ignore="ignore"
+						value="${meetingInfoPage.introduction}"></textarea> <span
+					class="Validform_checktip"></span></td>
+			</tr> --%>
+			<tr>
+				<td align="right"><label class="Validform_label"> 会议简介:
+				</label></td>
+				<td class="value">
+				<input class="inputxt" width="150px" id="introduction"
+					name="introduction" ignore="ignore"
+					value="${meetingInfoPage.introduction}">
 				<span class="Validform_checktip"></span></td>
 			</tr>
 		</table>
-		<div class="easyui-accordion" style="width:700px;height:230px">
-			<div title="频道信息" style="padding:10px" data-options="selected:true">
-				<c:choose>
-				<c:when test="${load eq 'detail' }">
+		<div id="accord">
+			<div id="channelInfo" title="频道信息" style="padding:10px">
 				<table id="dg" class="easyui-datagrid"
-					data-options="iconCls: 'icon-edit',toolbar: '#tb',
-					fit:true,fitColumns:true,singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
-		   queryParams:{
-		           meetingid: meetingId
-	               },idField : 'id',onAfterEdit:afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:when>
-	               <c:otherwise>
-	               <table id="dg" class="easyui-datagrid"
 					data-options="iconCls: 'icon-edit',toolbar: '#tb',
 					fit:true,fitColumns:true,pagination:true,pageSize:5,pageList:[5],singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
 		   queryParams:{
 		           meetingid: meetingId
-	               },idField : 'id',onAfterEdit: afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:otherwise>
-	               </c:choose>
+	               },idField : 'id',onAfterEdit: afterEdit, onBeforeLoad: initParams">
 					<thead>
 						<th data-options="field:'id',hidden:true"></th>
 						<th data-options="field:'appoinementid',hidden:true"></th>
 						<th data-options="field:'meetingid',hidden:true"></th>
-						<th data-options="field:'codec1id',width:150,align:'center',editor:{
+						<th
+							data-options="field:'codec1id',width:150,align:'center',editor:{
 							type:'combobox',
 							options:{
 								valueField:'id',
@@ -97,13 +106,17 @@
 								onBeforeLoad:function(param){
 									getexcepts();
 									param.excepts = excepts;
+								},
+								onSelect:function(record){
+									tofixcombox2(record.id);
 								}
 							}
 						},
 						formatter:function(value,row,index){
 							return transName(row.codec1name);
 						}">主编码器</th>
-						<th data-options="field:'isrecord1',width:60,align:'center',editor : {
+						<th
+							data-options="field:'isrecord1',width:60,align:'center',editor : {
 							type : 'checkbox',
 							options: {  
 								on: 1,  
@@ -113,7 +126,8 @@
 						formatter:function(value,row,index){		 
 							return transCheckBox(value,row,index);     
 						}">是否录制</th>
-						<th data-options="field:'codec2id',width:150,align:'center',editor:{
+						<th
+							data-options="field:'codec2id',width:150,align:'center',editor:{
 							type:'combobox',
 							options:{
 								valueField:'id',
@@ -127,13 +141,17 @@
 								onBeforeLoad:function(param){
 									getexcepts();
 									param.excepts = excepts;
+								},
+								onSelect:function(record){
+									tofixcombox1(record.id);
 								}
 							}
 						},
 						formatter:function(value,row,index){
 							return transName(row.codec2name);
 						}">备编码器</th>
-						<th data-options="field:'isrecord2',width:60,align:'center',editor : {
+						<th
+							data-options="field:'isrecord2',width:60,align:'center',editor : {
 							type : 'checkbox',
 							options: {
 								on: 1,  
@@ -143,21 +161,21 @@
 						formatter:function(value,row,index){
 							return transCheckBox(value,row,index);
 						}">是否录制</th>
-						<th data-options="field:'authortiyGroupCid',width:150,align:'center',editor:{
+						<th
+							data-options="field:'authortiyGroupCid',width:150,align:'center',editor:{
 							type:'combobox',
 							options:{
 								valueField:'id',
 								textField:'name',
-								url:'authorityGroupController.do?combox',
-								onBeforeLoad: function(param){
-									param.excepts = excepts;
-								}
+								required:true,
+								url:'authorityGroupController.do?combox'
 							}
 						},
 						formatter:function(value,row,index){
 							return transName(row.authortiyGroupCname);
 						}">云翼设备分组</th>
-						<th data-options="field:'authortiyUsergroupCid',width:150,align:'center',editor:{
+						<th
+							data-options="field:'authortiyUsergroupCid',width:150,align:'center',editor:{
 							type:'combobox',
 							options:{
 								valueField:'id',
@@ -178,362 +196,569 @@
 					<a href="javascript:void(0)" class="easyui-linkbutton"
 						data-options="iconCls:'icon-save',plain:true" onclick="accept()">保存</a>
 					<a href="javascript:void(0)" class="easyui-linkbutton"
-						data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">删除</a>
+						data-options="iconCls:'icon-remove',plain:true"
+						onclick="removeit()">删除</a>
 				</div>
-				<input type="submit" id="submit" style="display:none"/>
+				<input type="submit" id="submit" style="display:none" />
 			</div>
+
 		</div>
 
+		<div id="appRec" style="display: none;">
+			<table>
+				<tr height="50px">
+					<td colspan="4"><c:if
+							test="${meetingInfoPage.appointmentdt ne '' and meetingInfoPage.appointmentdt ne null }">
+							<span>该直播会议将在 <font color="red">${meetingInfoPage.appointmentdt}</font>
+								开始录制
+							</span>
+						</c:if></td>
+				</tr>
+				<tr>
+					<td width="30%"></td>
+					<td colspan="2"><input id="timersetting" class="easyui-slider"
+						style="width:300px"
+						data-options="showTip:true,value:10,max:60,tipFormatter: function(value){
+								        return value + ' 分钟后开始录制';
+								    }">
+					</td>
+					<td width="20%"></td>
+				</tr>
+				<tr>
+					<td width="30%"></td>
+					<td align="right"><input type="button" name="btn_timerSetting"
+						id="btn_timerSetting" class="" value="启用" /></td>
+					<td align="left"><input type="button" name="btn_timercancel"
+						id="btn_timercancel" class="" value="取消" disabled /></td>
+					<td width="20%"></td>
+				</tr>
+			</table>
+		</div>
 	</t:formvalid>
-
 </body>
 <script type="text/javascript">
-var meetingId = $("#id").val(), excepts = "", editIndex = undefined;
+	var meetingId = $("#id").val(), excepts = "", editIndex = undefined;
 
-if("" == meetingId || "null" == meetingId){
-	meetingId = new Date().getTime();
-	$("#tempid").val(meetingId);
-}
-
-/*当本次请求为查看时，屏蔽datagrid的菜单按钮*/
-function initParams(){
-	$("#dg").datagrid('options').queryParams['meetingid'] = meetingId;
-	//当是查看请求时，则隐藏工具栏
-	if('detail' == $("#load").val()){
-		$("#tb a").hide();
+	if ("" == meetingId || "null" == meetingId) {
+		meetingId = new Date().getTime();
+		$("#tempid").val(meetingId);
 	}
-}
 
-function transName(name) {
-	if (name == undefined) {
-		name = '';
-	}
-	return formatString('<span title="{0}">{1}</span>', name, name); //由后台抛过来
-}
-
-function transCheckBox(value, row, index) {
-	if (value == '1') {
-		return formatString('<input type="checkbox" {0} disabled/>',
-				'checked="checked"');
-	} else if (String(value) == '0') {
-		return formatString('<input type="checkbox" {0} disabled />', '');
-	}
-}
-
-/**检查相关------BEGIN------**/
-
-/* 校验会议必须设置有频道 */
-function checkDg(){
-	var rows = $("#dg").datagrid("getRows");
-	var rowcount = rows.length;
-	if (rowcount == 0){//记录条数等于0
-		$.messager.alert('错误','您还没有设置频道!', 'error');
-		return false;
-	}else if(editIndex != undefined){
-		/* for (var i = 0; i < rowcount; i++){
-			var row = rows[i]; 
-			if (row.editing){
-				$.messager.alert('错误','第' + (i+1) + '个频道设置，请先保存一下!', 'error');
-				break;
-				return false;
-			}
-		} */
-		$.messager.alert('错误','请先保存频道信息', 'error');
-		return false;
-	}else return true;
-}
-
-/*
-* 获取已被之前的频道选择的编码器ID，以便过滤当前频道可选择的编码器列表
-*/
-function getexcepts(){
-	var ids = new Array();
-	var index = 0;
-	var rows = $("#dg").datagrid('getRows');
-	var len = rows.length;
-	for(var i = 0; i < len; i++){
-		ids[index] = rows[i].codec1id;
-		ids[index + 1] = rows[i].codec2id;
-		index = index + 2;
-	}
-	excepts = ids.join(",");
-}
-
-/*
-* 当点击“开始直播”按钮时需要先检查是否录制，以便控制“开始录制”按钮的可用与否
-*/
-function isrecord(){
-	var flag = false;
-	var rows = $("#dg").datagrid("getRows");
-	for(var i = 0; i < rows.length; i++){
-		if(rows[i].isrecord1 == '1' || rows[i].isrecord2 == '1'){
-			flag = true;
-			break;
-		}
-	}
-	return flag;
-}
-
-/**检查相关------END------**/
-
-/**datagrid操作相关------BEGIN------**/
-
-function onClickRow(index){
-	if (editIndex != index){
-		if (endEditing()){
-			/* $('#dg').datagrid('selectRow', index)
-					.datagrid('beginEdit', index); */
-			editIndex = index;
-		} else {
-			$('#dg').datagrid('selectRow', editIndex);
-		}
-	}
-}
-
-/*结束编辑前调用*/
-function endEditing() {
-	if (editIndex == undefined) {
-		return true
-	}
-	if ($('#dg').datagrid('validateRow', editIndex)) {
-		var codec1id_ed = $('#dg').datagrid('getEditor', {
-			index : editIndex,
-			field : 'codec1id'
+	$(function() {
+		$("#accord").accordion({
+			width : 700,
+			height : 235,
+			fit : false
 		});
-		var codec2id_ed = $('#dg').datagrid('getEditor', {
-			index : editIndex,
-			field : 'codec2id'
-		});
-		var authortiyGroupCid_ed = $('#dg').datagrid('getEditor', {
-			index : editIndex,
-			field : 'authortiyGroupCid'
-		});
-		var authortiyUsergroupCid_ed = $('#dg').datagrid('getEditor', {
-			index : editIndex,
-			field : 'authortiyUsergroupCid'
-		});
-		var codec1name = $(codec1id_ed.target).combobox('getText');
-		var codec2name = $(codec2id_ed.target).combobox('getText');
-		var authortiyGroupCname = $(authortiyGroupCid_ed.target).combobox('getText');
-		var authortiyUsergroupCname = $(authortiyUsergroupCid_ed.target).combobox('getText');
-		$('#dg').datagrid('getRows')[editIndex]['codec1name'] = codec1name;
-		$('#dg').datagrid('getRows')[editIndex]['codec2name'] = codec2name;
-		$('#dg').datagrid('getRows')[editIndex]['authortiyGroupCname'] = authortiyGroupCname;
-		$('#dg').datagrid('getRows')[editIndex]['authortiyUsergroupCname'] = authortiyUsergroupCname;
-		$('#dg').datagrid('endEdit', editIndex);
-		editIndex = undefined;
-		return true;
-	} else {
-		$.messager.alert('错误', '请填写正确的频道信息', 'error');
-		return false;
-	}
-}
-
-/*结束编辑后调用*/
-function afterEdit(index,row){
-	row.editing = false;
-	var url = 'appointmentChannelInfoController.do?save&meetingId=' + meetingId;
-	$.ajax({
-		url : url,
-		data : row,
-		dataType : 'json',
-		async : false,
-		success : function(r) {
-			if (r.success) {
-				$('#dg').datagrid('acceptChanges');
-				$.messager.show({
-					msg : r.msg,
-					title : '成功'
-				});
-				editRow = undefined;
-				/* $('#dg').datagrid('reload'); */
-			} else {
-				/* datagrid.datagrid('rejectChanges'); */
-				$('#dg').datagrid('beginEdit', editRow);
-				$.messager.alert('错误', r.msg, 'error');
-			}
-			$('#dg').datagrid('unselectAll');
-		}
-	});
-}
-
-/*新增一行*/
-function append() {
-	if (endEditing()) {
-		$('#dg').datagrid('appendRow', {
-			isrecord1 : 1
-		});
-		editIndex = $('#dg').datagrid('getRows').length - 1;
-		$('#dg').datagrid('selectRow', editIndex).datagrid('beginEdit',
-				editIndex);
-	}
-}
-
-/*删除行，如果当前行无ID信息，则说明是新增的信息，直接删除即可；否则说明当前行信息已被保存在数据库，需要询问用户是否继续删除以便从数据库永久删除*/
-function removeit() {
-	/* if (editIndex == undefined) {
-		return
-	} */
-	
-	var rowsData = $('#dg').datagrid('getSelections');
-	if (!rowsData || rowsData.length==0) {
-		tip('请选择删除项目');
-		return;
-	}
-	if (rowsData.length>1) {
-		tip('请选择一条记录再删除');
-		return;
-	}
-	
-	var id = $('#dg').datagrid('getRows')[editIndex].id;
-	if('' != id && 'null' != id && undefined != id){
-		$.messager.confirm('确认',' 当前频道信息已被保存在数据库,是否删除?',function(r){
-			if(r){
-				$.ajax({
-					url : 'appointmentChannelInfoController.do?del',
-					data : {
-						id : id
-					},
-					dataType : 'json',
-					success : function(response) {
-						$('#dg').datagrid('cancelEdit', editIndex).datagrid('deleteRow',editIndex);
-						editIndex = undefined;
-						$.messager.show({
-							title : '提示',
-							msg : '删除成功！'
-						});
-					}
-				});
-			}
-		});
-	}
-	else{
 		
-		$('#dg').datagrid('cancelEdit', editIndex).datagrid('deleteRow',editIndex);
-	}
-	editIndex = undefined;
-}
-
-/*保存已被编辑的数据*/
-function accept() {
-	if (endEditing()) {
-		$('#dg').datagrid('acceptChanges');
-	}
-}
-function reject() {
-	$('#dg').datagrid('rejectChanges');
-	editIndex = undefined;
-}
-
-/**datagrid操作相关------END------**/
-
-/**窗口按钮操作相关------BEGIN------**/
-
-/*
-* 开始直播
-*/
-function save(flag){
-	var url = "meetingInfoController.do?save&"+flag;
-	var id = $("#id").val();
-	var load = $("#load").val();
-	var tempid = $("#tempid").val();
-	var typeid = $("#typeid").val();
-	var subject = $("#subject").val();
-	var compere = $("#compere").val();
-	var introduction = $("#introduction").val();
-	var isrecord = 0;
-	var rows = $("#dg").datagrid("getRows");
-	for(var i = 0; i < rows.length; i++){
-		if(rows[i].isrecord1 == '1' || rows[i].isrecord2 == '1'){
-			isrecord = 1;
-			break;
+		if ('editlive' == $("#load").val()) {
+			$(":input").attr("disabled","true");
+			$(":select").attr("disabled","true");
 		}
-	}
-	var jsonData = {
-			id: id,
-			load: load,
-			tempid: tempid,
-			typeid: typeid,
-			subject: subject,
-			compere: compere,
-			introduction: introduction,
-			isrecord: isrecord
-	}
-	$.ajax({
-		url: url,
-		data: jsonData,
-		success: function(data){
-			var d = $.parseJSON(data);
-			if (d.success) {
-				var msg = d.msg;
-				tip(msg);
-				$("#id").val(d.attributes.meetingid);
+		
+		var appointmentdt = $("#appointmentdt").val();
+		var appointmentstate = $("#appointmentstate").val();
+		alert(1);
+			alert(appointmentstate);
+		if("" != appointmentdt && "" != appointmentstate){
+			$('#accord').accordion('add', {
+				title : '预约录制',
+				content : $("#appRec").show(),
+				selected : true
+			});
+			$("#channelInfo").toggle();
+			if(1 == appointmentstate){
+				$("#btn_timercancel").removeAttr("disabled");
+				$("#btn_timerSetting").attr("disabled", "disabled");
+			}else{
+				$("#btn_timerSetting").removeAttr("disabled");
+				$("#btn_timercancel").attr("disabled", "disabled");
 			}
-		},
-		cache: false
-	});
-}
-
-/*
-* 根据直播会议ID设置开始录制
-*/
-function startRecord(id){
-	var url = "meetingInfoController.do?startRecord";
-	var jsonData = {
-			id: id
-	};
-	$.ajax({
-		url: url,
-		data: jsonData,
-		success: function(data){
-			var d = $.parseJSON(data);
-			if (d.success) {
-				var msg = d.msg;
-				tip(msg);
-			}
-		},
-		cache: false
-	});
-}
-
-/*
-* 根据直播会议ID设置停止录制
-*/
-function stopRecord(id){
-	var url = "meetingInfoController.do?stopRecord&id="+id;
-	$.ajax({
-		url: url,
-		success: function(data){
-			var d = $.parseJSON(data);
-			if (d.success) {
-				var msg = d.msg;
-				tip(msg);
-			}
-		},
-		cache: false
-	});
-}
-
-/*
-* 根据直播会议ID设置停止直播
-*/
-function stopLive(id){
-	$.messager.confirm('确认','确定要停止直播?',function(r){
-		if(r){
-			var url = "meetingInfoController.do?stopLive&id="+id;
+		}
+		
+		//预约录制中"启用"按钮事件
+		$("#btn_timerSetting").click(function(){
+			var m = $("#timersetting").slider('getValue');
+			var id = $("#id").val();
+			var url = "meetingInfoController.do?beginApp&m=" + m + "&id=" + id;
 			$.ajax({
-				url: url,
-				success: function(data){
+				url : url,
+				success : function(data) {
 					var d = $.parseJSON(data);
+					//成功后事件
 					if (d.success) {
+						alert("启用按钮生效");
+						//启用按钮不可用
+						$("#btn_timerSetting").attr("disabled", "disabled");
+						//slider不可用
+						$("#timersetting").slider('disable');
+						//取消按钮可用
+						$("#btn_timercancel").removeAttr("disabled");
+						//选择频道信息面板
+						$("#accord").accordion('select', '频道信息');
+						//收起预约录制面板
+						$("#appRec").toggle();
+						//展示频道信息面板
+						$("#channelInfo").toggle();
 						var msg = d.msg;
 						tip(msg);
 					}
 				},
-				cache: false
+				cache : false
 			});
-		}
+		});
+		
+		//预约录制中"取消"按钮事件
+		$("#btn_timercancel").click(function(){
+			var id = $("#id").val();
+			var url = "meetingInfoController.do?cancelApp&id=" + id;
+			$.ajax({
+				url : url,
+				success : function(data) {
+					var d = $.parseJSON(data);
+					//成功后事件
+					if (d.success) {
+						alert("取消按钮生效");
+						//取消按钮不可用
+						$("#btn_timercancel").attr("disabled", "disabled");
+						//启用按钮可用
+						$("#btn_timerSetting").removeAttr("disabled");
+						//slider可用
+						$("#timersetting").slider('enable');
+						var msg = d.msg;
+						tip(msg);
+					}
+				},
+				cache : false
+			});
+		});
 	});
-}
-/**窗口按钮操作相关------END------**/
+
+	/*当本次请求为查看时，屏蔽datagrid的菜单按钮*/
+	function initParams() {
+		$("#dg").datagrid('options').queryParams['meetingid'] = meetingId;
+		//当是查看请求时，则隐藏工具栏
+		var load = $("#load").val();
+		if ('detail' == load || 'editlive' == load) {
+			$("#tb a").hide();
+		}
+	}
+
+	function transName(name) {
+		if (name == undefined) {
+			name = '';
+		}
+		return formatString('<span title="{0}">{1}</span>', name, name); //由后台抛过来
+	}
+
+	function transCheckBox(value, row, index) {
+		if (value == '1') {
+			return formatString('<input type="checkbox" {0} disabled/>',
+					'checked="checked"');
+		} else if (String(value) == '0') {
+			return formatString('<input type="checkbox" {0} disabled />', '');
+		}
+	}
+
+	/**检查相关------BEGIN------**/
+
+	/* 校验会议必须设置有频道 */
+	function checkDg() {
+		var rows = $("#dg").datagrid("getRows");
+		var rowcount = rows.length;
+		if (rowcount == 0) {//记录条数等于0
+			$.messager.alert('错误', '您还没有设置频道!', 'error');
+			return false;
+		} else if (editIndex != undefined) {
+			/* for (var i = 0; i < rowcount; i++){
+				var row = rows[i]; 
+				if (row.editing){
+					$.messager.alert('错误','第' + (i+1) + '个频道设置，请先保存一下!', 'error');
+					break;
+					return false;
+				}
+			} */
+			$.messager.alert('错误', '请先保存频道信息', 'error');
+			return false;
+		} else
+			return true;
+	}
+
+	/*
+	 * 获取已被之前的频道选择的编码器ID，以便过滤当前频道可选择的编码器列表
+	 */
+	function getexcepts() {
+		var ids = new Array();
+		var index = 0;
+		var rows = $("#dg").datagrid('getRows');
+		var len = rows.length;
+		for (var i = 0; i < len; i++) {
+			ids[index] = rows[i].codec1id;
+			ids[index + 1] = rows[i].codec2id;
+			index = index + 2;
+		}
+		excepts = ids.join(",");
+	}
+
+	/*
+	 * 当点击“开始直播”按钮时需要先检查是否录制，以便控制“开始录制”按钮的可用与否
+	 */
+	function isrecord() {
+		var flag = false;
+		var rows = $("#dg").datagrid("getRows");
+		for (var i = 0; i < rows.length; i++) {
+			if (rows[i].isrecord1 == '1' || rows[i].isrecord2 == '1') {
+				flag = true;
+				break;
+			}
+		}
+		return flag;
+	}
+	
+	function tofixcombox1(id){
+		var codec1id_ed = $('#dg').datagrid('getEditor', {
+			index : editIndex,
+			field : 'codec1id'
+		});
+		excepts = excepts.concat("," + id);
+		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+		$(codec1id_ed.target).combobox('reload', url);
+		return false;
+	}
+	
+	function tofixcombox2(id){
+		var codec2id_ed = $('#dg').datagrid('getEditor', {
+			index : editIndex,
+			field : 'codec2id'
+		});
+		excepts = excepts.concat("," + id);
+		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+		$(codec2id_ed.target).combobox('reload', url);
+		return false;
+	}
+
+	/**检查相关------END------**/
+
+	/**datagrid操作相关------BEGIN------**/
+
+	function onClickRow(index) {
+		if (editIndex != index) {
+			if (endEditing()) {
+				/* $('#dg').datagrid('selectRow', index)
+						.datagrid('beginEdit', index); */
+				editIndex = index;
+			} else {
+				$('#dg').datagrid('selectRow', editIndex);
+			}
+		}
+	}
+
+	/*结束编辑前调用*/
+	function endEditing() {
+		if (editIndex == undefined) {
+			return true
+		}
+		if ($('#dg').datagrid('validateRow', editIndex)) {
+			var codec1id_ed = $('#dg').datagrid('getEditor', {
+				index : editIndex,
+				field : 'codec1id'
+			});
+			var codec2id_ed = $('#dg').datagrid('getEditor', {
+				index : editIndex,
+				field : 'codec2id'
+			});
+			var authortiyGroupCid_ed = $('#dg').datagrid('getEditor', {
+				index : editIndex,
+				field : 'authortiyGroupCid'
+			});
+			var authortiyUsergroupCid_ed = $('#dg').datagrid('getEditor', {
+				index : editIndex,
+				field : 'authortiyUsergroupCid'
+			});
+			var codec1name = $(codec1id_ed.target).combobox('getText');
+			var codec2name = $(codec2id_ed.target).combobox('getText');
+			var authortiyGroupCname = $(authortiyGroupCid_ed.target).combobox(
+					'getText');
+			var authortiyUsergroupCname = $(authortiyUsergroupCid_ed.target)
+					.combobox('getText');
+			$('#dg').datagrid('getRows')[editIndex]['codec1name'] = codec1name;
+			$('#dg').datagrid('getRows')[editIndex]['codec2name'] = codec2name;
+			$('#dg').datagrid('getRows')[editIndex]['authortiyGroupCname'] = authortiyGroupCname;
+			$('#dg').datagrid('getRows')[editIndex]['authortiyUsergroupCname'] = authortiyUsergroupCname;
+			$('#dg').datagrid('endEdit', editIndex);
+			editIndex = undefined;
+			return true;
+		} else {
+			$.messager.alert('错误', '请填写正确的频道信息', 'error');
+			return false;
+		}
+	}
+
+	/*结束编辑后调用*/
+	function afterEdit(index, row) {
+		row.editing = false;
+		var url = 'appointmentChannelInfoController.do?save&meetingId='
+				+ meetingId;
+		$.ajax({
+			url : url,
+			data : row,
+			dataType : 'json',
+			async : false,
+			success : function(r) {
+				if (r.success) {
+					$('#dg').datagrid('acceptChanges');
+					$.messager.show({
+						msg : r.msg,
+						title : '成功'
+					});
+					editRow = undefined;
+					/* $('#dg').datagrid('reload'); */
+				} else {
+					/* datagrid.datagrid('rejectChanges'); */
+					$('#dg').datagrid('beginEdit', editRow);
+					$.messager.alert('错误', r.msg, 'error');
+				}
+				$('#dg').datagrid('unselectAll');
+			}
+		});
+	}
+
+	/*新增一行*/
+	function append() {
+		if (endEditing()) {
+			$('#dg').datagrid('appendRow', {
+				isrecord1 : 1
+			});
+			editIndex = $('#dg').datagrid('getRows').length - 1;
+			$('#dg').datagrid('selectRow', editIndex).datagrid('beginEdit',
+					editIndex);
+		}
+	}
+
+	/*删除行，如果当前行无ID信息，则说明是新增的信息，直接删除即可；否则说明当前行信息已被保存在数据库，需要询问用户是否继续删除以便从数据库永久删除*/
+	function removeit() {
+		/* if (editIndex == undefined) {
+			return
+		} */
+
+		var rowsData = $('#dg').datagrid('getSelections');
+		if (!rowsData || rowsData.length == 0) {
+			tip('请选择删除项目');
+			return;
+		}
+		if (rowsData.length > 1) {
+			tip('请选择一条记录再删除');
+			return;
+		}
+
+		var id = $('#dg').datagrid('getRows')[editIndex].id;
+		if ('' != id && 'null' != id && undefined != id) {
+			$.messager.confirm('确认', ' 当前频道信息已被保存在数据库,是否删除?', function(r) {
+				if (r) {
+					$.ajax({
+						url : 'appointmentChannelInfoController.do?del',
+						data : {
+							id : id
+						},
+						dataType : 'json',
+						success : function(response) {
+							$('#dg').datagrid('cancelEdit', editIndex)
+									.datagrid('deleteRow', editIndex);
+							editIndex = undefined;
+							$.messager.show({
+								title : '提示',
+								msg : '删除成功！'
+							});
+						}
+					});
+				}
+			});
+		} else {
+
+			$('#dg').datagrid('cancelEdit', editIndex).datagrid('deleteRow',
+					editIndex);
+		}
+		editIndex = undefined;
+	}
+
+	/*保存已被编辑的数据*/
+	function accept() {
+		if (endEditing()) {
+			$('#dg').datagrid('acceptChanges');
+		}
+	}
+	function reject() {
+		$('#dg').datagrid('rejectChanges');
+		editIndex = undefined;
+	}
+
+	/**datagrid操作相关------END------**/
+
+	/**窗口按钮操作相关------BEGIN------**/
+
+	/*
+	 * 开始直播
+	 */
+	function save(flag) {
+		var url = "meetingInfoController.do?save&" + flag;
+		var id = $("#id").val();
+		var load = $("#load").val();
+		var tempid = $("#tempid").val();
+		var typeid = $("#typeid").val();
+		var subject = $("#subject").val();
+		var compere = $("#compere").val();
+		var introduction = $("#introduction").val();
+		var isrecord = 0;
+		var rows = $("#dg").datagrid("getRows");
+		for (var i = 0; i < rows.length; i++) {
+			if (rows[i].isrecord1 == '1' || rows[i].isrecord2 == '1') {
+				isrecord = 1;
+				break;
+			}
+		}
+		var jsonData = {
+			id : id,
+			load : load,
+			tempid : tempid,
+			typeid : typeid,
+			subject : subject,
+			compere : compere,
+			introduction : introduction,
+			isrecord : isrecord
+		}
+		$.ajax({
+			url : url,
+			data : jsonData,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				if (d.success) {
+					var msg = d.msg;
+					tip(msg);
+					$("#id").val(d.attributes.meetingid);
+				}
+			},
+			cache : false
+		});
+	}
+
+	/*
+	 * 根据直播会议ID设置开始录制
+	 */
+	function startRecord(id) {
+		var url = "meetingInfoController.do?startRecord";
+		var jsonData = {
+			id : id
+		};
+		$.ajax({
+			url : url,
+			data : jsonData,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				if (d.success) {
+					var msg = d.msg;
+					tip(msg);
+				}
+			},
+			cache : false
+		});
+	}
+
+	/*
+	 * 根据直播会议ID设置停止录制
+	 */
+	function stopRecord(id) {
+		var url = "meetingInfoController.do?stopRecord&id=" + id;
+		$.ajax({
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				if (d.success) {
+					var msg = d.msg;
+					tip(msg);
+				}
+			},
+			cache : false
+		});
+	}
+
+	/*
+	 * 根据直播会议ID设置停止直播
+	 */
+	function stopLive(id) {
+		$.messager.confirm('确认', '确定要停止直播?', function(r) {
+			if (r) {
+				var url = "meetingInfoController.do?stopLive&id=" + id;
+				$.ajax({
+					url : url,
+					success : function(data) {
+						var d = $.parseJSON(data);
+						if (d.success) {
+							var msg = d.msg;
+							tip(msg);
+						}
+					},
+					cache : false
+				});
+			}
+		});
+	}
+	/**窗口按钮操作相关------END------**/
+
+	function initaccord(id) {
+		if(!hasbegin(id)){
+			
+			var rPanel = $('#accord').accordion('getPanel', '预约录制');
+			if(rPanel){
+				$('#accord').accordion('remove', '预约录制');
+			}
+			
+			$('#accord').accordion('add', {
+				title : '预约录制',
+				content : $("#appRec").show(),
+				selected : true
+			});
+			$("#channelInfo").toggle();
+		}
+	}
+	
+	function hasbegin(id) {
+		//默认没开始录制
+		var flag = false;
+		var url = "meetingInfoController.do?hasBegin&id=" + id;
+		$.ajax({
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				if (d.success) {
+					var msg = d.msg;
+					if("false" != msg){
+						flag = true;
+					}
+				}
+			},
+			cache : false
+		});
+		
+		return flag;
+	}
+	
+/* 	function hasbegin(id) {
+		//默认没开始录制
+		var meetingstate = $("#meetingstate").val();
+		alert(meetingstate);
+		if(2 == meetingstate){
+			return true;
+		}
+		return false;
+	} */
+	
+	function hasapp(){
+		var appointmentdt = $("#appointmentdt").val();
+		var appointmentstate = $("#appointmentstate").val();
+		if("" != appointmentdt && "" != appointmentstate && 2 == appointmentstate){
+			return true;
+		}
+		return false;
+	}
+	
 </script>

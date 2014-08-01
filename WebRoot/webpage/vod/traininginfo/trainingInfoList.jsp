@@ -17,8 +17,8 @@
    <t:dgCol title="资源URL" field="asfurl" hidden="false" ></t:dgCol>
    <t:dgCol title="培训名称" field="name" hidden="false" ></t:dgCol>
    <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3" ></t:dgCol>
-   <t:dgCol title="终端分组" field="rightid" align="center" ></t:dgCol>
-   <t:dgCol title="培训主题" field="subject" align="center" query="true" ></t:dgCol>
+   <t:dgCol title="终端分组" field="rightid" align="center" hidden="false" ></t:dgCol>
+   <t:dgCol title="培训主题" field="subject" align="center" query="true" width="100" ></t:dgCol>
    <t:dgCol title="培训主讲人" field="compere" align="center" ></t:dgCol>
    <t:dgCol title="培训简介" field="introduction" width="300" ></t:dgCol>
    <t:dgCol title="操作" field="opt" width="100"></t:dgCol>
@@ -43,10 +43,9 @@
 		livewindow(title, addurl)
 	}
 	
-	function editmeeting(){
+	function editmeeting(subject){
 		var title = "编辑";
-		
-		var addurl="meetingInfoController.do?addorupdate";
+		var addurl="trainingInfoController.do?addorupdate";
 		var rowsData = $('#meetingInfoList').datagrid('getSelections');
 		if (!rowsData || rowsData.length==0) {
 			tip('请选择编辑项目');
@@ -54,12 +53,12 @@
 		}else if (rowsData.length>1) {
 			tip('请选择一条记录再编辑');
 			return;
-		}else if(rowsData[0].appointmentState != '0'){
-			tip('请注意, 只可编辑 新建 状态下的记录');
+		}else if (rowsData[0].meetingstate == 3) {
+			tip('该培训已经结束');
 			return;
 		}
-		url += ('&id='+rowsData[0].id);
-		livewindow(title, addurl)
+		addurl += ('&load=editlive&id='+rowsData[0].id);
+		editmeetingwindow(title, addurl, rowsData[0].meetingstate, rowsData[0].isrecord, rowsData[0].id);
 	}
 	
 	/**
@@ -140,7 +139,108 @@
 			cache: false,
 			button: buttons,
 		    cancelVal : '关闭',
-		    cancel : true /*为true等价于function(){}*/
+		    cancel : function(){
+		    	$("#trainingInfoList").datagrid('reload');
+		    } /*为true等价于function(){}*/
+		});
+		
+	}
+	
+	function editmeetingwindow(title, addurl, state, isrecord, id) {
+		var btnstate = new Array(4);
+		//直播中
+		if(1 == state){
+			//可录制
+			if(1 == isrecord){
+				btnstate = new Array(true, false, true, false);
+			}else{
+				btnstate = new Array(true, true, true, false);
+			}
+		}else if(2 == state){	//直播并录制中
+			btnstate = new Array(true, true, false, false);
+		}else if(3 == state){	//停止录制
+			btnstate = new Array(true, false, true, false);
+		}else if(4 == state){	//已结束
+			btnstate = new Array(true, true, true, true);
+		}else if(5 == state){	//已延时
+			btnstate = new Array(false, true, true, true);
+		}
+		
+		var buttons = [{
+			name: '开始直播',
+            callback: function(){
+            	iframe = this.iframe.contentWindow;
+            	//触发提交事件
+		    	/* $('#btn_sub', iframe.document).click(); */
+		    	if(iframe.checkDg()){
+			    	iframe.save("live");
+			    	//控制按钮可用状态
+			    	this.button({
+		            		name: '开始直播',
+		            		disabled: true
+		            	},{
+		            		name: '停止直播',
+		            		disabled: false
+		            	});
+			    	
+			    	if(iframe.isrecord()){
+			    		this.button({
+		            		name: '开始录制',
+		            		disabled: false
+		            	});
+			    		iframe.initaccord(id);
+			    	}
+			    	
+		    	}
+				return false;
+            },
+            disabled: btnstate[0]
+		},{
+			name: '开始录制',
+            callback: function(){
+            	iframe = this.iframe.contentWindow;
+            	this.button({
+            		name: '开始录制',
+            		disabled: false
+            	},{
+            		name: '停止录制',
+            		disabled: true
+            	});
+            	iframe.startRecord($("#id", iframe.document).val());
+				return false;
+            },
+            disabled: btnstate[1]
+		},{
+			name: '停止录制',
+            callback: function(){
+            	iframe = this.iframe.contentWindow;
+            	iframe.stopRecord($("#id", iframe.document).val());
+				return false;
+            },
+            disabled: btnstate[2]
+		},{
+			name: '停止直播',
+            callback: function(){
+            	iframe = this.iframe.contentWindow;
+            	iframe.stopLive($("#id", iframe.document).val());
+				return false;
+            },
+            disabled: btnstate[3]
+		}];
+		
+		var dia = $.dialog({
+			content: 'url:'+addurl,
+			lock : true,
+			width: 700,
+			height: 400,
+			title: title + '直播会议',
+			opacity : 0.3,
+			cache: false,
+			button: buttons,
+		    cancelVal : '关闭',
+		    cancel : function(){
+		    	$("#trainingInfoList").datagrid('reload');
+		    } /*为true等价于function(){}*/
 		});
 		
 	}

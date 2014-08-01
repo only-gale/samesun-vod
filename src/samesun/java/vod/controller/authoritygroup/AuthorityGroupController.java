@@ -1,4 +1,5 @@
 package vod.controller.authoritygroup;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,10 +26,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.alibaba.fastjson.JSON;
+
 import vod.entity.authgroupterminal.AuthGroupTerminalEntity;
 import vod.entity.authoritygroup.AuthorityGroupEntity;
 import vod.entity.terminalinfo.TerminalInfoEntity;
 import vod.page.authoritygroup.AuthorityGroupPage;
+import vod.samesun.util.ComboboxBean;
 import vod.service.authoritygroup.AuthorityGroupServiceI;
 
 /**   
@@ -219,6 +223,29 @@ public class AuthorityGroupController extends BaseController {
 			e.printStackTrace();
 		}
 		return new ModelAndView("vod/authoritygroup/authorityGroup");
+	}
+	
+	/**
+	 * 获得无分页的所有数据,用于填充下拉框
+	 */
+	@RequestMapping(params = "combox")
+	public void combox(HttpServletRequest request, HttpServletResponse response, String excepts){
+		try {
+			List<AuthorityGroupEntity> list = authorityGroupService.loadAll(AuthorityGroupEntity.class);
+			List<ComboboxBean> result = new ArrayList<ComboboxBean>();
+			for(AuthorityGroupEntity c : list){
+				ComboboxBean b = new ComboboxBean();
+				b.setId(c.getId());
+				b.setName(c.getName());
+				result.add(b);
+			}
+			response.setContentType("text/html;charset=utf-8");
+			String json = JSON.toJSONStringWithDateFormat(result, "yyyy-MM-dd HH:mm:ss");
+			response.getWriter().write(json);
+			response.getWriter().flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@RequestMapping(params = "getChildren")

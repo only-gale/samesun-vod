@@ -189,13 +189,17 @@ public class HeartRequestController extends BaseController {
 		j.setMsg(message);
 		return j;
 	}
+	
 	@RequestMapping(params = "heartBeat")
-	public void dealHeartRequest(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response, String playid, String live){
+	public void heartBeat(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response, String playid, String live){
 		PrintWriter write = null;
 		try {
 			response.setContentType("text/xml;charset=UTF-8");
 			request.setCharacterEncoding("UTF-8");
 			String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
+			if(StringUtil.isEmpty(playid)){
+				playid = "";
+			}
 			String meetingid = playid.split("_")[0];
 			if(heartRequestService.hearBeatTask(heartRequest, meetingid, live)){
 				strXML +="<state>success</state>";
@@ -204,7 +208,7 @@ public class HeartRequestController extends BaseController {
 			}
 			
 			//当直播结束时
-			if(SystemType.LIVE_TYPE_1.equals(live) && meetingInfoService.isFinish(playid)){
+			if(SystemType.LIVE_TYPE_1.equals(live) && meetingInfoService.isFinish(meetingid)){
 				strXML += "<state>finish</state>";
 			}
 			

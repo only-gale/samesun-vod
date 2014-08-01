@@ -65,7 +65,7 @@
 					</td>
 					<td class="value">
 						<input id="groupid" name="groupid" style="width:160px;"
-							   value="${terminalInfoPage.groupid}" datatype="*">
+							   value="${terminalInfoPage.groupid}">
 					</td>
 				</tr>
 				<%-- <tr>

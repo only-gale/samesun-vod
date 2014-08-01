@@ -10,8 +10,8 @@
    <t:dgCol title="IP地址" field="ipaddress" align="center" width="80" ></t:dgCol>
    <t:dgCol title="地理位置" field="groupname" align="center" width="80" ></t:dgCol>
    <t:dgCol title="当前状态" field="status" align="center" width="60" replace="未激活_0,离线_1,在线_2" ></t:dgCol>
-   <t:dgCol title="正在观看节目" field="nowvideo" align="center" width="80" ></t:dgCol>
-   <t:dgCol title="会议主题" field="subject" align="center" width="80" ></t:dgCol>
+   <t:dgCol title="会议id" field="nowvideo" hidden="false" ></t:dgCol>
+   <t:dgCol title="正在观看节目" field="subject" align="center" width="100" ></t:dgCol>
    <t:dgCol title="操作" field="opt" width="30" align="center"></t:dgCol>
    <t:dgDelOpt title="删除" url="terminalInfoController.do?del&id={id}" />
    <t:dgToolBar title="录入" icon="icon-add" url="terminalInfoController.do?addorupdate" funname="add"></t:dgToolBar>

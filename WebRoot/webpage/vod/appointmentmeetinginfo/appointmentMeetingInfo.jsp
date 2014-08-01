@@ -89,19 +89,19 @@
 					value="${appointmentMeetingInfoPage.compere}"> <span
 					class="Validform_checktip"></span></td>
 			</tr>
-			<tr>
+			<%-- <tr>
 				<td align="right"><label class="Validform_label"> 会议简介:
 				</label></td>
 				<td class="value" colspan="3">
 				<textarea cols="96" style="margin:5px auto; resize:none" id="introduction" name="introduction" value="${appointmentMeetingInfoPage.introduction}"></textarea>
 				<span class="Validform_checktip"></span></td>
-			</tr>
+			</tr> --%>
 			<tr>
 				<td align="right"><label class="Validform_label"> 会议简介:
 				</label></td>
 				<td class="value" colspan="3">
-				<input class="inputxt" id="compere"
-					name="compere" ignore="ignore"
+				<input class="inputxt" id="introduction"
+					name="introduction" ignore="ignore"
 					value="${appointmentMeetingInfoPage.introduction}">
 				<span class="Validform_checktip"></span></td>
 			</tr>
@@ -110,24 +110,12 @@
 			<div title="频道信息" style="padding:10px"
 				data-options="
 				selected:true">
-				<c:choose>
-				<c:when test="${load eq 'detail' }">
 				<table id="dg" class="easyui-datagrid"
-					data-options="iconCls: 'icon-edit',toolbar: '#tb',
-					fit:true,fitColumns:true,singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
-		   queryParams:{
-		           appointmentid: meetingId
-	               },idField : 'id',onAfterEdit:afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:when>
-	               <c:otherwise>
-	               <table id="dg" class="easyui-datagrid"
 					data-options="iconCls: 'icon-edit',toolbar: '#tb',
 					fit:true,fitColumns:true,pagination:true,pageSize:5,pageList:[5],singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
 		   queryParams:{
 		           appointmentid: meetingId
-	               },idField : 'id',onAfterEdit:afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:otherwise>
-	               </c:choose>
+	               },idField : 'id',onAfterEdit:afterEdit, onBeforeLoad: initParams">
 					<thead>
 						<tr>
 							<th data-options="field:'id',hidden:true"></th>
@@ -148,6 +136,9 @@
 										param.appointmentDuration = $('#appointmentDuration').val();
 										param.excepts = excepts;
 									}
+								},
+								onSelect:function(record){
+									tofixcombox2(record.id);
 								}
 							}
 						},
@@ -179,6 +170,9 @@
 										param.appointmentDuration = $('#appointmentDuration').val();
 										param.excepts = excepts;
 									}
+								},
+								onSelect:function(record){
+									tofixcombox1(record.id);
 								}
 							}
 						},
@@ -424,5 +418,27 @@
 			excepts = ids.join(",");
 			return true;
 		}
+	}
+	
+	function tofixcombox1(id){
+		var codec1id_ed = $('#dg').datagrid('getEditor', {
+			index : editIndex,
+			field : 'codec1id'
+		});
+		excepts = excepts.concat("," + id);
+		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+		$(codec1id_ed.target).combobox('reload', url);
+		return false;
+	}
+
+	function tofixcombox2(id){
+		var codec2id_ed = $('#dg').datagrid('getEditor', {
+			index : editIndex,
+			field : 'codec2id'
+		});
+		excepts = excepts.concat("," + id);
+		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
+		$(codec2id_ed.target).combobox('reload', url);
+		return false;
 	}
 </script>

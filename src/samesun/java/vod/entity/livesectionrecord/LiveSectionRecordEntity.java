@@ -129,7 +129,7 @@ public class LiveSectionRecordEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  SessionID号
 	 */
-	@Column(name ="SESSIONID",nullable=true,length=36)
+	@Column(name ="liveSessionID",nullable=true,length=36)
 	public java.lang.String getSessionid(){
 		return this.sessionid;
 	}

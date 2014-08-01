@@ -2,6 +2,7 @@ package vod.service.impl.heartrequest;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,77 +40,62 @@ public class HeartRequestServiceImpl extends CommonServiceImpl implements
 	@Override
 	public boolean hearBeatTask(HeartRequestEntity heartRequest,
 			String strPlayID, String strisLive) {
-		if (!isExistTerminal(heartRequest)) {// 不存在时，做一条心跳请求记录；同时返回；
-			return false;
-		}
+		String ip = heartRequest.getIpaddress(), mac = heartRequest
+				.getMacaddress();
+		TerminalInfoEntity terminal = findUniqueByProperty(
+				TerminalInfoEntity.class, "macaddress", mac);
 		boolean IsLog = false; // 是否作日志保存
-		String ip = heartRequest.getIpaddress(), mac = heartRequest
-				.getMacaddress();
-		if (StringUtil.isNotEmpty(mac)) {
+		if (null == terminal) {// 不存在时，做一条心跳请求记录；同时返回；
+			return false;
+		}else{
 			MAC_STATE.put(mac, String.valueOf(DataUtils.getMillis()));
-			TerminalInfoEntity terminal = findUniqueByProperty(
-					TerminalInfoEntity.class, "macaddress", mac);
-			if (null != terminal) {
-				int oldstate = terminal.getStatus();
-				String oldplayId = terminal.getNowvideo();
-				String oldIP = terminal.getIpaddress();
-				// 有心跳信息则为在线状态
-				if (oldstate != Integer.valueOf(SystemType.TERMINAL_STATE_2)) {
-					terminal.setStatus(Integer
-							.valueOf(SystemType.TERMINAL_STATE_2));
-				}
+			int oldstate = terminal.getStatus();
+			String oldplayId = terminal.getNowvideo();
+			String oldIP = terminal.getIpaddress();
+			// 有心跳信息则为在线状态
+			if (oldstate != Integer.valueOf(SystemType.TERMINAL_STATE_2)) {
+				terminal.setStatus(Integer
+						.valueOf(SystemType.TERMINAL_STATE_2));
+			}
 
-				// 更新IP地址
-				if (StringUtil.isNotEmpty(oldIP) && StringUtil.isNotEmpty(ip)
-						&& !ip.trim().equalsIgnoreCase(oldIP)) {
-					terminal.setIpaddress(ip);
-				}
+			// 更新IP地址
+			if (StringUtil.isNotEmpty(oldIP) && StringUtil.isNotEmpty(ip)
+					&& !ip.trim().equalsIgnoreCase(oldIP)) {
+				terminal.setIpaddress(ip);
+			}
 
-				// playID号的统一处理
-				strPlayID = StringUtil.isNotEmpty(strPlayID) ? strPlayID : "";
-				oldplayId = StringUtil.isNotEmpty(oldplayId) ? oldplayId : "";
+			// playID号的统一处理
+			strPlayID = StringUtil.isNotEmpty(strPlayID) ? strPlayID : "";
+			oldplayId = StringUtil.isNotEmpty(oldplayId) ? oldplayId : "";
 
-				if (!strPlayID.trim().equalsIgnoreCase(oldplayId)) {
+			if (!strPlayID.trim().equalsIgnoreCase(oldplayId)) {
+				MeetingInfoEntity meeting = systemService.get(MeetingInfoEntity.class, strPlayID);
+				if(null != meeting){
 					terminal.setNowvideo(strPlayID);
-					if (StringUtil.isNotEmpty(strPlayID)) {
-						IsLog = true;
-					}
+					terminal.setSubject(meeting.getSubject());
 				}
+				if (StringUtil.isNotEmpty(strPlayID)) {
+					IsLog = true;
+				}
+			}
 
-				//持久化操作
-				updateEntitie(terminal);
-			}
-			if (IsLog) {
-				MeetingLogEntity log = new MeetingLogEntity();
-				log.setEdgeid(terminal.getId());
-				log.setEdgemac(terminal.getMacaddress());
-				log.setEdgename(terminal.getName());
-				log.setIsliveflag(strisLive);
-				log.setMeetingid(terminal.getNowvideo());
-				log.setState(terminal.getStatus());
-				log.setSubject(terminal.getSubject());
-				save(log);
-				IsLog = false;
-			}
+			//持久化操作
+			updateEntitie(terminal);
 		}
-
+		if (IsLog) {
+			MeetingLogEntity log = new MeetingLogEntity();
+			log.setEdgeid(terminal.getId());
+			log.setEdgemac(terminal.getMacaddress());
+			log.setEdgename(terminal.getName());
+			log.setIsliveflag(strisLive);
+			log.setMeetingid(terminal.getNowvideo());
+			log.setState(terminal.getStatus());
+			log.setSubject(terminal.getSubject());
+			save(log);
+			IsLog = false;
+		}
+		
 		return true;
-	}
-
-	private boolean isExistTerminal(HeartRequestEntity heartRequest) {
-		boolean isExist = false;
-		String ip = heartRequest.getIpaddress(), mac = heartRequest
-				.getMacaddress();
-
-		if (StringUtil.isNotEmpty(ip) && StringUtil.isNotEmpty(mac)) {
-			String hql = "from HeartRequestEntity where ipaddress=? and macaddress=?";
-			List<HeartRequestEntity> list = findHql(hql,
-					new Object[] { ip, mac });
-			if (null != list && list.size() > 0) {
-				isExist = true;
-			}
-		}
-		return isExist;
 	}
 
 	@Override
@@ -331,5 +317,37 @@ public class HeartRequestServiceImpl extends CommonServiceImpl implements
 			return " ";
 		}
 		return str;
+	}
+	
+	/**
+	 * 遍历Cache,判断是否存在超时的心跳消息条目；
+	 * 若有，代表这个终端，其实已退出系统；
+	 * @param timeout   超时的时长，单位是毫秒
+	 * @return
+	 */
+	@Override
+	public boolean LogoutTask(long timeout){
+		boolean flag = false;
+		Iterator<String> iter = MAC_STATE.keySet().iterator();
+		while (iter.hasNext()) {
+			String strKey = (String) iter.next();
+			String strValue = MAC_STATE.get(strKey);
+			TerminalInfoEntity terminal = findUniqueByProperty(
+					TerminalInfoEntity.class, "macaddress", strKey);
+			if (StringUtil.isNotEmpty(strValue)) {
+				long lngTime = Long.parseLong(strValue);
+				long lngNow = DataUtils.getMillis();
+				long betweenms = lngNow - lngTime;
+				if (betweenms > timeout) { // 超时处理
+					MAC_STATE.remove(strKey);
+					terminal.setStatus(Integer
+							.valueOf(SystemType.TERMINAL_STATE_1));// 下线处理
+					terminal.setNowvideo("");
+					terminal.setSubject("");
+					updateEntitie(terminal);
+				}
+			}
+		}
+		return flag;
 	}
 }
