@@ -101,7 +101,7 @@ public class MeetingHistoryEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  VRS_ID号
 	 */
-	@Column(name ="BILLID",nullable=false,length=36)
+	@Column(name ="BILLID",nullable=true,length=36)
 	public java.lang.String getBillid(){
 		return this.billid;
 	}
@@ -165,7 +165,7 @@ public class MeetingHistoryEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.Integer
 	 *@return: java.lang.Integer  Live类型
 	 */
-	@Column(name ="ISASFLIVE",nullable=false,precision=3,scale=0)
+	@Column(name ="ISASFLIVE",nullable=true,precision=3,scale=0)
 	public java.lang.Integer getIsasflive(){
 		return this.isasflive;
 	}
@@ -181,7 +181,7 @@ public class MeetingHistoryEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.Integer
 	 *@return: java.lang.Integer  是否录音
 	 */
-	@Column(name ="ISRECORD",nullable=false,precision=3,scale=0)
+	@Column(name ="ISRECORD",nullable=true,precision=3,scale=0)
 	public java.lang.Integer getIsrecord(){
 		return this.isrecord;
 	}
@@ -197,7 +197,7 @@ public class MeetingHistoryEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.Integer
 	 *@return: java.lang.Integer  会议状态
 	 */
-	@Column(name ="MEETINGSTATE",nullable=false,precision=3,scale=0)
+	@Column(name ="MEETINGSTATE",nullable=true,precision=3,scale=0)
 	public java.lang.Integer getMeetingstate(){
 		return this.meetingstate;
 	}

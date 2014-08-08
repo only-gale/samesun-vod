@@ -39,6 +39,7 @@ public class VodSessionServiceImpl extends CommonServiceImpl implements VodSessi
 				List<VodSessionEntity> vodSession = new ArrayList<VodSessionEntity>();
 				for(MeetingLiveSessionEntity s : liveSessions){
 					VodSessionEntity vs = new VodSessionEntity();
+					vs.setLiveSession(s.getId());
 					vs.setMeetingid(meetingId);
 					vs.setTypeid(meeting.getTypeid());
 					if(total == 1){

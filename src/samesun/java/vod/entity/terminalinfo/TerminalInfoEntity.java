@@ -9,6 +9,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
+import org.jeecgframework.poi.excel.annotation.Excel;
 
 /**   
  * @Title: Entity
@@ -27,16 +28,22 @@ public class TerminalInfoEntity implements java.io.Serializable {
 	/**主键*/
 	private java.lang.String id;
 	/**终端名*/
+	@Excel(exportFieldWidth=50, exportName="终端名")
 	private java.lang.String name;
 	/**终端描述*/
+	@Excel(exportFieldWidth=100, exportName="终端描述")
 	private java.lang.String descript;
 	/**mac地址*/
+	@Excel(exportFieldWidth=20, exportName="mac地址")
 	private java.lang.String macaddress;
 	/**IP地址*/
+	@Excel(exportFieldWidth=20, exportName="IP地址")
 	private java.lang.String ipaddress;
 	/**地理位置*/
+	@Excel(exportFieldWidth=20, exportName="IP地址")
 	private java.lang.String groupid;
 	/**当前状态*/
+	@Excel(exportFieldWidth=6, exportName="IP地址")
 	private java.lang.Integer status;
 	/**正在观看节目*/
 	private java.lang.String nowvideo;

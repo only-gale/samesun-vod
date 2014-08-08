@@ -99,4 +99,21 @@ public class SystemType {
 	public static String APP_RECORD_2 = "2";
 	/**预约录制状态: 过期*/
 	public static String APP_RECORD_3 = "3";
+	
+	/**录制状态编码*/
+	public static String REC_STATE = "recState";
+	/**录制状态名称*/
+	public static String REC_STATE_NAME = "录制状态";
+	/**录制状态: 初始化*/
+	public static String REC_STATE_0 = "0";
+	/**录制状态: 开始录制*/
+	public static String REC_STATE_1 = "1";
+	/**录制状态: 结束录制*/
+	public static String REC_STATE_2 = "2";
+	/**录制状态: 录制错误*/
+	public static String REC_STATE_3 = "3";
+	/**录制状态: 转码错误*/
+	public static String REC_STATE_4 = "4";
+	/**录制状态: 成功*/
+	public static String REC_STATE_5 = "5";
 }

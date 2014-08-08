@@ -1,5 +1,6 @@
 package vod.service.impl.meetinginfo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
@@ -10,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.samesun.util.SystemType;
 import vod.service.livesectionrecord.LiveSectionRecordServiceI;
@@ -77,5 +80,30 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 				}
 			}
 		}
+	}
+
+	@Override
+	public List<ConfCodecInfoEntity> getCodecs(MeetingInfoEntity e) {
+		List<ConfCodecInfoEntity> result = new ArrayList<ConfCodecInfoEntity>();
+		//根据会议id获取频道列表
+		List<AppointmentChannelInfoEntity> channels = this.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", e.getId());
+		for(AppointmentChannelInfoEntity channel : channels){
+			String codec1id = channel.getCodec1id(), codec2id = channel.getCodec2id();;
+			//主编码器
+			if(StringUtil.isNotEmpty(codec1id)){
+				ConfCodecInfoEntity codec1 = (ConfCodecInfoEntity)this.getEntity(ConfCodecInfoEntity.class, codec1id);
+				if(null != codec1 && !result.contains(codec1)){
+					result.add(codec1);
+				}
+			}
+			//备编码器
+			if(StringUtil.isNotEmpty(codec2id)){
+				ConfCodecInfoEntity codec2 = (ConfCodecInfoEntity)this.getEntity(ConfCodecInfoEntity.class, codec2id);
+				if(null != codec2 && !result.contains(codec2)){
+					result.add(codec2);
+				}
+			}
+		}
+		return result;
 	}
 }

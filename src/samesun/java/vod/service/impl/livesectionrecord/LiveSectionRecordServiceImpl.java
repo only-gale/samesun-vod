@@ -90,6 +90,9 @@ public class LiveSectionRecordServiceImpl implements
 			liveSection.setCodecsrvid(Codec);
 			liveSection.setRecordsrvid(strRecordSrvID);
 			liveSection.setRtspsrvid(strRtspSrvID);
+			liveSection.setFilename(fileName);
+			//设置录制状态为开始录制
+			liveSection.setRecState(Integer.valueOf(SystemType.REC_STATE_1));
 			try {
 				liveSection.setRecStartDt(DataUtils.parseDate(
 						DataUtils.getDataString(DataUtils.datetimeFormat),
@@ -383,10 +386,41 @@ public class LiveSectionRecordServiceImpl implements
 
 	@Override
 	@Transactional
-	public String EndChannelSectionRecord4StopLive(String meetingId) {
+	public String EndChannelSectionRecord4StopLive(Object o, String entityName) {
 		String message="";
-		//根据直播id查找所有录制片段
-		List<LiveSectionRecordEntity> all = commonDao.findByProperty(LiveSectionRecordEntity.class, "meetingid", meetingId);
+		//根据直播id和当前录制会话id查找所有录制片段
+		MeetingInfoEntity meeting = null;
+		TrainingInfoEntity training = null;
+		String meetingId = "", sessionId = "";
+		
+		if("MeetingInfoEntity".equals(entityName)){
+			
+			meeting = (MeetingInfoEntity)o;
+			meetingId = meeting.getId();
+			sessionId = meeting.getCurrentSession();
+			
+			//设置直播会议预约录制状态和预约时间为空
+			meeting.setAppointmentstate(null);
+			meeting.setAppointmentdt("");
+			
+			//设置状态为结束录制
+			//meeting.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_3));
+			commonDao.updateEntitie(meeting);
+		}else if("TrainingInfoEntity".equals(entityName)){
+			training = (TrainingInfoEntity)o;
+			meetingId = training.getId();
+			sessionId = training.getCurrentSession();
+			
+			//设置直播会议预约录制状态和预约时间为空
+			training.setAppointmentstate(null);
+			training.setAppointmentdt("");
+			
+			//设置状态为结束录制
+			//training.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_3));
+			commonDao.updateEntitie(meeting);
+		}
+		String hql = "from LiveSectionRecordEntity where meetingid=?" + " and sessionid=?";
+		List<LiveSectionRecordEntity> all = commonDao.findHql(hql, new Object[]{meetingId, sessionId});
 		List<LiveSectionRecordEntity> distinctRecords = new ArrayList<LiveSectionRecordEntity>();
 		for(LiveSectionRecordEntity r : all){
 			LiveSectionRecordEntity record = new LiveSectionRecordEntity();
@@ -395,12 +429,23 @@ public class LiveSectionRecordServiceImpl implements
 			if(!distinctRecords.contains(record)){
 				distinctRecords.add(record);
 			}
+			
 		}
+		//更新状态为“已结束”
+		String end = DataUtils.datetimeFormat.format(DataUtils.getDate());
+		String sql = "update meeting_live_section_record set Rec_State="+SystemType.REC_STATE_2+",Rec_End_DT='"+end+"' where meetingid='"+meetingId + "' and livesessionid='"+sessionId+"'";
+		commonDao.updateBySqlString(sql);
+		
+		//设置当前录制session过期
+		MeetingLiveSessionEntity session = commonDao.get(MeetingLiveSessionEntity.class, sessionId);
+		session.setEnddt(DataUtils.str2Date(end, DataUtils.datetimeFormat));
+		commonDao.updateEntitie(session);
 		
 		for(LiveSectionRecordEntity sr : distinctRecords){
 			String fname = sr.getFilename();
 			String CodecSrvId = sr.getCodecsrvid();
 			message = EndPerSectionRecord4Telnet(fname, CodecSrvId);
+			
 		}
 		return message;
 	}
@@ -452,9 +497,9 @@ public class LiveSectionRecordServiceImpl implements
 			}
 			
 		}
-		//更新状态为“已结束”
+		//更新状态为结束录制
 		String end = DataUtils.datetimeFormat.format(DataUtils.getDate());
-		String sql = "update meeting_live_section_record set Rec_State="+SystemType.MEETING_STATE_3+",Rec_End_DT='"+end+"' where meetingid='"+meetingId + "' and livesessionid='"+sessionId+"'";
+		String sql = "update meeting_live_section_record set Rec_State="+SystemType.REC_STATE_2+",Rec_End_DT='"+end+"' where meetingid='"+meetingId + "' and livesessionid='"+sessionId+"'";
 		commonDao.updateBySqlString(sql);
 		
 		//设置当前录制session过期

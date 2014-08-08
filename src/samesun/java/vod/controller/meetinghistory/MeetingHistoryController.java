@@ -16,6 +16,7 @@ import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
+import org.jeecgframework.tag.vo.datatable.SortDirection;
 import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.core.util.MyBeanUtils;
 
@@ -76,6 +77,9 @@ public class MeetingHistoryController extends BaseController {
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(MeetingHistoryEntity meetingHistory,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+		//按照预约时间倒序排列
+		dataGrid.setSort("billstarttime");
+		dataGrid.setOrder(SortDirection.desc);
 		CriteriaQuery cq = new CriteriaQuery(MeetingHistoryEntity.class, dataGrid);
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, meetingHistory, request.getParameterMap());

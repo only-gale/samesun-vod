@@ -23,7 +23,7 @@
    <t:dgCol title="持续时长" field="billduration" ></t:dgCol>
    <t:dgCol title="资源URL" field="asfurl" ></t:dgCol>
    <t:dgCol title="操作" field="opt" width="100"></t:dgCol>
-   <t:dgDelOpt title="删除" url="vodSectionRecordController.do?del&id={id}" />
+   <%-- <t:dgDelOpt title="删除" url="vodSectionRecordController.do?del&id={id}" /> --%>
    <t:dgToolBar title="录入" icon="icon-add" url="vodSectionRecordController.do?addorupdate" funname="add"></t:dgToolBar>
    <t:dgToolBar title="编辑" icon="icon-edit" url="vodSectionRecordController.do?addorupdate" funname="update"></t:dgToolBar>
    <t:dgToolBar title="查看" icon="icon-search" url="vodSectionRecordController.do?addorupdate" funname="detail"></t:dgToolBar>

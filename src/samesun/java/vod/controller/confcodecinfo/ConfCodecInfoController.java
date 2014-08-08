@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
+import org.jeecgframework.core.util.DataUtils;
 import org.jeecgframework.core.util.MyBeanUtils;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
@@ -24,13 +26,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.confcodecrecordsrv.ConfCodecRecordSrvEntity;
 import vod.entity.confrecordsrvinfo.ConfRecordSrvInfoEntity;
+import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.page.confcodecinfo.ConfCodecInfoPage;
 import vod.samesun.util.ComboboxBean;
 import vod.samesun.util.RECORDComparator;
+import vod.samesun.util.SystemType;
 import vod.service.confcodecinfo.ConfCodecInfoServiceI;
+import vod.service.meetinginfo.MeetingInfoServiceI;
 
 import com.alibaba.fastjson.JSON;
 
@@ -54,6 +60,8 @@ public class ConfCodecInfoController extends BaseController {
 	@Autowired
 	private ConfCodecInfoServiceI confCodecInfoService;
 	@Autowired
+	private MeetingInfoServiceI meetingInfoService;
+	@Autowired
 	private SystemService systemService;
 	private String message;
 	
@@ -64,7 +72,6 @@ public class ConfCodecInfoController extends BaseController {
 	public void setMessage(String message) {
 		this.message = message;
 	}
-
 
 	/**
 	 * 编码器配置信息列表 页面跳转
@@ -216,5 +223,120 @@ public class ConfCodecInfoController extends BaseController {
 				pw.close();
 			}
 		}
+	}
+	
+	/**
+	 * 获得无分页的所有数据,用于填充下拉框
+	 * @param meetingType 指定会议类型:直播OR预约
+	 * @param excepts 指定需要在结果集中排除的以逗号分隔的编码器id
+	 * @param appointmentStarttime 预约开始时间,当meetingType为预约时,该参数必定有值(校验工作由前台页面完成)
+	 * @param appointmentDuration 预约持续时间,当meetingType为预约时,该参数必定有值(校验工作由前台页面完成)
+	 */
+	@RequestMapping(params = "combox4UserCodec")
+	public void combox4UserCodec(HttpServletRequest request, HttpServletResponse response, String meetingType, String excepts, String appointmentStarttime, String appointmentDuration){
+		PrintWriter pw = null;
+		try {
+			List<ConfCodecInfoEntity> list = confCodecInfoService.combox4UserCodec(meetingType, excepts, appointmentStarttime, appointmentDuration);
+			List<ComboboxBean> result = new ArrayList<ComboboxBean>();
+			for(ConfCodecInfoEntity c : list){
+				ComboboxBean b = new ComboboxBean();
+				b.setId(c.getId());
+				b.setName(c.getName());
+				result.add(b);
+			}
+			response.setContentType("text/html;charset=utf-8");
+			String json = JSON.toJSONStringWithDateFormat(result, "yyyy-MM-dd HH:mm:ss");
+			pw = response.getWriter();
+			pw.write(json);
+			pw.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally{
+			if(null != pw){
+				pw.close();
+			}
+		}
+	}
+	
+	@RequestMapping(params = "wetheruesed")
+	@ResponseBody
+	public AjaxJson wetheruesed(ConfCodecInfoEntity confCodecInfo,HttpServletRequest request, HttpServletResponse response, String meetingType, String excepts, String appointmentStarttime, String appointmentDuration) {
+
+		AjaxJson j = new AjaxJson();
+		//当前选择的编码器可用
+		message = "true";
+		if (StringUtil.isNotEmpty(confCodecInfo.getId())) {
+			confCodecInfo = confCodecInfoService.getEntity(ConfCodecInfoEntity.class, confCodecInfo.getId());
+			List<ConfCodecInfoEntity> unavailable = confCodecInfoService.getUNAvailableCodecs(meetingType, appointmentStarttime, appointmentDuration);
+			if(null != unavailable && unavailable.size() > 0 && unavailable.contains(confCodecInfo)){
+				//当前选择的编码器不可用
+				message = "false";
+			}
+		}
+		j.setMsg(message);
+		return j;
+	}
+	
+	/**
+	 * 谁用了当前编码器
+	 * @param confCodecInfo
+	 * @param req
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(params = "whouesed")
+	public ModelAndView whouesed(ConfCodecInfoEntity confCodecInfo, HttpServletRequest req, String meetingType, String excepts, String appointmentStarttime, String appointmentDuration) throws Exception {
+		if (StringUtil.isNotEmpty(confCodecInfo.getId())) {
+			//当前选择的编码器
+			confCodecInfo = confCodecInfoService.getEntity(ConfCodecInfoEntity.class, confCodecInfo.getId());
+			//按照会议类型查询所有冲突的编码器
+//			List<ConfCodecInfoEntity> allUnAvailable = confCodecInfoService.getUNAvailableCodecs(meetingType, appointmentStarttime, appointmentDuration);
+			//按照会议类型查询所有冲突的会议
+			if(SystemType.APP_MEETING_TYPE_1.equals(meetingType)){
+				List<MeetingInfoEntity> meetings = systemService.loadAll(MeetingInfoEntity.class);
+				List<MeetingInfoEntity> result = new ArrayList<MeetingInfoEntity>();
+				for(MeetingInfoEntity m : meetings){
+					Integer state = m.getMeetingstate();
+					//当有直播会议冲突时
+					if(state == Integer.valueOf(SystemType.MEETING_STATE_1) ||
+							state == Integer.valueOf(SystemType.MEETING_STATE_2) ||
+							state == Integer.valueOf(SystemType.MEETING_STATE_3)){
+						//获取该会议的所有编码器
+						List<ConfCodecInfoEntity> codecs = meetingInfoService.getCodecs(m);
+						//当该会议占用当前被选择的编码器时记录该会议
+						if(codecs.contains(confCodecInfo)){
+							result.add(m);
+						}
+						req.setAttribute("conflictMeetings", result);
+					}
+				}
+			}else if(SystemType.APP_MEETING_TYPE_3.equals(meetingType) && StringUtil.isNotEmpty(appointmentStarttime) && StringUtil.isNotEmpty(appointmentDuration)){
+				List<AppointmentMeetingInfoEntity> result = new ArrayList<AppointmentMeetingInfoEntity>();
+				//所有启用的预约会议
+				List<AppointmentMeetingInfoEntity> apps = systemService.findByProperty(AppointmentMeetingInfoEntity.class, "appointmentState", SystemType.APP_MEETING_STATE_2);
+				List<AppointmentMeetingInfoEntity> temp = new ArrayList<AppointmentMeetingInfoEntity>();
+				Date appointmentbegintime = DataUtils.str2Date(appointmentStarttime, DataUtils.datetimeFormat);
+				//当前预约会议结束时间
+				Date appointmentendtime = DataUtils.getDate(appointmentbegintime.getTime() + new Integer(appointmentDuration).intValue() * 60 * 1000);
+				for(AppointmentMeetingInfoEntity a : apps){
+					Date start = a.getAppointmentStarttime(), end = DataUtils.getDate(a.getAppointmentStarttime().getTime() + (a.getAppointmentDuration()) * 60 * 1000);
+					if(start.after(appointmentendtime) || end.before(appointmentbegintime)){
+						temp.add(a);
+					}
+				}
+				apps.removeAll(temp);
+				//循环查找所有冲突的预约会议
+				for(AppointmentMeetingInfoEntity a : apps){
+					//获取当前循次预约会议的所有编码器
+					List<ConfCodecInfoEntity> codecs = confCodecInfoService.getCodecs(a);
+					if(codecs.contains(confCodecInfo)){
+						result.add(a);
+					}
+				}
+				req.setAttribute("conflictMeetings", result);
+			}
+		}
+		
+		return new ModelAndView("vod/meetinginfo/conflictMeetingInfo");
 	}
 }

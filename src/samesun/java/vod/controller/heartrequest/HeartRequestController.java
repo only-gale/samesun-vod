@@ -180,6 +180,7 @@ public class HeartRequestController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		
 		message = "注册成功";
+		//获取异常心跳信息id
 		String heartRequestId = terminalInfo.getId();
 		terminalInfo.setId(null);
 		terminalInfoService.save(terminalInfo);
@@ -191,9 +192,11 @@ public class HeartRequestController extends BaseController {
 	}
 	
 	@RequestMapping(params = "heartBeat")
-	public void heartBeat(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response, String playid, String live){
+	public void heartBeat(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response,String ip, String mac, String playid, String live){
 		PrintWriter write = null;
 		try {
+			heartRequest.setId(ip);
+			heartRequest.setMacaddress(mac);
 			response.setContentType("text/xml;charset=UTF-8");
 			request.setCharacterEncoding("UTF-8");
 			String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
@@ -231,12 +234,11 @@ public class HeartRequestController extends BaseController {
 	}
 	
 	@RequestMapping(params = "epg")
-	public void getEPG(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response){
+	public void getEPG(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response, String mac){
 		PrintWriter write = null;
 		try {
 			response.setContentType("text/xml;charset=UTF-8");
 			request.setCharacterEncoding("UTF-8");
-			String mac = heartRequest.getMacaddress();
 			String epg = "";
 			if(StringUtil.isNotEmpty(mac)){
 				epg = heartRequestService.getEPG(mac);

@@ -46,6 +46,11 @@ public class HeartRequestServiceImpl extends CommonServiceImpl implements
 				TerminalInfoEntity.class, "macaddress", mac);
 		boolean IsLog = false; // 是否作日志保存
 		if (null == terminal) {// 不存在时，做一条心跳请求记录；同时返回；
+			HeartRequestEntity heart = new HeartRequestEntity();
+			heart.setIpaddress(ip);
+			heart.setMacaddress(mac);
+			heart.setRequestDt(DataUtils.str2Date(DataUtils.datetimeFormat.format(DataUtils.getDate()), DataUtils.datetimeFormat));
+			save(heart);
 			return false;
 		}else{
 			MAC_STATE.put(mac, String.valueOf(DataUtils.getMillis()));

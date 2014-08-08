@@ -94,7 +94,7 @@ public class TSBaseUser extends IdEntity implements java.io.Serializable {
 		this.TSDepart = TSDepart;
 	}
 	@JsonIgnore    //getList查询转换为列表时处理json转换异常
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "territoryid")
 	public TSTerritory getTSTerritory() {
 		return this.TSTerritory;

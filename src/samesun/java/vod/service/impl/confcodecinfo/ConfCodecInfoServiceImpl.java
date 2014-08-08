@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import jodd.util.StringUtil;
-
 import org.jeecgframework.core.common.service.CommonService;
 import org.jeecgframework.core.common.service.impl.CommonServiceImpl;
 import org.jeecgframework.core.util.DataUtils;
+import org.jeecgframework.core.util.ResourceUtil;
+import org.jeecgframework.core.util.StringUtil;
+import org.jeecgframework.web.system.pojo.base.TSUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,9 @@ import vod.service.confcodecinfo.ConfCodecInfoServiceI;
 @Transactional
 public class ConfCodecInfoServiceImpl extends CommonServiceImpl implements ConfCodecInfoServiceI {
 
+	//存放当前用户预约时段内可查看但被占用的编码器，用于改进
+	public static List<ConfCodecInfoEntity> UNAVAILABLE;
+	
 	@Autowired
 	private CommonService commonService;
 	
@@ -109,14 +113,14 @@ public class ConfCodecInfoServiceImpl extends CommonServiceImpl implements ConfC
 			//主编码器
 			if(StringUtil.isNotEmpty(codec1id)){
 				ConfCodecInfoEntity codec1 = (ConfCodecInfoEntity)this.getEntity(ConfCodecInfoEntity.class, codec1id);
-				if(!result.contains(codec1)){
+				if(null != codec1 && !result.contains(codec1)){
 					result.add(codec1);
 				}
 			}
 			//备编码器
 			if(StringUtil.isNotEmpty(codec2id)){
 				ConfCodecInfoEntity codec2 = (ConfCodecInfoEntity)this.getEntity(ConfCodecInfoEntity.class, codec2id);
-				if(!result.contains(codec2)){
+				if(null != codec2 && !result.contains(codec2)){
 					result.add(codec2);
 				}
 			}
@@ -150,5 +154,49 @@ public class ConfCodecInfoServiceImpl extends CommonServiceImpl implements ConfC
 		}
 		return result;
 	}
+
+	@Override
+	public List<ConfCodecInfoEntity> combox4UserCodec(String meetingType,
+			String excepts, String appointmentStarttime,
+			String appointmentDuration) {
+		List<ConfCodecInfoEntity> userCodec = getUserCodec();
+		List<ConfCodecInfoEntity> temp = new ArrayList<ConfCodecInfoEntity>();
+		if(StringUtil.isNotEmpty(excepts)){
+			
+			for(String id : excepts.split(",")){
+				for(ConfCodecInfoEntity e : userCodec){
+					if(e.getId().equals(id)){
+						temp.add(e);
+					}
+				}
+			}
+			userCodec.removeAll(temp);
+		}
+		return userCodec;
+	}
+
+	@Override
+	public List<ConfCodecInfoEntity> getUNAvailableCodecs(String meetingType,
+			String appointmentStarttime, String appointmentDuration) {
+		//预约时段内所有可用的编码器
+		List<ConfCodecInfoEntity> allAvailable = this.getAvailableCodecs(meetingType, appointmentStarttime, appointmentDuration);
+		//当前用户可查看的所有编码器
+		List<ConfCodecInfoEntity> userCodec = getUserCodec();
+		
+		List<ConfCodecInfoEntity> temp = new ArrayList<ConfCodecInfoEntity>();
+		//从当前用户可查看的所有编码器中除去预约时段内可用的编码器，剩下的就是当前用户预约时段内可查看但被占用的编码器
+		for(ConfCodecInfoEntity e : userCodec){
+			if(null != allAvailable && allAvailable.size() > 0 && allAvailable.contains(e)){
+				temp.add(e);
+			}
+		}
+		userCodec.removeAll(temp);
+		return userCodec;
+	}
 	
+	private List<ConfCodecInfoEntity> getUserCodec(){
+		//获取当前用户
+		TSUser user = ResourceUtil.getSessionUserName();
+		return findByProperty(ConfCodecInfoEntity.class, "groupid", user.getTSTerritory().getId());
+	}
 }

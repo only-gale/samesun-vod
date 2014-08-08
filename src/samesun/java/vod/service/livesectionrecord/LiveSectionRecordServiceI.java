@@ -21,7 +21,7 @@ public interface LiveSectionRecordServiceI{
 	 * @param meetingId
 	 * @return
 	 */
-	public String EndChannelSectionRecord4StopLive(String meetingId);
+	public String EndChannelSectionRecord4StopLive(Object o, String entityName);
 	
 	/**
 	 * 结束录制

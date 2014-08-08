@@ -1,8 +1,11 @@
 package vod.service.meetinginfo;
 
+import java.util.List;
+
 import org.jeecgframework.core.common.service.CommonService;
 
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
 
 public interface MeetingInfoServiceI extends CommonService{
@@ -18,4 +21,6 @@ public interface MeetingInfoServiceI extends CommonService{
 	public boolean isFinish(String id);
 	
 	public void autoRecordTask();
+	
+	public List<ConfCodecInfoEntity> getCodecs(MeetingInfoEntity e);
 }

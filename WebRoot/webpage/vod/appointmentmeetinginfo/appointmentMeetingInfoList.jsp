@@ -16,9 +16,7 @@
    <t:dgFunOpt title="取消" funname="tocancel(id, appointmentState)" exp="appointmentState#eq#0" />
    <t:dgDelOpt title="删除" url="appointmentMeetingInfoController.do?del&id={id}" />
    <t:dgToolBar title="录入" icon="icon-add" url="appointmentMeetingInfoController.do?addorupdate&appointment" funname="add"></t:dgToolBar>
-   <%-- <t:dgToolBar title="录入" icon="icon-add" onclick="addmeeting()"></t:dgToolBar> --%>
    <t:dgToolBar title="编辑" icon="icon-edit" url="appointmentMeetingInfoController.do?addorupdate" funname="update"></t:dgToolBar>
-   <%-- <t:dgToolBar title="编辑" icon="icon-edit" operationCode="appointment" onclick="editmeeting()"></t:dgToolBar> --%>
    <t:dgToolBar title="查看" icon="icon-search" url="appointmentMeetingInfoController.do?addorupdate" funname="detail"></t:dgToolBar>
   </t:datagrid>
   </div>
@@ -63,94 +61,6 @@
 				tip(msg);
 				reloadTable();
 			}
-		});
-	}
-	
-	function addmeeting(){
-		var buttons = [{
-			name: '新建',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	iframe.toadd();
-            },
-            focus: true
-		},{
-			name: '启用',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('启用');
-				return false;
-            }
-		},{
-			name: '取消',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('取消');
-				return false;
-            }
-		}];
-		$.dialog({
-			content: 'url:appointmentMeetingInfoController.do?addorupdate',
-			lock : true,
-			width : 700,
-			height : 400,
-			title : '创建直播会议',
-			opacity : 0.3,
-			cache : false,
-			button : buttons,
-		    cancelVal : '关闭',
-		    cancel : true /*为true等价于function(){}*/
-		});
-	}
-	
-	function editmeeting(){
-		var url = 'appointmentMeetingInfoController.do?addorupdate';
-		var rowsData = $('#appointmentMeetingInfoList').datagrid('getSelections');
-		if (!rowsData || rowsData.length==0) {
-			tip('请选择编辑项目');
-			return;
-		}else if (rowsData.length>1) {
-			tip('请选择一条记录再编辑');
-			return;
-		}else if(rowsData[0].appointmentState != '0'){
-			tip('请注意, 只可编辑新建状态下的记录');
-			return;
-		}
-		url += ('&id=' + rowsData[0].id);
-		var buttons = [{
-			name: '新建',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-				alert('新建');
-				return false;
-            },
-            focus: true
-		},{
-			name: '启用',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('启用');
-				return false;
-            }
-		},{
-			name: '取消',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('取消');
-				return false;
-            }
-		}];
-		$.dialog({
-			content: 'url:' + url,
-			lock : true,
-			width : 700,
-			height : 400,
-			title : '编辑直播会议',
-			opacity : 0.3,
-			cache : false,
-			button : buttons,
-		    cancelVal : '关闭',
-		    cancel : true /*为true等价于function(){}*/
 		});
 	}
 	
@@ -257,6 +167,4 @@
 		       		   		 
 		return true;	   
 	}
-	
-	
 </script>
