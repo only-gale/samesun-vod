@@ -74,10 +74,22 @@ public class HeartRequestServiceImpl extends CommonServiceImpl implements
 			oldplayId = StringUtil.isNotEmpty(oldplayId) ? oldplayId : "";
 
 			if (!strPlayID.trim().equalsIgnoreCase(oldplayId)) {
-				MeetingInfoEntity meeting = systemService.get(MeetingInfoEntity.class, strPlayID);
-				if(null != meeting){
-					terminal.setNowvideo(strPlayID);
-					terminal.setSubject(meeting.getSubject());
+				if(SystemType.LIVE_TYPE_1.equals(strisLive)){	//直播
+					
+					MeetingInfoEntity meeting = systemService.get(MeetingInfoEntity.class, strPlayID);
+					if(null != meeting){
+						terminal.setNowvideo(strPlayID);
+						terminal.setSubject(meeting.getSubject());
+					}
+				}else if(SystemType.LIVE_TYPE_2.equals(strisLive)){		//点播
+					VodSectionRecordEntity vod = systemService.get(VodSectionRecordEntity.class, strPlayID);
+					if(null != vod){
+						MeetingInfoEntity meeting = systemService.get(MeetingInfoEntity.class, vod.getMeetingid());
+						if(null != meeting){
+							terminal.setNowvideo(strPlayID);
+							terminal.setSubject(meeting.getSubject());
+						}
+					}
 				}
 				if (StringUtil.isNotEmpty(strPlayID)) {
 					IsLog = true;

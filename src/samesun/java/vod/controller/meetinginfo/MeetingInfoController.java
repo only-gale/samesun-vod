@@ -187,7 +187,7 @@ public class MeetingInfoController extends BaseController {
 
 
 	/**
-	 * 添加会议信息
+	 * 添加会议信息<br>
 	 * 
 	 * @param ids
 	 * @return
@@ -196,29 +196,48 @@ public class MeetingInfoController extends BaseController {
 	 */
 	@RequestMapping(params = "save")
 	@ResponseBody
-	public AjaxJson save(MeetingInfoEntity meetingInfo, HttpServletRequest request, HttpServletResponse response, String tempid, String typeid, String subject, String compere, String introduction, String isrecord) throws IOException, ParseException {
+	public AjaxJson save(MeetingInfoEntity meetingInfo, HttpServletRequest request, HttpServletResponse response, String tempid, String typeid, String subject, String compere, String introduction, String isrecord, String billid) throws IOException, ParseException {
 		System.out.println(request.getParameter("flag"));
 		AjaxJson j = new AjaxJson();
 		message = "会议直播成功";
 		//记录会议ID值
 		String meetingID = "";
 		meetingID = meetingInfo.getId();
+		//当预约转为直播时是有预约id值信息的
+		String appid = meetingInfo.getBillid();
+		
 		meetingInfo.setCompere(compere);
 		meetingInfo.setIntroduction(introduction);
 		meetingInfo.setSubject(subject);
 		meetingInfo.setTypeid(new Integer(typeid));
+		meetingInfo.setBillid(billid);
 		if (StringUtil.isNotEmpty(meetingID)) {
 			message = "会议信息更新成功";
 			MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class, meetingID);
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(meetingInfo, t);
+				if (StringUtil.isNotEmpty(appid)){
+					message = "会议直播成功";
+					t.setBillid(null);
+					t.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_1));
+					//启用编码器
+					List<AppointmentChannelInfoEntity> list = new ArrayList<AppointmentChannelInfoEntity>();
+					list = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingID);
+					//开始更新频道信息
+					for(AppointmentChannelInfoEntity e : list){
+						appointmentChannelInfoService.linkCodec(e, SystemType.CODEC_AVILABLE_1);
+						//删除时间置空
+						e.setDelDate(null);
+						meetingInfoService.updateEntitie(e);
+					}
+				}
 				meetingInfoService.saveOrUpdate(t);
 				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 			} catch (Exception e) {
 				e.printStackTrace();
 				message = "会议信息更新失败";
 			}
-		} else {
+		} else {		//meetingID信息是有页面提取的，但是当该直播是由预约转化而来，那么页面没有id值，但数据库已经有了该直播信息
 			message = "会议直播成功";
 			//设置直播类型为直播
 			meetingInfo.setIsasflive(new Integer(SystemType.LIVE_TYPE_1));

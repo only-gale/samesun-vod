@@ -52,7 +52,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td align="right"><label class="Validform_label"> 会议主题:
+				<td align="right"><label class="Validform_label"> <span><font color="red">*</font></span>会议主题:
 				</label></td>
 				<td class="value" width="35%"><input class="inputxt"
 					id="subject" name="subject" datatype="*" nullmsg=" " errormsg=" "
@@ -66,23 +66,13 @@
 					name="compere" ignore="ignore" value="${meetingInfoPage.compere}">
 					<span class="Validform_checktip"></span></td>
 			</tr>
-			<%-- <tr>
-				<td align="right"><label class="Validform_label"> 会议简介:
-				</label></td>
-				<td class="value" colspan="3"><textarea cols="97" rows="4"
-						style="margin:5px auto; resize:none" id="introduction"
-						name="introduction" ignore="ignore"
-						value="${meetingInfoPage.introduction}"></textarea> <span
-					class="Validform_checktip"></span></td>
-			</tr> --%>
 			<tr>
 				<td align="right"><label class="Validform_label"> 会议简介:
 				</label></td>
 				<td class="value">
-				<input class="inputxt" width="150px" id="introduction"
-					name="introduction" ignore="ignore"
-					value="${meetingInfoPage.introduction}">
-				<span class="Validform_checktip"></span></td>
+				<textarea cols="97" rows="3" style="margin:5px auto; resize:none" id="introduction"
+						name="introduction" ignore="ignore" value="${meetingInfoPage.introduction}">${meetingInfoPage.introduction}</textarea> <span
+					class="Validform_checktip"></span></td>
 			</tr>
 		</table>
 		<div id="accord">
@@ -396,7 +386,6 @@
 				var status = d.attributes.status;
 				var msg = d.msg;
 				//成功后事件
-				alert(status);
 				if (d.success && 'success' == status) {
 					//取消按钮不可用
 					$("#btn_timercancel").attr("disabled", "disabled");
@@ -460,17 +449,20 @@
 			success : function(data) {
 				var d = $.parseJSON(data);
 				var status = d.attributes.status;
+				var msg = d.msg;
 				//成功后事件
-				if (d.success && 'failed' == status) {
+				if (d.success && 'success' == status) {
 					//取消按钮不可用
 					$("#btn_timercancel1").attr("disabled", "disabled");
 					//启用按钮可用
 					$("#btn_timerSetting1").removeAttr("disabled");
 					//slider可用
 					$("#timersetting1").slider('enable');
-					var msg = d.msg;
 					tip(msg);
 					$("#tipcontent1").html("");
+				}else if(d.success && 'failed' == status){
+					$("#accord").accordion('select', '频道信息');
+					tip(msg);
 				}
 			},
 			cache : false
@@ -818,6 +810,7 @@
 		var subject = $("#subject").val();
 		var compere = $("#compere").val();
 		var introduction = $("#introduction").val();
+		var billid = $("#billid").val();
 		var isrecord = 0;
 		var rows = $("#dg").datagrid("getRows");
 		for (var i = 0; i < rows.length; i++) {
@@ -834,7 +827,8 @@
 			subject : subject,
 			compere : compere,
 			introduction : introduction,
-			isrecord : isrecord
+			isrecord : isrecord,
+			billid : billid
 		}
 		$.ajax({
 			url : url,
@@ -952,6 +946,7 @@
 	 * 根据直播会议ID设置停止直播
 	 */
 	function stopLive(id) {
+		alert("stopLive " + id);
 		var api = frameElement.api, W = api.opener;
 		$.messager.confirm('确认', '确定要停止直播?', function(r) {
 			if (r) {
@@ -1013,6 +1008,7 @@
 	/**窗口按钮操作相关------END------**/
 
 	function initaccord(id) {
+		alert("initaccord: "+id);
 		//当该会议没有开始录制时
 		if(!hasbegin(id)){
 			$('#accord').accordion('add', {

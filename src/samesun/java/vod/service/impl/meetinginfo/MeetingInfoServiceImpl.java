@@ -13,9 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.authoritygroup.AuthorityGroupEntity;
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.samesun.util.SystemType;
+import vod.service.confcodecinfo.ConfCodecInfoServiceI;
 import vod.service.livesectionrecord.LiveSectionRecordServiceI;
 import vod.service.meetinginfo.MeetingInfoServiceI;
 
@@ -26,6 +28,8 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 	@Autowired
 	private LiveSectionRecordServiceI liveSectionRecordService;
 	
+	@Autowired
+	private ConfCodecInfoServiceI confCodecInfoService;
 	@Autowired
 	private SystemService systemService;
 	
@@ -42,7 +46,7 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 		meeting.setIntroduction(app.getIntroduction());
 		meeting.setSubject(app.getSubject());
 		meeting.setTypeid(app.getTypeid());
-		meeting.setMeetingstate(new Integer(SystemType.MEETING_STATE_1));
+		meeting.setMeetingstate(new Integer(SystemType.MEETING_STATE_5));
 		return meeting;
 	}
 
@@ -105,5 +109,34 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public boolean wetherused(AppointmentMeetingInfoEntity app) {
+		//默认没有被占用
+		boolean flag = false;
+		List<ConfCodecInfoEntity> codecs = confCodecInfoService.getCodecs(app);
+		for(ConfCodecInfoEntity e : codecs){
+			List<ConfCodecInfoEntity> unavailable = confCodecInfoService.getUNAvailableCodecs(SystemType.APP_MEETING_TYPE_1, null, null);
+			if(null != unavailable && unavailable.size() > 0 && unavailable.contains(e)){
+				//当前选择的编码器不可用
+				flag = true;
+				break;
+			}
+		}
+		return flag;
+	}
+
+	@Override
+	public List<AuthorityGroupEntity> getGroups(MeetingInfoEntity e) {
+		List<AuthorityGroupEntity> groups = new ArrayList<AuthorityGroupEntity>();
+		List<AppointmentChannelInfoEntity> channels = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", e.getId());
+		for(AppointmentChannelInfoEntity c : channels){
+			AuthorityGroupEntity group = systemService.get(AuthorityGroupEntity.class, c.getAuthortiyGroupCid());
+			if(null != group && !groups.contains(group)){
+				groups.add(group);
+			}
+		}
+		return groups;
 	}
 }

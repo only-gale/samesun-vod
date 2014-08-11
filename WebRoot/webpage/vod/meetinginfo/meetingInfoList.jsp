@@ -147,7 +147,7 @@
 			content: 'url:'+addurl,
 			lock : true,
 			width: 700,
-			height: 400,
+			height: 430,
 			title: title + '直播会议',
 			opacity : 0.3,
 			cache: false,
@@ -199,7 +199,7 @@
 		            	});
 			    	return false;
 			    	
-			    	if(iframe.isrecord()){
+			    	if(1 == isrecord){
 			    		this.button({
 			    			id: 'recordBtn',
 		            		disabled: false
@@ -259,7 +259,7 @@
 			content: 'url:'+addurl,
 			lock : true,
 			width: 700,
-			height: 400,
+			height: 430,
 			title: title + '直播会议',
 			opacity : 0.3,
 			button: buttons,

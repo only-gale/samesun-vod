@@ -28,11 +28,13 @@ import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.samesun.util.CommandUtil;
 import vod.samesun.util.SystemType;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
 import vod.service.appointmentmeetinginfo.AppointmentMeetingInfoServiceI;
+import vod.service.confcodecinfo.ConfCodecInfoServiceI;
 import vod.service.meetinginfo.MeetingInfoServiceI;
 
 /**   
@@ -58,6 +60,8 @@ public class AppointmentMeetingInfoController extends BaseController {
 	private AppointmentMeetingInfoServiceI appointmentMeetingInfoService;
 	@Autowired
 	private AppointmentChannelInfoServiceI appointmentChannelInfoService;
+	@Autowired
+	private ConfCodecInfoServiceI confCodecInfoService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -115,28 +119,44 @@ public class AppointmentMeetingInfoController extends BaseController {
 	@ResponseBody
 	public AjaxJson opa(AppointmentMeetingInfoEntity appointmentMeetingInfo, HttpServletRequest request, String state) {
 		AjaxJson j = new AjaxJson();
+		Map<String, Object> attrs = new HashMap<String, Object>();
 		appointmentMeetingInfo = systemService.getEntity(AppointmentMeetingInfoEntity.class, appointmentMeetingInfo.getId());
-		//再删除预约会议信息
-		if(StringUtil.isNotEmpty(state)){
-			if(SystemType.APP_MEETING_STATE_2.equals(state)){
+		String meetingid = "";
+		if(null != appointmentMeetingInfo && appointmentMeetingInfoService.checkTime(appointmentMeetingInfo)){
+			if(meetingInfoService.wetherused(appointmentMeetingInfo)){
+				//编码器冲突
+				attrs.put("result", "conflict");
+			}else{
+				//可以开始直播
+				attrs.put("result", "success");
+				
 				message = "会议预约启用成功";
-			}else if(SystemType.APP_MEETING_STATE_3.equals(state)){
-				message = "会议预约取消成功";
+				
+				//复制预约信息到直播信息
+				MeetingInfoEntity meeting = meetingInfoService.getMeetingInfoFromAppointment(appointmentMeetingInfo);
+				meetingInfoService.save(meeting);
+				
+				//记录ID
+				meetingid = meeting.getId();
+				attrs.put("meetingid", meetingid);
+				//记录状态
+				attrs.put("meetingstate", meeting.getMeetingstate());
+				//记录可否录制
+				attrs.put("isrecord", meeting.getIsrecord());
+				
+				//关联频道信息
+				appointmentChannelInfoService.linkChannel(appointmentMeetingInfo, meeting);
+				
+				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 			}
-			appointmentMeetingInfo.setAppointmentState(new Integer(state));
+		}else{
+			message = "会议预约启用失败,还未到预约时间";
+			
+			//时间未到  不可直播
+			attrs.put("result", "failed");
 		}
-		appointmentMeetingInfoService.updateEntitie(appointmentMeetingInfo);
-		MeetingInfoEntity meeting = meetingInfoService.getMeetingInfoFromAppointment(appointmentMeetingInfo);
-		meetingInfoService.save(meeting);
-		
-		//关联频道信息
-		appointmentChannelInfoService.linkChannel(appointmentMeetingInfo, meeting);
-		
-		systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 		
 		j.setMsg(message);
-		Map<String, Object> attrs = new HashMap<String, Object>();
-		attrs.put("meetingid", meeting.getId());
 		j.setAttributes(attrs);
 		return j;
 	}
@@ -193,9 +213,6 @@ public class AppointmentMeetingInfoController extends BaseController {
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
 		
-		//设置是否录制
-		appointmentMeetingInfo.setIsRecord(new Integer(appointmentMeetingInfoService.isRecord(appointmentMeetingInfo)));
-		appointmentMeetingInfoService.updateEntitie(appointmentMeetingInfo);
 		//在保存预约会议信息后获取ID值
 		meetingID = appointmentMeetingInfo.getId();
 		//根据前台页面表单传回来的临时会议ID值tempid获取频道信息
@@ -213,6 +230,10 @@ public class AppointmentMeetingInfoController extends BaseController {
 				appointmentChannelInfoService.updateEntitie(e);
 			}
 		}
+		
+		//设置是否录制
+		appointmentMeetingInfo.setIsRecord(new Integer(appointmentMeetingInfoService.isRecord(appointmentMeetingInfo)));
+		appointmentMeetingInfoService.updateEntitie(appointmentMeetingInfo);
 		
 		j.setMsg(message);
 		return j;
@@ -248,6 +269,44 @@ public class AppointmentMeetingInfoController extends BaseController {
 			req.setAttribute("load", load);
 		}
 		return new ModelAndView("vod/appointmentmeetinginfo/appointmentMeetingInfo");
+	}
+	
+	@RequestMapping(params = "whouesed")
+	public ModelAndView whouesed(AppointmentMeetingInfoEntity meeting, HttpServletRequest req, String meetingType) throws Exception {
+		List<MeetingInfoEntity> conflicts = new ArrayList<MeetingInfoEntity>();
+		if (StringUtil.isNotEmpty(meeting.getId())) {
+			meeting = systemService.get(AppointmentMeetingInfoEntity.class, meeting.getId());
+			if(null != meeting){
+				//获取当前会议的所有编码器
+				List<ConfCodecInfoEntity> theCodecs = confCodecInfoService.getCodecs(meeting);
+				//获取所有会议
+				List<MeetingInfoEntity> meetings = systemService.loadAll(MeetingInfoEntity.class);
+				
+				for(MeetingInfoEntity m : meetings){
+					//获取冲突会议的状态,用于判断是否和当前会议冲突
+					Integer state = m.getMeetingstate();
+					//当有直播会议冲突时
+					if(!meeting.getId().equals(m.getId()) && (state == Integer.valueOf(SystemType.MEETING_STATE_1) ||
+							state == Integer.valueOf(SystemType.MEETING_STATE_2) ||
+							state == Integer.valueOf(SystemType.MEETING_STATE_3))){
+						//查询冲突编码器BEGIN
+						//获取每个冲突会议的所有编码器
+						List<ConfCodecInfoEntity> codecs = meetingInfoService.getCodecs(m);
+						//当该会议占用当前被选择的编码器时记录该会议
+						for(ConfCodecInfoEntity e : theCodecs){
+							if(codecs.contains(e) && !conflicts.contains(m)){
+								conflicts.add(m);
+							}
+						}
+						req.setAttribute("conflictMeetings", conflicts);
+						//查询冲突编码器END
+					}
+				}
+				
+			}
+		}
+		
+		return new ModelAndView("vod/meetinginfo/conflictMeetingInfo");
 	}
 	
 }

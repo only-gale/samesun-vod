@@ -43,7 +43,7 @@
 					class="Validform_checktip"></span></td>
 			</tr>
 			<tr>
-				<td align="right"><label class="Validform_label"> 预约状态:
+				<%-- <td align="right"><label class="Validform_label"> 预约状态:
 				</label></td>
 				<td class="value">
 					<c:choose>
@@ -54,13 +54,21 @@
 					<input type="hidden" id="appointmentState" name="appointmentState" value="${appointmentMeetingInfoPage.appointmentState }"/>
 					</c:otherwise>
 					</c:choose>
-					<%-- <select id="appointmentState" name="appointmentState" class="easyui-combobox">
+					<select id="appointmentState" name="appointmentState" class="easyui-combobox">
 						<c:forEach items="${states}" var="state">
 							<option value="${state.typecode }"
 								<c:if test="${appointmentMeetingInfoPage.appointmentState eq state.typecode}"> selected='selected'</c:if>>${state.typename }</option>
 						</c:forEach>
-				</select>  --%><span class="Validform_checktip"></span>
-				</td>
+				</select> <span class="Validform_checktip"></span>
+				</td> --%>
+				
+				<td align="right"><label class="Validform_label"> <span><font color="red">*</font></span>会议主题:
+				</label></td>
+				<td class="value"><input class="inputxt" id="subject" datatype="*"
+					name="subject" nullmsg=" " errormsg=" " sucmsg=" "
+					value="${appointmentMeetingInfoPage.subject}"> <span
+					class="Validform_checktip"></span></td>
+				
 				<td align="right"><label class="Validform_label"> 所属类型:
 				</label></td>
 				<td class="value">
@@ -76,27 +84,25 @@
 				</td>
 			</tr>
 			<tr>
-				<td align="right"><label class="Validform_label"> <span><font color="red">*</font></span>会议主题:
-				</label></td>
-				<td class="value"><input class="inputxt" id="subject" datatype="*"
-					name="subject" nullmsg=" " errormsg=" " sucmsg=" "
-					value="${appointmentMeetingInfoPage.subject}"> <span
-					class="Validform_checktip"></span></td>
+				
 				<td align="right"><label class="Validform_label">
 						会议主持人: </label></td>
 				<td class="value"><input class="inputxt" id="compere"
 					name="compere" ignore="ignore"
 					value="${appointmentMeetingInfoPage.compere}"> <span
 					class="Validform_checktip"></span></td>
+					
+				<td align="right"></td>
+				<td class="value"></td>
 			</tr>
-			<%-- <tr>
+			<tr>
 				<td align="right"><label class="Validform_label"> 会议简介:
 				</label></td>
 				<td class="value" colspan="3">
-				<textarea cols="96" style="margin:5px auto; resize:none" id="introduction" name="introduction" value="${appointmentMeetingInfoPage.introduction}"></textarea>
+				<textarea cols="96" style="margin:5px auto; resize:none" id="introduction" name="introduction" value="${appointmentMeetingInfoPage.introduction}">${appointmentMeetingInfoPage.introduction}</textarea>
 				<span class="Validform_checktip"></span></td>
-			</tr> --%>
-			<tr>
+			</tr>
+			<%-- <tr>
 				<td align="right"><label class="Validform_label"> 会议简介:
 				</label></td>
 				<td class="value" colspan="3">
@@ -104,9 +110,9 @@
 					name="introduction" ignore="ignore"
 					value="${appointmentMeetingInfoPage.introduction}">
 				<span class="Validform_checktip"></span></td>
-			</tr>
+			</tr> --%>
 		</table>
-		<div class="easyui-accordion" style="width:700px;height:200px;">
+		<div class="easyui-accordion" style="width:700px;height:230px;">
 			<div title="频道信息" style="padding:10px"
 				data-options="
 				selected:true">
@@ -138,6 +144,7 @@
 									}
 								},
 								onSelect:function(record){
+									wetheruesed(record.id, 'codec1id');
 									tofixcombox2(record.id);
 								}
 							}
@@ -172,6 +179,7 @@
 									}
 								},
 								onSelect:function(record){
+									wetheruesed(record.id, 'codec2id');
 									tofixcombox1(record.id);
 								}
 							}
@@ -440,5 +448,35 @@
 		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
 		$(codec2id_ed.target).combobox('reload', url);
 		return false;
+	}
+	
+	function wetheruesed(id, field){
+		var flag = false;
+		var url = "confCodecInfoController.do?wetheruesed&meetingType=live&id=" + id;
+		$.ajax({
+			async: false,
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				//成功后事件
+				if (d.success) {
+					var msg = d.msg;
+					if(msg == 'false'){
+						var contentUrl = 'confCodecInfoController.do?whouesed&meetingType=appointment&id=' + id;
+						var api = frameElement.api, W = api.opener;
+						W.$.dialog({title:'冲突的会议信息',content: 'url:'+contentUrl,lock:true,parent:api,width:500,height:300, cancel:true});
+						var codec = $('#dg').datagrid('getEditor', {
+							index : editIndex,
+							field : field
+						});
+						$(codec.target).combobox('setValue', '');
+					}else{
+						excepts = excepts.concat("," + id);
+					};
+				}
+			},
+			cache : false
+		});
+		
 	}
 </script>
