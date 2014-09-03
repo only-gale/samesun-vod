@@ -1,6 +1,7 @@
 package org.jeecgframework.web.system.pojo.base;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +13,8 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.ForeignKey;
 import org.jeecgframework.core.common.entity.IdEntity;
+import org.jeecgframework.poi.excel.annotation.Excel;
+import org.jeecgframework.poi.excel.annotation.ExcelTarget;
 
 /**
  *地域管理表
@@ -19,12 +22,16 @@ import org.jeecgframework.core.common.entity.IdEntity;
  */
 @Entity
 @Table(name = "t_s_territory")
+@ExcelTarget(id="tSTerritoryEntity")
 public class TSTerritory extends IdEntity implements java.io.Serializable {
 	private static final long serialVersionUID = 1L;
 	private TSTerritory TSTerritory;//父地域
+	@Excel(exportFieldWidth=80, exportName="区域名称",orderNum="2")
 	private String territoryName;//地域名称
 	private Short territoryLevel;//等级
+	@Excel(exportFieldWidth=50, exportName="同级显示顺序",orderNum="3")
 	private String territorySort;//同区域中的显示顺序
+	@Excel(exportFieldWidth=50, exportName="区域编码",orderNum="1")
 	private String territoryCode;//区域码
 	private String territoryPinyin;//区域名称拼音
 	private double xwgs84;//wgs84格式经度(mapabc 的坐标系)
@@ -85,14 +92,14 @@ public class TSTerritory extends IdEntity implements java.io.Serializable {
 	public void setTerritoryPinyin(String territoryPinyin) {
 		this.territoryPinyin = territoryPinyin;
 	}
-	@Column(name = "x_wgs84",nullable = false,length = 40)
+	@Column(name = "x_wgs84",nullable = true,length = 40)
 	public double getXwgs84() {
 		return xwgs84;
 	}
 	public void setXwgs84(double xwgs84) {
 		this.xwgs84 = xwgs84;
 	}
-	@Column(name = "y_wgs84",nullable = false,length = 40)
+	@Column(name = "y_wgs84",nullable = true,length = 40)
 	public double getYwgs84() {
 		return ywgs84;
 	}

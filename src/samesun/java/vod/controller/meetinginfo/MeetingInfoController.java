@@ -1,6 +1,8 @@
 package vod.controller.meetinginfo;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +34,7 @@ import org.springframework.web.servlet.ModelAndView;
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
+import vod.page.meetinginfo.MeetingInfoPage;
 import vod.samesun.util.SystemType;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
 import vod.service.confcodecinfo.ConfCodecInfoServiceI;
@@ -57,6 +60,11 @@ public class MeetingInfoController extends BaseController {
 	 * Logger for this class
 	 */
 	private static final Logger logger = Logger.getLogger(MeetingInfoController.class);
+	
+	//操作执行成功
+	private static String SUCCESS = "success";
+	//操作执行失败
+	private static String FAILED = "failed";
 
 	@Autowired
 	private MeetingInfoServiceI meetingInfoService;
@@ -113,9 +121,42 @@ public class MeetingInfoController extends BaseController {
 		dataGrid.setSort("billstarttime");
 		dataGrid.setOrder(SortDirection.desc);
 		CriteriaQuery cq = new CriteriaQuery(MeetingInfoEntity.class, dataGrid);
+		//查询条件组装器,fuzzy search
+		String subject = meetingInfo.getSubject();
+		if(StringUtil.isNotEmpty(subject)){
+			meetingInfo.setSubject("*"+ subject +"*");
+		}
+		//查询会议
+		cq.eq("rightid", SystemType.MEETING_RIGHT_1);
+		//查询未结束的会议
+		cq.notEq("meetingstate", new Integer(SystemType.MEETING_STATE_4));
+		cq.add();
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, meetingInfo, request.getParameterMap());
 		this.meetingInfoService.getDataGridReturn(cq, true);
+		List<MeetingInfoEntity> mts = dataGrid.getResults();
+		List<MeetingInfoPage> temp = new ArrayList<MeetingInfoPage>();
+		for(MeetingInfoEntity m : mts){
+			if(!SystemType.MEETING_STATE_5.equals(m.getMeetingstate().toString())){
+				//设置已持续时长，单位分钟
+				m.setBillduration((int) ((DataUtils.getMillis() - m.getBillstarttime().getTime()) / (60 * 1000)));
+			}
+			MeetingInfoPage page = new MeetingInfoPage();
+			try {
+				MyBeanUtils.copyBeanNotNull2Bean(m, page);
+			} catch (Exception e) {
+				logger.error("获取会议信息错误");
+				e.printStackTrace();
+			}
+			//设置会议类型名称
+			page.setTypename(systemService.getType(page.getTypeid().toString(), SystemType.MEETING_TYPE).getTypename());
+			//格式化主题和简介,使其在页面显示时有alt效果
+			String strsubject = page.getSubject(), strintroduction = page.getIntroduction();
+			page.setSubject("<span title=\""+strsubject+"\">" + strsubject +"</span>");
+			page.setIntroduction("<span title=\""+strintroduction+"\">" + strintroduction +"</span>");
+			temp.add(page);
+		}
+		dataGrid.setResults(temp);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -160,7 +201,7 @@ public class MeetingInfoController extends BaseController {
 
 
 	/**
-	 * 添加会议信息
+	 * 添加会议信息<br>
 	 * 
 	 * @param ids
 	 * @return
@@ -169,31 +210,49 @@ public class MeetingInfoController extends BaseController {
 	 */
 	@RequestMapping(params = "save")
 	@ResponseBody
-	public AjaxJson save(MeetingInfoEntity meetingInfo, HttpServletRequest request, HttpServletResponse response, String tempid, String id, String typeid, String subject, String compere, String introduction, String isrecord) throws IOException, ParseException {
-		System.out.println(request.getParameter("flag"));
+	public AjaxJson save(MeetingInfoEntity meetingInfo, HttpServletRequest request, HttpServletResponse response, String tempid, String typeid, String subject, String compere, String introduction, String isrecord, String billid) throws IOException, ParseException {
 		AjaxJson j = new AjaxJson();
+		message = "会议直播成功";
 		//记录会议ID值
 		String meetingID = "";
 		meetingID = meetingInfo.getId();
-		if(StringUtil.isNotEmpty(meetingID)){
-			meetingID = id;
-		}
+		//当预约转为直播时是有预约id值信息的
+		String appid = meetingInfo.getBillid();
+		
 		meetingInfo.setCompere(compere);
 		meetingInfo.setIntroduction(introduction);
 		meetingInfo.setSubject(subject);
 		meetingInfo.setTypeid(new Integer(typeid));
+		meetingInfo.setBillid(billid);
 		if (StringUtil.isNotEmpty(meetingID)) {
 			message = "会议信息更新成功";
-			MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class, meetingInfo.getId());
+			MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class, meetingID);
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(meetingInfo, t);
+				if (StringUtil.isNotEmpty(appid)){
+					message = "会议直播成功";
+					t.setBillid(null);
+					t.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_1));
+					//设置直播开始时间为现在
+					t.setBillstarttime(DataUtils.parseDate(DataUtils.getDataString(DataUtils.datetimeFormat), DataUtils.datetimeFormat.toPattern()));
+					//启用编码器
+					List<AppointmentChannelInfoEntity> list = new ArrayList<AppointmentChannelInfoEntity>();
+					list = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingID);
+					//开始更新频道信息
+					for(AppointmentChannelInfoEntity e : list){
+						appointmentChannelInfoService.linkCodec(e, SystemType.CODEC_AVILABLE_1);
+						//删除时间置空
+						e.setDelDate(null);
+						systemService.updateEntitie(e);
+					}
+				}
 				meetingInfoService.saveOrUpdate(t);
 				systemService.addLog(message, Globals.Log_Type_UPDATE, Globals.Log_Leavel_INFO);
 			} catch (Exception e) {
 				e.printStackTrace();
 				message = "会议信息更新失败";
 			}
-		} else {
+		} else {		//meetingID信息是有页面提取的，但是当该直播是由预约转化而来，那么页面没有id值，但数据库已经有了该直播信息
 			message = "会议直播成功";
 			//设置直播类型为直播
 			meetingInfo.setIsasflive(new Integer(SystemType.LIVE_TYPE_1));
@@ -204,7 +263,8 @@ public class MeetingInfoController extends BaseController {
 			//设置是否录制标志
 			meetingInfo.setIsrecord(new Integer(isrecord));
 			
-			meetingInfoService.save(meetingInfo);
+			systemService.save(meetingInfo);
+			
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
 		
@@ -213,7 +273,7 @@ public class MeetingInfoController extends BaseController {
 		//根据前台页面传回来的临时会议ID值tempid获取频道信息
 		List<AppointmentChannelInfoEntity> list = new ArrayList<AppointmentChannelInfoEntity>();
 		if(StringUtil.isNotEmpty(tempid)){
-			list = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", tempid);
+			list = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", tempid);
 			//开始更新频道信息
 			for(AppointmentChannelInfoEntity e : list){
 				if(!tempid.equals(meetingID)){
@@ -224,15 +284,30 @@ public class MeetingInfoController extends BaseController {
 				}
 				//删除时间置空
 				e.setDelDate(null);
-				meetingInfoService.updateEntitie(e);
+				systemService.updateEntitie(e);
 			}
 		}
+		
+		//关联设备部分的功能由心跳信息完成
+		/*//关联设备
+		List<AppointmentChannelInfoEntity> channels = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingID);
+		List<AuthGroupTerminalEntity> tids = new ArrayList<AuthGroupTerminalEntity>();
+		for(AppointmentChannelInfoEntity c : channels){
+			String authGroupid = c.getAuthortiyGroupCid();
+			tids.addAll(systemService.findByProperty(AuthGroupTerminalEntity.class, "authid", authGroupid));
+		}
+		for(AuthGroupTerminalEntity e : tids){
+			if(null != e){
+				TerminalInfoEntity t = systemService.get(TerminalInfoEntity.class, e.getTerminalid());
+				t.setNowvideo(meetingID);
+				systemService.updateEntitie(t);
+			}
+		}*/
 		
 		j.setMsg(message);
 		Map<String, Object> attrs = new HashMap<String, Object>();
 		attrs.put("meetingid", meetingID);
 		j.setAttributes(attrs);
-//		response.sendRedirect("meetingInfoController.do?addorupdate&id=" + meetingID);
 		return j;
 	}
 
@@ -249,35 +324,37 @@ public class MeetingInfoController extends BaseController {
 		}
 		//获取数据字典信息,用于渲染下拉框
 		//会议所属类型
-		List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.APP_MEETING_TYPE, SystemType.APP_MEETING_TYPE_NAME));
+		List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.MEETING_TYPE, SystemType.MEETING_TYPE_NAME));
 		req.setAttribute("appTypes", appTypes);
 		String load = req.getParameter("load");
 		if(StringUtil.isNotEmpty(load)){
 			req.setAttribute("load", load);
 		}
+		req.setAttribute("rightid", SystemType.MEETING_RIGHT_1);
 		return new ModelAndView("vod/meetinginfo/meetingInfo");
 	}
 	
 	/**
-	 * 开始直播
+	 * 会议信息列表页面跳转
 	 * 
 	 * @return
 	 */
-	@RequestMapping(params = "startLive")
-	public AjaxJson startLive(MeetingInfoEntity meetingInfo, HttpServletRequest req, String flag) {
-		AjaxJson j = new AjaxJson();
-		String meetingid = "", meetinginfoId = meetingInfo.getId(), reqId = req.getParameter("meetingid");
-		if(StringUtil.isNotEmpty(meetinginfoId)){
-			meetingid = meetinginfoId;
-		}else if(StringUtil.isNotEmpty(reqId)){
-			meetingid = reqId;
+	@RequestMapping(params = "addorupdateT")
+	public ModelAndView addorupdateT(MeetingInfoEntity meetingInfo, HttpServletRequest req) {
+		if (StringUtil.isNotEmpty(meetingInfo.getId())) {
+			meetingInfo = meetingInfoService.getEntity(MeetingInfoEntity.class, meetingInfo.getId());
+			req.setAttribute("meetingInfoPage", meetingInfo);
 		}
-		if(StringUtil.isNotEmpty(meetingid)){
-			meetingInfo = meetingInfoService.getEntity(MeetingInfoEntity.class, meetingid);
+		//获取数据字典信息,用于渲染下拉框
+		//会议所属类型
+		List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.TRAINING_TYPE, SystemType.TRAINING_TYPE_NAME));
+		req.setAttribute("appTypes", appTypes);
+		String load = req.getParameter("load");
+		if(StringUtil.isNotEmpty(load)){
+			req.setAttribute("load", load);
 		}
-		message = flag;
-		j.setMsg(message);
-		return j;
+		req.setAttribute("rightid", SystemType.MEETING_RIGHT_2);
+		return new ModelAndView("vod/meetinginfo/meetingInfo");
 	}
 	
 	/**
@@ -293,23 +370,22 @@ public class MeetingInfoController extends BaseController {
 		AjaxJson j = new AjaxJson();
 		try {
 			if(StringUtil.isNotEmpty(id)){
+				message = "开始录制";
 				MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
-				if(SystemType.MEETING_STATE_2.equals(meeting.getMeetingstate().toString())){
-					message = "开始录制";
-				}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
-					message = "录制失败";
-				}else{
-					
-					logger.info("开始录制之前时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
-					String result = liveSectionRecordService.StartChannelSectionRecord(id);
-					logger.info(result);
-					logger.info("开始录制之后时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
-					message = result;
-					/*if(StringUtil.isNotEmpty(result)){
+				if(null != meeting && !SystemType.MEETING_STATE_4.equals(meeting.getMeetingstate().toString())){
+						
+						logger.info("开始录制之前时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
+						String result = liveSectionRecordService.StartChannelSectionRecord(meeting, "MeetingInfoEntity");
+						logger.info(result);
+						logger.info("开始录制之后时刻" + DataUtils.datetimeFormat.format(DataUtils.getDate()));
+						message = result;
+						/*if(StringUtil.isNotEmpty(result)){
 						message = "开始录制";
 					}else{
 						message = "录制失败";
 					}*/
+				}else{
+					message = "录制失败";
 				}
 			}else{
 				message = "程序发生错误,缺少直播会议ID值";
@@ -328,30 +404,25 @@ public class MeetingInfoController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(params = "stopRecord")
+	@ResponseBody
 	public AjaxJson stopRecord(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) {
 		AjaxJson j = new AjaxJson();
 		if(StringUtil.isNotEmpty(id)){
+			message = "停止录制";
 			MeetingInfoEntity meeting = meetingInfoService.getEntity(MeetingInfoEntity.class, id);
-			if(SystemType.MEETING_STATE_1.equals(meeting.getMeetingstate().toString())){
-				message = "停止录制";
-			}else if(SystemType.MEETING_STATE_3.equals(meeting.getMeetingstate().toString())){
-				message = "停止录制失败";
-			}else{
-				
+			if(null != meeting && SystemType.MEETING_STATE_2.equals(meeting.getMeetingstate().toString())){
 				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
-				String result = liveSectionRecordService.EndChannelSectionRecord(id);
+				String result = liveSectionRecordService.EndChannelSectionRecord(meeting, "MeetingInfoEntity");
 				logger.info(result);
 				logger.info(DataUtils.datetimeFormat.format(DataUtils.getDate()));
-				if(StringUtil.isNotEmpty(result)){
-					message = "停止录制";
-				}else{
+				if(StringUtil.isEmpty(result)){
 					message = "停止录制失败";
 				}
 			}
-			j.setMsg(message);
 		}else{
 			message = "程序发生错误,缺少直播会议ID值";
 		}
+		j.setMsg(message);
 		return j;
 	}
 	
@@ -362,43 +433,266 @@ public class MeetingInfoController extends BaseController {
 	 * @throws Exception 
 	 */
 	@RequestMapping(params = "stopLive")
+	@ResponseBody
 	public AjaxJson stopLive(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws Exception {
 		AjaxJson j = new AjaxJson();
+		Map<String, Object> attr = new HashMap<String, Object>();
 		if(StringUtil.isNotEmpty(id)){
 			message = "结束直播";
-			MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class, id);
-			String state = t.getMeetingstate().toString();
+			MeetingInfoEntity t = systemService.get(MeetingInfoEntity.class, id);
 			
-			//改变状态
-			t.setMeetingstate(new Integer(SystemType.MEETING_STATE_3));
-			t.setBillduration((int) ((DataUtils.getMillis() - t.getBillstarttime().getTime()) / (60 * 1000)));
-			
-			//如果当前直播会议状态为“直播并录制中”，则在执行“结束直播”时要先执行“结束录制”
-			if(SystemType.MEETING_STATE_2.equals(state)){
-				liveSectionRecordService.EndChannelSectionRecord(id);
-			}
-
-			//生成会议日志
-			meetingHistoryService.getHistoryFromLive(t);
-			
-			//生成点播会话信息
-			vodSessionService.getSessionByMeetingId(id);
-			
-			//生成点播明细
-			vodSectionRecordService.getVodSectionRecordByMeetingId(id);
-			
-			meetingInfoService.updateEntitie(t);
-			
-			//释放编码器
-			List<AppointmentChannelInfoEntity> channels = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", id);
-			for(AppointmentChannelInfoEntity channel : channels){
-				appointmentChannelInfoService.linkCodec(channel, SystemType.CODEC_AVILABLE_0);
+			if(null != t){
+				String state = t.getMeetingstate().toString();
+				String isrecord = t.getIsrecord().toString();
+				//存放会议现有状态
+				attr.put("status", state);
+				//存放会议可否录制
+				attr.put("isrecord", isrecord);
+				
+				//改变状态
+				t.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_4));
+				t.setBillduration((int) ((DataUtils.getMillis() - t.getBillstarttime().getTime()) / (60 * 1000)));
+				
+				//如果当前直播会议状态为“直播并录制中”，则在执行“结束直播”时要先执行“结束录制”，然后生成点播信息
+				if(SystemType.MEETING_STATE_2.equals(state)){
+					String str = liveSectionRecordService.EndChannelSectionRecord4StopLive(t, "MeetingInfoEntity");
+					//当结束录制失败时直接返回
+					if(StringUtil.isEmpty(str) || str.matches("失败")){
+						message = "结束录制失败";
+						j.setMsg(message);
+						attr.put("result", FAILED);
+						j.setAttributes(attr);
+						return j;
+					}
+				}
+				
+				//生成点播会话信息
+				vodSessionService.getSessionByMeetingId(id);
+				
+				//生成点播明细
+				vodSectionRecordService.getVodSectionRecordByMeetingId(id);
+				
+				//生成会议日志
+				meetingHistoryService.getHistoryFromLive(t);
+				
+				meetingInfoService.updateEntitie(t);
+				
+				//释放编码器
+				List<AppointmentChannelInfoEntity> channels = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", id);
+				for(AppointmentChannelInfoEntity channel : channels){
+					appointmentChannelInfoService.linkCodec(channel, SystemType.CODEC_AVILABLE_0);
+				}
+				attr.put("result", SUCCESS);
 			}
 			
 		}else{
 			message = "结束直播失败,缺少直播会议ID值";
 		}
+		j.setAttributes(attr);
 		j.setMsg(message);
 		return j;
+	}
+	
+	/**
+	 * 根据id判断有没有开始录制
+	 * @param meetingInfo
+	 * @param req
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(params = "hasBegin")
+	@ResponseBody
+	public AjaxJson hasBegin(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws Exception {
+		AjaxJson j = new AjaxJson();
+		if(StringUtil.isNotEmpty(id) && !hasBegin(id)){
+			message = "false";
+		}else{
+			message = "";
+		}
+		j.setMsg(message);
+		return j;
+	}
+	
+	/**
+	 * 启用预约录制
+	 * @param meetingInfo
+	 * @param req
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(params = "beginApp")
+	@ResponseBody
+	public AjaxJson beginApp(MeetingInfoEntity meetingInfo, HttpServletRequest req, String m, String id) throws Exception {
+		AjaxJson j = new AjaxJson();
+		message = "启用预约录制成功";
+		Map<String, Object> attr = new HashMap<String, Object>();
+		if(StringUtil.isNotEmpty(id)){
+			if(!hasBegin(id)){
+				MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
+						id);
+				if (null != t) {
+					
+					//设置预约录制时间为当前时间的m分钟后
+					String appointmentdt = DataUtils.datetimeFormat.format(DataUtils.getDate(DataUtils.getMillis() + Integer.valueOf(m) * 60 * 1000));
+					t.setAppointmentdt(appointmentdt);
+					t.setAppointmentstate(Integer.valueOf(SystemType.APP_RECORD_1));
+					systemService.updateEntitie(t);
+					attr.put("status", "success");
+					attr.put("appointmentdt", appointmentdt);
+				}
+			}else{
+				message = "启用预约录制失败,当前直播会议正在录制";
+				attr.put("status", "failed");
+			}
+		}else{
+			message = "启用预约录制失败,缺少直播会议ID值";
+			attr.put("status", "failed");
+		}
+		j.setMsg(message);
+		j.setAttributes(attr);
+		return j;
+	}
+	
+	/**
+	 * 取消预约录制
+	 * @param meetingInfo
+	 * @param req
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(params = "cancelApp")
+	@ResponseBody
+	public AjaxJson cancelApp(MeetingInfoEntity meetingInfo, HttpServletRequest req, String id) throws Exception {
+		AjaxJson j = new AjaxJson();
+		Map<String, Object> attr = new HashMap<String, Object>();
+		message = "取消预约录制成功";
+		if(StringUtil.isNotEmpty(id)){
+			if(!hasBegin(id)){
+				MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
+						id);
+				if (null != t) {
+					
+					//设置预约录制时间为当前时间的m分钟后
+					t.setAppointmentdt("");
+					t.setAppointmentstate(Integer.valueOf(SystemType.APP_RECORD_2));
+					systemService.updateEntitie(t);
+					attr.put("status", "success");
+				}
+			}else{
+				message = "取消预约录制失败,当前直播会议正在录制";
+				attr.put("status", "failed");
+			}
+		}else{
+			message = "取消预约录制失败,缺少直播会议ID值";
+			attr.put("status", "failed");
+		}
+		j.setMsg(message);
+		j.setAttributes(attr);
+		return j;
+	}
+	
+	private boolean hasBegin(String id) {
+		MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class,
+				id);
+		if (null != t
+				&& t.getMeetingstate() != Integer
+						.valueOf(SystemType.MEETING_STATE_2)) {
+
+			//未开始录制
+			return false;
+		} else {
+			//开始录制
+			return true;
+		}
+	}
+	
+	/**
+	 * 录制服务器转码结束
+	 * @param req
+	 * @param res
+	 * @param id
+	 * @param success
+	 * @param message
+	 */
+	@RequestMapping(params = "hint")
+	public void hint(HttpServletRequest req, HttpServletResponse res, String id, String success, String message) {
+		PrintWriter pw = null;
+		try {
+			if(StringUtil.isNotEmpty(message)){
+				message = new String(message.getBytes("ISO-8859-1"),"utf-8" );
+			}else message = "";
+			res.setContentType("text/xml;charset=UTF-8");
+			req.setCharacterEncoding("UTF-8");
+			String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
+			String Rec_State = "";
+			
+			if(StringUtil.isNotEmpty(success) && success.equals("1")){
+				Rec_State = SystemType.REC_STATE_5;
+			}else{
+				Rec_State = SystemType.REC_STATE_4;
+			}
+			if(StringUtil.isNotEmpty(id)){
+				String sqllive = "update meeting_live_section_record set Rec_State=" + Rec_State + " where filename='"+id+"'";
+				String sqlvod = "update meeting_vod_section_record set Rec_State=" + Rec_State + " where filename='"+id+"'";
+				systemService.updateBySqlString(sqllive);
+				systemService.updateBySqlString(sqlvod);
+				strXML += "<state>success!</state>";
+			}
+			pw = res.getWriter();
+			pw.write(strXML);
+			pw.flush();
+		} catch (UnsupportedEncodingException e) {
+			logger.error("转码UTF-8失败");
+			e.printStackTrace();
+		} catch (IOException e) {
+			logger.error("获取输出流失败");
+			e.printStackTrace();
+		} finally{
+			if(null != pw){
+				pw.close();
+			}
+		}
+	}
+	
+	/**
+	 * 录制服务器录制过程中转码错误
+	 * @param req
+	 * @param res
+	 * @param id
+	 * @param success
+	 * @param message
+	 */
+	@RequestMapping(params = "recordError")
+	public void recordError(HttpServletRequest req, HttpServletResponse res, String id, String success, String message) {
+		PrintWriter pw = null;
+		try {
+			if(StringUtil.isNotEmpty(message)){
+				message = new String(message.getBytes("ISO-8859-1"),"utf-8" );
+			}else message = "";
+			res.setContentType("text/xml;charset=UTF-8");
+			req.setCharacterEncoding("UTF-8");
+			String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
+			
+			String sqllive = "update meeting_live_section_record set Rec_State=" + SystemType.REC_STATE_3 + " where filename='"+id+"'";
+			String sqlvod = "update meeting_vod_section_record set Rec_State=" + SystemType.REC_STATE_3 + " where filename='"+id+"'";
+			systemService.updateBySqlString(sqllive);
+			systemService.updateBySqlString(sqlvod);
+			pw = res.getWriter();
+			pw.write(strXML);
+			pw.flush();
+		} catch (UnsupportedEncodingException e) {
+			logger.error("转码UTF-8失败");
+			e.printStackTrace();
+		} catch (IOException e) {
+			logger.error("获取输出流失败");
+			e.printStackTrace();
+		} finally{
+			if(null != pw){
+				pw.close();
+			}
+		}
 	}
 }

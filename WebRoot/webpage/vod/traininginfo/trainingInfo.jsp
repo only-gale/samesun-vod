@@ -22,6 +22,18 @@
 
 		<input id="tempid" name="tempid" type="hidden" />
 
+		<input id="meetingstate" name="meetingstate" type="hidden"
+			value="${meetingInfoPage.meetingstate }" />
+			
+		<input id="isrecord" name="isrecord" type="hidden"
+			value="${meetingInfoPage.isrecord }" />
+			
+		<input id="appointmentdt" name="appointmentdt" type="hidden"
+			value="${meetingInfoPage.appointmentdt }" />
+			
+		<input id="appointmentstate" name="appointmentstate" type="hidden"
+			value="${meetingInfoPage.appointmentstate }" />
+
 		<table style="width: 100%;" cellpadding="0" cellspacing="1"
 			class="formtable">
 			<tr>
@@ -58,30 +70,18 @@
 				<td align="right"><label class="Validform_label"> 培训简介:
 				</label></td>
 				<td class="value" colspan="3">
-				<textarea cols="97" rows="4" style="margin:5px auto; resize:none" id="introduction" name="introduction" ignore="ignore" value="${meetingInfoPage.introduction}"></textarea>
+				<textarea cols="97" rows="4" style="margin:5px auto; resize:none" id="introduction" name="introduction" ignore="ignore" value="${meetingInfoPage.introduction}">${meetingInfoPage.introduction}</textarea>
 				<span class="Validform_checktip"></span></td>
 			</tr>
 		</table>
-		<div class="easyui-accordion" style="width:700px;height:230px">
-			<div title="频道信息" style="padding:10px" data-options="selected:true">
-				<c:choose>
-				<c:when test="${load eq 'detail' }">
+		<div id="accord">
+			<div id="channelInfo" title="频道信息" style="padding:10px">
 				<table id="dg" class="easyui-datagrid"
-					data-options="iconCls: 'icon-edit',toolbar: '#tb',
-					fit:true,fitColumns:true,singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
-		   queryParams:{
-		           meetingid: meetingId
-	               },idField : 'id',onAfterEdit:afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:when>
-	               <c:otherwise>
-	               <table id="dg" class="easyui-datagrid"
 					data-options="iconCls: 'icon-edit',toolbar: '#tb',
 					fit:true,fitColumns:true,pagination:true,pageSize:5,pageList:[5],singleSelect:true,url:'appointmentChannelInfoController.do?datagrid',
 		   queryParams:{
 		           meetingid: meetingId
-	               },idField : 'id',onAfterEdit: afterEdit, onBeforeLoad: initParams, onClickRow: onClickRow">
-	               </c:otherwise>
-	               </c:choose>
+	               },idField : 'id',onAfterEdit: afterEdit, onBeforeLoad: initParams">
 					<thead>
 						<th data-options="field:'id',hidden:true"></th>
 						<th data-options="field:'appoinementid',hidden:true"></th>
@@ -91,12 +91,16 @@
 							options:{
 								valueField:'id',
 								textField:'name',
-								url:'confCodecInfoController.do?combox&meetingType=live',
+								url:'confCodecInfoController.do?combox4UserCodec&meetingType=live',
 								required:true,
 								panelHeight:'auto',
 								onBeforeLoad:function(param){
 									getexcepts();
 									param.excepts = excepts;
+								},
+								onSelect:function(record){
+									wetheruesed(record.id, 'codec1id');
+									tofixcombox2(record.id);
 								}
 							}
 						},
@@ -118,7 +122,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
-								url:'confCodecInfoController.do?combox&meetingType=live',
+								url:'confCodecInfoController.do?combox4UserCodec&meetingType=live',
 								formatter: function(row){
 									var opts = $(this).combobox('options');
 									return row[opts.textField];
@@ -127,6 +131,10 @@
 								onBeforeLoad:function(param){
 									getexcepts();
 									param.excepts = excepts;
+								},
+								onSelect:function(record){
+									wetheruesed(record.id, 'codec2id');
+									tofixcombox1(record.id);
 								}
 							}
 						},
@@ -149,8 +157,8 @@
 								valueField:'id',
 								textField:'name',
 								url:'authorityGroupController.do?combox',
-								onBeforeLoad: function(param){
-									param.excepts = excepts;
+								onSelect:function(record){
+									wetheruesedterminal(record.id);
 								}
 							}
 						},
@@ -182,9 +190,79 @@
 				</div>
 				<input type="submit" id="submit" style="display:none"/>
 			</div>
+			<c:if test="${(meetingInfoPage.isrecord eq 1 and meetingInfoPage.meetingstate eq 1 ) or meetingInfoPage.meetingstate eq 3}">
+		<div id="appRec" title="预约录制" style="padding:10px">
+			<table>
+				<tr height="50px">
+					<td id="tipcontent" colspan="4"><c:if
+							test="${meetingInfoPage.appointmentdt ne '' and meetingInfoPage.appointmentdt ne null }">
+							<span>该直播培训将在 <font color="red">${meetingInfoPage.appointmentdt}</font>
+								开始录制
+							</span>
+						</c:if></td>
+				</tr>
+				<tr>
+					<td width="30%"></td>
+					<td colspan="2"><input id="timersetting" />
+					</td>
+					<td width="20%"></td>
+				</tr>
+				<c:choose>
+					<c:when test="${meetingInfoPage.appointmentstate eq 1 }">
+						<tr>
+					<td width="30%"></td>
+					<td align="right"><input type="button" name="btn_timerSetting" disabled  onclick="tostart()"
+						id="btn_timerSetting" class="" value="启用" /></td>
+					<td align="left"><input type="button" name="btn_timercancel" onclick="tocancel()"
+						id="btn_timercancel" class="" value="取消" /></td>
+					<td width="20%"></td>
+				</tr>
+					</c:when>
+					<c:otherwise>
+						<tr>
+					<td width="30%"></td>
+					<td align="right"><input type="button" name="btn_timerSetting" onclick="tostart()"
+						id="btn_timerSetting" class="" value="启用" /></td>
+					<td align="left"><input type="button" name="btn_timercancel" onclick="tocancel()"
+						id="btn_timercancel" class="" value="取消" disabled /></td>
+					<td width="20%"></td>
+				</tr>
+					</c:otherwise>
+				</c:choose>
+			</table>
+		</div>
+		</c:if>
 		</div>
 
+
 	</t:formvalid>
+	
+	<div id="appRec1" style="display: none;">
+			<table>
+				<tr height="50px">
+					<td id="tipcontent1" colspan="4"><c:if
+							test="${meetingInfoPage.appointmentdt ne '' and meetingInfoPage.appointmentdt ne null }">
+							<span>该直播培训将在 <font color="red">${meetingInfoPage.appointmentdt}</font>
+								开始录制
+							</span>
+						</c:if></td>
+				</tr>
+				<tr>
+					<td width="30%"></td>
+					<td colspan="2"><input id="timersetting1" />
+					</td>
+					<td width="20%"></td>
+				</tr>
+						<tr>
+					<td width="30%"></td>
+					<td align="right"><input type="button" name="btn_timerSetting" onclick="tostart1()"
+						id="btn_timerSetting1" class="" value="启用" /></td>
+					<td align="left"><input type="button" name="btn_timercancel" onclick="tocancel1()"
+						id="btn_timercancel1" class="" value="取消" disabled /></td>
+					<td width="20%"></td>
+				</tr>
+			</table>
+		</div>
 
 </body>
 <script type="text/javascript">
@@ -194,15 +272,190 @@ if("" == meetingId || "null" == meetingId){
 	meetingId = new Date().getTime();
 	$("#tempid").val(meetingId);
 }
-//$.Tipmsg.tit="Message Box";
-//$("#formobj").Validform().tipmsg.s="error! no message inputed.";
-//$("#formobj").Validform().config({tiptype:function(msg,o,css){msg: null}});
 
+	$(function() {
+		$("#accord").accordion({
+			width : 700,
+			height : 235,
+			fit : false
+		});
+		
+		$("#timersetting").slider({
+		    showTip: true,
+		    width: 300,
+		    value: 10,
+		    max: 60,
+		    tipFormatter: function(value){
+		        return value + ' 分钟后开始录制';
+		    }
+		});
+		
+		$("#timersetting1").slider({
+		    showTip: true,
+		    width: 300,
+		    value: 10,
+		    max: 60,
+		    tipFormatter: function(value){
+		        return value + ' 分钟后开始录制';
+		    }
+		});
+		
+		if ('editlive' == $("#load").val()) {
+			$(":input").attr("disabled","true");
+			$(":select").attr("disabled","true");
+		}
+	});
+
+	//预约录制中"启用"按钮事件
+	function tostart(){
+		var m = $("#timersetting").slider('getValue');
+		var id = $("#id").val();
+		var url = "trainingInfoController.do?beginApp&m=" + m + "&id=" + id;
+		$.ajax({
+			url : url,
+			async: false,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				var status = d.attributes.status;
+				var msg = d.msg;
+				//成功后事件
+				if (d.success && 'success' == status) {
+					//启用按钮不可用
+					$("#btn_timerSetting").attr("disabled", "disabled");
+					//slider不可用
+					$("#timersetting").slider('disable');
+					//取消按钮可用
+					$("#btn_timercancel").removeAttr("disabled");
+					//选择频道信息面板
+					//$("#accord").accordion('select', '频道信息');
+					//收起预约录制面板
+					//$("#appRec").toggle();
+					//展示频道信息面板
+					//$("#channelInfo").toggle();
+					
+					tip(msg);
+					var appointmentdt = d.attributes.appointmentdt;
+					var tipcontent = "<span>该直播会议将在 <font color='red'>" + appointmentdt + "</font>开始录制</span>";
+					$("#tipcontent").html(tipcontent);
+				} else if(d.success && 'failed' == status){
+					$("#accord").accordion('select', '频道信息');
+					tip(msg);
+				}
+			},
+			cache : false
+		});
+	}
+	
+	//预约录制中"取消"按钮事件
+	function tocancel(){
+		var id = $("#id").val();
+		var url = "trainingInfoController.do?cancelApp&id=" + id;
+		$.ajax({
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				var status = d.attributes.status;
+				var msg = d.msg;
+				//成功后事件
+				if (d.success && 'success' == status) {
+					//取消按钮不可用
+					$("#btn_timercancel").attr("disabled", "disabled");
+					//启用按钮可用
+					$("#btn_timerSetting").removeAttr("disabled");
+					//slider可用
+					$("#timersetting").slider('enable');
+					tip(msg);
+					$("#tipcontent").html("");
+				}else if(d.success && 'failed' == status){
+					$("#accord").accordion('select', '频道信息');
+					tip(msg);
+				}
+			},
+			cache : false
+		});
+	}
+	
+	//预约录制中"启用"按钮事件
+	function tostart1(){
+		var m = $("#timersetting1").slider('getValue');
+		var id = $("#id").val();
+		var url = "trainingInfoController.do?beginApp&m=" + m + "&id=" + id;
+		$.ajax({
+			url : url,
+			async: false,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				var status = d.attributes.status;
+				//成功后事件
+				if (d.success && 'success' == status) {
+					//启用按钮不可用
+					$("#btn_timerSetting1").attr("disabled", "disabled");
+					//slider不可用
+					$("#timersetting1").slider('disable');
+					//取消按钮可用
+					$("#btn_timercancel1").removeAttr("disabled");
+					//选择频道信息面板
+					//$("#accord").accordion('select', '频道信息');
+					//收起预约录制面板
+					//$("#appRec").toggle();
+					//展示频道信息面板
+					//$("#channelInfo").toggle();
+					var msg = d.msg;
+					tip(msg);
+					var appointmentdt = d.attributes.appointmentdt;
+					var tipcontent = "<span>该直播会议将在 <font color='red'>" + appointmentdt + "</font>开始录制</span>";
+					$("#tipcontent1").html(tipcontent);
+				}
+			},
+			cache : false
+		});
+	}
+	
+	//预约录制中"取消"按钮事件
+	function tocancel1(){
+		var id = $("#id").val();
+		var url = "trainingInfoController.do?cancelApp&id=" + id;
+		$.ajax({
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				var status = d.attributes.status;
+				var msg = d.msg;
+				//成功后事件
+				if (d.success && 'success' == status) {
+					//取消按钮不可用
+					$("#btn_timercancel1").attr("disabled", "disabled");
+					//启用按钮可用
+					$("#btn_timerSetting1").removeAttr("disabled");
+					//slider可用
+					$("#timersetting1").slider('enable');
+					tip(msg);
+					$("#tipcontent1").html("");
+				}else if(d.success && 'failed' == status){
+					$("#accord").accordion('select', '频道信息');
+					tip(msg);
+				}
+			},
+			cache : false
+		});
+	}
+	
+	function addtime(){
+		$("#accord").accordion('add', '预约录制');
+		$("#accord").accordion('select', '预约录制');
+	}
+	
+	function deltime(){
+		$("#accord").accordion('remove', '预约录制');
+		$("#accord").accordion('select', '频道信息');
+	}
+	
 /*当本次请求为查看时，屏蔽datagrid的菜单按钮*/
 function initParams(){
 	$("#dg").datagrid('options').queryParams['meetingid'] = meetingId;
 	//当是查看请求时，则隐藏工具栏
-	if('detail' == $("#load").val()){
+	var load = $("#load").val();
+	if('detail' == load || 'editlive' == load){
 		$("#tb a").hide();
 	}
 }
@@ -275,6 +528,85 @@ function isrecord(){
 		}
 	}
 	return flag;
+}
+
+function tofixcombox1(id){
+	var codec1id_ed = $('#dg').datagrid('getEditor', {
+		index : editIndex,
+		field : 'codec1id'
+	});
+	excepts = excepts.concat("," + id);
+	var url = "confCodecInfoController.do?combox4UserCodec&meetingType=live&excepts="+excepts;
+	$(codec1id_ed.target).combobox('reload', url);
+	return false;
+}
+
+function tofixcombox2(id){
+	var codec2id_ed = $('#dg').datagrid('getEditor', {
+		index : editIndex,
+		field : 'codec2id'
+	});
+	excepts = excepts.concat("," + id);
+	var url = "confCodecInfoController.do?combox4UserCodec&meetingType=live&excepts="+excepts;
+	$(codec2id_ed.target).combobox('reload', url);
+	return false;
+}
+
+function wetheruesed(id, field){
+	var flag = false;
+	var url = "confCodecInfoController.do?wetheruesed&meetingType=live&id=" + id;
+	$.ajax({
+		async: false,
+		url : url,
+		success : function(data) {
+			var d = $.parseJSON(data);
+			//成功后事件
+			if (d.success) {
+				var msg = d.msg;
+				if(msg == 'false'){
+					var contentUrl = 'confCodecInfoController.do?whouesed&meetingType=live&id=' + id;
+					var api = frameElement.api, W = api.opener;
+					W.$.dialog({title:'冲突的会议信息',content: 'url:'+contentUrl,lock:true,parent:api,width:500,height:300, cancel:true});
+					var codec = $('#dg').datagrid('getEditor', {
+						index : editIndex,
+						field : field
+					});
+					$(codec.target).combobox('setValue', '');
+				}else{
+					excepts = excepts.concat("," + id);
+				};
+			}
+		},
+		cache : false
+	});
+	
+}
+
+function wetheruesedterminal(id){
+	var flag = false;
+	var url = "terminalInfoController.do?wetheruesedterminal&meetingType=live&id=" + id;
+	$.ajax({
+		url : url,
+		success : function(data) {
+			var d = $.parseJSON(data);
+			//成功后事件
+			if (d.success) {
+				var msg = d.msg;
+				if(msg == 'false'){
+					var contentUrl = 'terminalInfoController.do?whouesed&meetingType=live&id=' + id;
+					var api = frameElement.api, W = api.opener;
+					W.$.dialog({title:'冲突的会议信息',content: 'url:'+contentUrl,lock:true,parent:api,width:500,height:300, cancel:true});
+					var authortiyGroupCid = $('#dg').datagrid('getEditor', {
+						index : editIndex,
+						field : 'authortiyGroupCid'
+					});
+					$(authortiyGroupCid.target).combobox('setValue', '');
+				}else return;
+			}
+		},
+		cache : false
+	});
+	
 }
 
 /**检查相关------END------**/
@@ -436,7 +768,7 @@ function reject() {
 * 开始直播
 */
 function save(flag){
-	var url = "trainingInfoController.do?save&"+flag;
+	var url = "meetingInfoController.do?save";
 	var id = $("#id").val();
 	var load = $("#load").val();
 	var tempid = $("#tempid").val();
@@ -444,6 +776,7 @@ function save(flag){
 	var subject = $("#subject").val();
 	var compere = $("#compere").val();
 	var introduction = $("#introduction").val();
+	var billid = $("#billid").val();
 	var isrecord = 0;
 	var rows = $("#dg").datagrid("getRows");
 	for(var i = 0; i < rows.length; i++){
@@ -460,12 +793,19 @@ function save(flag){
 			subject: subject,
 			compere: compere,
 			introduction: introduction,
-			isrecord: isrecord
+			isrecord: isrecord,
+			billid : billid
 	}
 	$.ajax({
-		url: url,
-		data: jsonData,
-		success: function(data){
+		url : url,
+		data : jsonData,
+		beforeSend: function(){
+			//发送请求之前，开始进度条
+			$.messager.progress({msg: '请稍后...'});
+		},
+		success : function(data) {
+			//请求成功时结束进度条
+			$.messager.progress('close');
 			var d = $.parseJSON(data);
 			if (d.success) {
 				var msg = d.msg;
@@ -473,7 +813,11 @@ function save(flag){
 				$("#id").val(d.attributes.meetingid);
 			}
 		},
-		cache: false
+		cache : false,
+        complete:function(XHR, TS){
+        	//请求完成时结束进度条
+            $.messager.progress('close');
+		}
 	});
 }
 
@@ -481,21 +825,44 @@ function save(flag){
 * 根据直播会议ID设置开始录制
 */
 function startRecord(id){
-	var url = "trainingInfoController.do?startRecord";
+	var url = "meetingInfoController.do?startRecord";
 	var jsonData = {
 			id: id
 	};
 	$.ajax({
-		url: url,
-		data: jsonData,
-		success: function(data){
+		url : url,
+		data : jsonData,
+		beforeSend: function(){
+			//发送请求之前，开始进度条
+			$.messager.progress({msg: '请稍后...'});
+		},
+		success : function(data) {
+			//请求成功时结束进度条
+			$.messager.progress('close');
 			var d = $.parseJSON(data);
+			var api = frameElement.api;
 			if (d.success) {
 				var msg = d.msg;
 				tip(msg);
+				if(-1 != msg.search('失败')){
+					//如果开始录制失败，那么放开开始录制按钮
+					api.button({
+						id: 'recordBtn',
+	            		disabled: false
+	            	});
+				}else{
+					//如果开始录制成功，那么放开停止录制按钮
+					api.button({
+						id: 'stopRecordBtn',
+	            		disabled: false
+	            	});
+				}
 			}
 		},
-		cache: false
+		cache : false,
+        complete:function(XHR, TS){
+            $.messager.progress('close');
+         }
 	});
 }
 
@@ -503,17 +870,39 @@ function startRecord(id){
 * 根据直播会议ID设置停止录制
 */
 function stopRecord(id){
-	var url = "trainingInfoController.do?stopRecord&id="+id;
+	var url = "meetingInfoController.do?stopRecord&id="+id;
 	$.ajax({
-		url: url,
-		success: function(data){
+		url : url,
+		beforeSend: function(){
+			//发送请求之前，开始进度条
+			$.messager.progress({msg: '请稍后...'});
+		},
+		success : function(data) {
+			//请求成功时结束进度条
+			$.messager.progress('close');
 			var d = $.parseJSON(data);
+			var api = frameElement.api;
 			if (d.success) {
 				var msg = d.msg;
 				tip(msg);
+				if(-1 != msg.search('失败')){
+					//如果停止录制失败，那么放开停止录制按钮
+					api.button({
+						id: 'stopRecordBtn',
+	            		disabled: false
+	            	});
+				}else{
+					//如果停止录制成功，那么放开开始录制按钮
+					api.button({
+						id: 'recordBtn',
+	            		disabled: false
+	            	});
+					//iframe.addtime();
+					//iframe.initaccord($("#id", iframe.document).val());
+				}
 			}
 		},
-		cache: false
+		cache : false
 	});
 }
 
@@ -521,22 +910,105 @@ function stopRecord(id){
 * 根据直播会议ID设置停止直播
 */
 function stopLive(id){
-	$.messager.confirm('确认','确定要停止直播?',function(r){
-		if(r){
-			var url = "trainingInfoController.do?stopLive&id="+id;
+	var api = frameElement.api, W = api.opener;
+	$.messager.confirm('确认', '确定要停止直播?', function(r) {
+		if (r) {
+			var url = "meetingInfoController.do?stopLive&id=" + id;
 			$.ajax({
-				url: url,
-				success: function(data){
+				url : url,
+				beforeSend: function(){
+    				//发送请求之前，开始进度条
+    				$.messager.progress({msg: '请稍后...'});
+    			},
+				success : function(data) {
+					//请求成功时结束进度条
+    				$.messager.progress('close');
 					var d = $.parseJSON(data);
+					
 					if (d.success) {
 						var msg = d.msg;
 						tip(msg);
+						var result = d.attributes.result;
+						var status = d.attributes.status;
+						var isrecord = d.attributes.isrecord;
+						if("success" == result){	//操作成功时
+							if(2 == status){	//当对正在录制的直播进行停止操作时
+								//禁用"停止录制"按钮
+								api.button({
+									id: 'stopRecordBtn',
+        		            		disabled: true
+        		            	});
+							}else if((1 == status || 3 == status) && 1 == isrecord){	//当对正在直播且可录制的会议进行停止操作时
+								//禁用"开始录制"按钮
+								api.button({
+									id: 'recordBtn',
+        		            		disabled: true
+        		            	});
+							}
+							//结束成功之后刷新列表并关闭窗口————有问题，先注释掉
+							/* $("#meetingInfoList", W.document).datagrid('reload'); */
+							api.close();
+						}else if("failed" == result){
+							//操作失败时开启"停止直播"按钮
+							o.button({
+								id: 'stopLiveBtn',
+    		            		disabled: false
+    		            	});
+						}
 					}
 				},
-				cache: false
+				cache : false
 			});
+		}else{
+			//开启停止直播按钮
+        	api.button({
+        		id: 'stopLiveBtn',
+        		disabled: false
+        	});
 		}
 	});
 }
 /**窗口按钮操作相关------END------**/
+
+	function initaccord(id) {
+		//当该会议没有开始录制时
+		if(!hasbegin(id)){
+			$('#accord').accordion('add', {
+				title : '预约录制',
+				content : $("#appRec1").show(),
+				selected : true
+			});
+		}
+	}
+	
+	function hasbegin(id) {
+		//默认没开始录制
+		var flag = false;
+		var url = "meetingInfoController.do?hasBegin&id=" + id;
+		$.ajax({
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				if (d.success) {
+					var msg = d.msg;
+					if("false" != msg){
+						flag = true;
+					}
+				}
+			},
+			cache : false
+		});
+		
+		return flag;
+	}
+	
+	//判断有没有预约录制信息
+	function hasapp(){
+		var appointmentdt = $("#appointmentdt").val();
+		var appointmentstate = $("#appointmentstate").val();
+		if("" != appointmentdt && "" != appointmentstate && 2 == appointmentstate){
+			return true;
+		}
+		return false;
+	}
 </script>

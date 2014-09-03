@@ -27,13 +27,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
-import vod.entity.appointmenttraining.AppointmentTrainingEntity;
-import vod.entity.traininginfo.TrainingInfoEntity;
-import vod.samesun.util.CommandUtil;
+import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
+import vod.entity.meetinginfo.MeetingInfoEntity;
+import vod.page.traininginfo.AppointmentMeetingInfoPage;
 import vod.samesun.util.SystemType;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
 import vod.service.appointmentmeetinginfo.AppointmentMeetingInfoServiceI;
-import vod.service.traininginfo.TrainingInfoServiceI;
+import vod.service.meetinginfo.MeetingInfoServiceI;
 
 /**   
  * @Title: Controller
@@ -49,11 +49,10 @@ public class AppointmentTrainingController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AppointmentTrainingController.class);
 
 	@Autowired
-	private TrainingInfoServiceI trainingInfoService;
+	private MeetingInfoServiceI meetingInfoService;
 	@Autowired
 	private AppointmentMeetingInfoServiceI appointmentMeetingInfoService;
 	@Autowired
@@ -92,17 +91,41 @@ public class AppointmentTrainingController extends BaseController {
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
-	public void datagrid(AppointmentTrainingEntity appointmentMeetingInfo,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+	public void datagrid(AppointmentMeetingInfoEntity appointmentMeetingInfo,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
 		//按照预约时间倒序排列
 		dataGrid.setSort("appointmentStarttime");
 		dataGrid.setOrder(SortDirection.desc);
 		
-		CriteriaQuery cq = new CriteriaQuery(AppointmentTrainingEntity.class, dataGrid);
+		CriteriaQuery cq = new CriteriaQuery(AppointmentMeetingInfoEntity.class, dataGrid);
+		
+		//查询预约培训
+		cq.eq("rightid", SystemType.MEETING_RIGHT_2);
+		cq.add();
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, appointmentMeetingInfo, request.getParameterMap());
 		systemService.getDataGridReturn(cq, true);
-		//转换AppointmentMeetingInfoEntity到AppointmentMeetingInfoPage
 		
+		List<AppointmentMeetingInfoEntity> apps = new ArrayList<AppointmentMeetingInfoEntity>();
+		List<AppointmentMeetingInfoPage> temp = new ArrayList<AppointmentMeetingInfoPage>();
+		
+		apps = dataGrid.getResults();
+		for(AppointmentMeetingInfoEntity e : apps){
+			//预约状态为新建，但预约时间已过期，则设置预约状态为过期
+			if(SystemType.APP_MEETING_STATE_1.equals(e.getAppointmentState().toString()) && appointmentMeetingInfoService.checkPastTime(e)){
+				e.setAppointmentState(new Integer(SystemType.APP_MEETING_STATE_3));
+			}
+			AppointmentMeetingInfoPage page = new AppointmentMeetingInfoPage();
+			try {
+				MyBeanUtils.copyBeanNotNull2Bean(e, page);
+			} catch (Exception e1) {
+				logger.error("获取会议预约信息错误");
+				e1.printStackTrace();
+			}
+			//设置培训类型名称
+			page.setTypename(systemService.getType(page.getTypeid().toString(), SystemType.TRAINING_TYPE).getTypename());
+			temp.add(page);
+		}
+		dataGrid.setResults(temp);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -113,9 +136,9 @@ public class AppointmentTrainingController extends BaseController {
 	 */
 	@RequestMapping(params = "opa")
 	@ResponseBody
-	public AjaxJson opa(AppointmentTrainingEntity appointmentMeetingInfo, HttpServletRequest request, String state) {
+	public AjaxJson opa(AppointmentMeetingInfoEntity appointmentMeetingInfo, HttpServletRequest request, String state) {
 		AjaxJson j = new AjaxJson();
-		appointmentMeetingInfo = systemService.getEntity(AppointmentTrainingEntity.class, appointmentMeetingInfo.getId());
+		appointmentMeetingInfo = systemService.getEntity(AppointmentMeetingInfoEntity.class, appointmentMeetingInfo.getId());
 		//再删除预约会议信息
 		if(StringUtil.isNotEmpty(state)){
 			if(SystemType.APP_MEETING_STATE_2.equals(state)){
@@ -123,10 +146,11 @@ public class AppointmentTrainingController extends BaseController {
 			}else if(SystemType.APP_MEETING_STATE_3.equals(state)){
 				message = "培训预约取消成功";
 			}
-			appointmentMeetingInfo.setAppointmentState(new Integer(state));
+			Integer stateI = Integer.parseInt(state);
+			appointmentMeetingInfo.setAppointmentState(stateI);
 		}
 		appointmentMeetingInfoService.updateEntitie(appointmentMeetingInfo);
-		TrainingInfoEntity meeting = trainingInfoService.getTrainingInfoFromAppointment(appointmentMeetingInfo);
+		MeetingInfoEntity meeting = meetingInfoService.getMeetingInfoFromAppointment(appointmentMeetingInfo);
 		systemService.save(meeting);
 		
 		//关联频道信息
@@ -148,9 +172,9 @@ public class AppointmentTrainingController extends BaseController {
 	 */
 	@RequestMapping(params = "del")
 	@ResponseBody
-	public AjaxJson del(AppointmentTrainingEntity appointmentMeetingInfo, HttpServletRequest request) {
+	public AjaxJson del(AppointmentMeetingInfoEntity appointmentMeetingInfo, HttpServletRequest request) {
 		AjaxJson j = new AjaxJson();
-		appointmentMeetingInfo = systemService.getEntity(AppointmentTrainingEntity.class, appointmentMeetingInfo.getId());
+		appointmentMeetingInfo = systemService.getEntity(AppointmentMeetingInfoEntity.class, appointmentMeetingInfo.getId());
 		message = "培训预约删除成功";
 		//先删除频道信息
 		List<AppointmentChannelInfoEntity> channels = appointmentChannelInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", appointmentMeetingInfo.getId());
@@ -171,14 +195,14 @@ public class AppointmentTrainingController extends BaseController {
 	 */
 	@RequestMapping(params = "save")
 	@ResponseBody
-	public AjaxJson save(AppointmentTrainingEntity appointmentMeetingInfo, HttpServletRequest request, String tempid) {
+	public AjaxJson save(AppointmentMeetingInfoEntity appointmentMeetingInfo, HttpServletRequest request, String tempid) {
 		AjaxJson j = new AjaxJson();
 		//记录会议ID值
 		String meetingID = "";
 		
 		if (StringUtil.isNotEmpty(appointmentMeetingInfo.getId())) {
 			message = "培训预约更新成功";
-			AppointmentTrainingEntity t = systemService.get(AppointmentTrainingEntity.class, appointmentMeetingInfo.getId());
+			AppointmentMeetingInfoEntity t = systemService.get(AppointmentMeetingInfoEntity.class, appointmentMeetingInfo.getId());
 			try {
 				MyBeanUtils.copyBeanNotNull2Bean(appointmentMeetingInfo, t);
 				systemService.saveOrUpdate(t);
@@ -189,6 +213,8 @@ public class AppointmentTrainingController extends BaseController {
 			}
 		} else {
 			message = "培训预约添加成功";
+			appointmentMeetingInfo.setAppointmentState(new Integer(SystemType.APP_MEETING_STATE_1));
+			appointmentMeetingInfo.setRightid(SystemType.MEETING_RIGHT_2);
 			systemService.save(appointmentMeetingInfo);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
@@ -224,17 +250,10 @@ public class AppointmentTrainingController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(params = "addorupdate")
-	public ModelAndView addorupdate(AppointmentTrainingEntity appointmentMeetingInfo, HttpServletRequest req) {
+	public ModelAndView addorupdate(AppointmentMeetingInfoEntity appointmentMeetingInfo, HttpServletRequest req, String rightid) {
 		if (StringUtil.isNotEmpty(appointmentMeetingInfo.getId())) {
-			appointmentMeetingInfo = systemService.getEntity(AppointmentTrainingEntity.class, appointmentMeetingInfo.getId());
+			appointmentMeetingInfo = systemService.getEntity(AppointmentMeetingInfoEntity.class, appointmentMeetingInfo.getId());
 			req.setAttribute("appointmentMeetingInfoPage", appointmentMeetingInfo);
-			req.setAttribute("commond", CommandUtil.CMD_APPOINTMENT_MEETING_UPDATE);
-			req.setAttribute("state", systemService.getType(appointmentMeetingInfo.getAppointmentState().toString(), SystemType.APP_MEETING_STATE).getTypename());
-		}else{
-			String create = systemService.getType(SystemType.APP_MEETING_STATE_1, SystemType.APP_MEETING_STATE).getTypename();
-			req.setAttribute("state", create);
-			req.setAttribute("statecode", SystemType.APP_MEETING_STATE_1);
-			req.setAttribute("commond", CommandUtil.CMD_APPOINTMENT_MEETING_NEW);
 		}
 		//获取数据字典信息,用于渲染下拉框
 		//预约会议状态
@@ -246,6 +265,9 @@ public class AppointmentTrainingController extends BaseController {
 		String load = req.getParameter("load");
 		if(StringUtil.isNotEmpty(load)){
 			req.setAttribute("load", load);
+		}
+		if(StringUtil.isNotEmpty(rightid)){
+			req.setAttribute("rightid", rightid);
 		}
 		return new ModelAndView("vod/appointmenttraining/appointmentTraining");
 	}

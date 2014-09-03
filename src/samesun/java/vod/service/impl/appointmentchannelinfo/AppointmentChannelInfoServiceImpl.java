@@ -27,7 +27,6 @@ public class AppointmentChannelInfoServiceImpl extends CommonServiceImpl impleme
 		List<AppointmentChannelInfoEntity> result = new ArrayList<AppointmentChannelInfoEntity>();
 		for(AppointmentChannelInfoEntity a : list){
 			Date createDate = a.getCreateDate(), delDate = a.getDelDate();
-			
 			if(null != createDate && null != delDate && createDate.equals(delDate)){
 				result.add(a);
 			}

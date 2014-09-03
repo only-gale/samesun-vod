@@ -19,4 +19,18 @@ public interface AppointmentMeetingInfoServiceI extends CommonService{
 	public String isRecord(AppointmentMeetingInfoEntity app);
 	
 	public String isRecord(AppointmentTrainingEntity app);
+	
+	/**
+	 * 检查当前预约会议是否到时
+	 * @param app
+	 * @return
+	 */
+	public boolean checkTime(AppointmentMeetingInfoEntity app);
+	
+	/**
+	 * 检查当前预约会议是否过时
+	 * @param app
+	 * @return
+	 */
+	public boolean checkPastTime(AppointmentMeetingInfoEntity app);
 }

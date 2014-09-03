@@ -80,10 +80,22 @@ public class ConfRecordSrvInfoController extends BaseController {
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(ConfRecordSrvInfoEntity confRecordSrvInfo,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+		dataGrid.setSort("createDt");
 		CriteriaQuery cq = new CriteriaQuery(ConfRecordSrvInfoEntity.class, dataGrid);
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, confRecordSrvInfo, request.getParameterMap());
 		systemService.getDataGridReturn(cq, true);
+		List<ConfRecordSrvInfoEntity> rss = dataGrid.getResults();
+		for(ConfRecordSrvInfoEntity crs : rss){
+			ConfRecordRtspSrvEntity rrs = systemService.get(ConfRecordRtspSrvEntity.class, crs.getRr());
+			if(rrs != null){
+				ConfRtspSrvInfoEntity rtsp = systemService.get(ConfRtspSrvInfoEntity.class, rrs.getRtspsrvid());
+				if(rtsp != null){
+					crs.setRr(rtsp.getName());
+				}
+			}
+		}
+		dataGrid.setResults(rss);
 		TagUtil.datagrid(response, dataGrid);
 	}
 

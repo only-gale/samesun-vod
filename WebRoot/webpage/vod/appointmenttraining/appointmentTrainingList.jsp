@@ -2,24 +2,22 @@
 <%@include file="/context/mytags.jsp"%>
 <div class="easyui-layout" fit="true">
   <div region="center" style="padding:1px;">
-  <t:datagrid name="appointmentTrainingInfoList" title="会议预约" actionUrl="appointmentTrainingController.do?datagrid" idField="id" fitColumns="true" fit="true" queryMode="group" checkbox="true">
+  <t:datagrid name="appointmentTrainingInfoList" title="培训预约" actionUrl="appointmentTrainingController.do?datagrid" idField="id" fitColumns="true" fit="true" queryMode="group">
    <t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
+   <t:dgCol title="种类" field="rightid" hidden="false"></t:dgCol>
    <t:dgCol title="预约时间" field="appointmentStarttime" formatter="yyyy-MM-dd hh:mm:ss" query="true" queryMode="group"></t:dgCol>
-   <t:dgCol title="预约持续时长" field="appointmentDuration" align="center"></t:dgCol>
+   <t:dgCol title="预约持续时长(分钟)" field="appointmentDuration" align="center"></t:dgCol>
    <t:dgCol title="预约状态" field="appointmentState" align="center" replace="新建_0,启用_1,过期_2"></t:dgCol>
-   <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3"></t:dgCol>
-   <t:dgCol title="主题" field="subject" query="true"></t:dgCol>
-   <t:dgCol title="主讲人" field="compere" align="center"></t:dgCol>
-   <t:dgCol title="简介" field="introduction" width="250"></t:dgCol>
+   <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3" hidden="false"></t:dgCol>
+   <t:dgCol title="所属类型" field="typename" align="center"></t:dgCol>
+   <t:dgCol title="主题" field="subject" query="true" width="100"></t:dgCol>
+   <t:dgCol title="主讲人" field="compere" align="center" width="70"></t:dgCol>
+   <t:dgCol title="简介" field="introduction" width="200"></t:dgCol>
    <t:dgCol title="操作" field="opt" width="70"></t:dgCol>
-   <t:dgFunOpt title="启用" funname="tostart(id)" exp="appointmentState#eq#0" />
-   <t:dgFunOpt title="取消" funname="tocancel(id, appointmentState)" exp="appointmentState#eq#0" />
+   <t:dgFunOpt title="启用" funname="tostartT(id, rightid)" exp="appointmentState#ne#2" />
    <t:dgDelOpt title="删除" url="appointmentTrainingController.do?del&id={id}" />
-   <t:dgToolBar title="录入" icon="icon-add" url="appointmentTrainingController.do?addorupdate&appointment" funname="add"></t:dgToolBar>
-   <%-- <t:dgToolBar title="录入" icon="icon-add" onclick="addmeeting()"></t:dgToolBar> --%>
-   <t:dgToolBar title="编辑" icon="icon-edit" url="appointmentTrainingController.do?addorupdate" funname="update"></t:dgToolBar>
-   <%-- <t:dgToolBar title="编辑" icon="icon-edit" operationCode="appointment" onclick="editmeeting()"></t:dgToolBar> --%>
-   <t:dgToolBar title="查看" icon="icon-search" url="appointmentTrainingController.do?addorupdate" funname="detail"></t:dgToolBar>
+   <t:dgToolBar title="录入" icon="icon-add" url="appointmentMeetingInfoController.do?addorupdate&rightid=2" funname="add"></t:dgToolBar>
+   <t:dgToolBar title="编辑" icon="icon-edit" url="appointmentMeetingInfoController.do?addorupdate&rightid=2" funname="update"></t:dgToolBar>
   </t:datagrid>
   </div>
  </div>
@@ -29,192 +27,161 @@
 		$("input[name='appointmentStarttime_end']").attr("class","easyui-datebox");
 	});
 	
-	function tostart(id){
-		var url = "appointmentTrainingController.do?opa";
-		var data = {
-				id: id,
-				state: 1
-		}
-		$.post(url, data, function(data){
-			var d = $.parseJSON(data);
-			if (d.success) {
-				var msg = d.msg;
-				tip(msg);
-				reloadTable();
-				change2meeting(d.attributes.meetingid);
-			}
-		});
-	}
-	
-	function tocancel(id, appointmentState){
-		if(appointmentState != 0){
-			tip("只能取消新建的预约会议");
-			return false;
-		}
+	function tostartT(id, rightid) {
 		var url = "appointmentMeetingInfoController.do?opa";
-		var data = {
+		var jsonData = {
 				id: id,
-				state: 2
-		}
-		$.post(url, data, function(data){
-			var d = $.parseJSON(data);
-			if (d.success) {
-				var msg = d.msg;
-				tip(msg);
-				reloadTable();
+				state: 1,
+				rightid: rightid		//1会议, 2培训
+		};
+		
+		$.ajax({
+			url : url,
+			data : jsonData,
+			beforeSend: function(){
+				//发送请求之前，开始进度条
+				$.messager.progress({msg: '请稍后...'});
+			},
+			success : function(data) {
+				//请求成功时结束进度条
+				$.messager.progress('close');
+				var d = $.parseJSON(data);
+				var result = d.attributes.result;
+				if (d.success) {
+					var msg = d.msg;
+					if('success' == result){
+						tip(msg);
+						change2training(d.attributes.meetingid, d.attributes.meetingstate, d.attributes.isrecord);
+					}else if('conflict' == result){
+						var contentUrl = 'appointmentMeetingInfoController.do?whouesed&meetingType=live&id=' + id;
+						//var api = frameElement.api, W = api.opener;
+						$.dialog({title:'冲突的会议信息',content: 'url:'+contentUrl,lock:true,width:500,height:300, cancel:true});
+					}else if('failed' == result){
+						tip(msg);
+						return false;
+					}
+				}
+			},
+			cache : false,
+            complete:function(XHR, TS){
+                $.messager.progress('close');
+             }
+		});
+	}
+	
+	function change2training(meetingid, state, isrecord){
+		var title = "编辑";
+		
+		var url = 'meetingInfoController.do?addorupdateT';
+		url += ('&load=editlive&id=' + meetingid);
+		editmeetingwindow(title, url, state, isrecord, meetingid);
+	}
+	
+	function editmeetingwindow(title, addurl, state, isrecord, id) {
+		var btnstate = new Array(4);
+		//直播中
+		if(1 == state){
+			//可录制
+			if(1 == isrecord){
+				btnstate = new Array(true, false, true, false);
+			}else{
+				btnstate = new Array(true, true, true, false);
 			}
-		});
-	}
-	
-	function addmeeting(){
-		var buttons = [{
-			name: '新建',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	iframe.toadd();
-            },
-            focus: true
-		},{
-			name: '启用',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('启用');
-				return false;
-            }
-		},{
-			name: '取消',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('取消');
-				return false;
-            }
-		}];
-		$.dialog({
-			content: 'url:appointmentTrainingController.do?addorupdate',
-			lock : true,
-			width : 700,
-			height : 400,
-			title : '创建直播会议',
-			opacity : 0.3,
-			cache : false,
-			button : buttons,
-		    cancelVal : '关闭',
-		    cancel : true /*为true等价于function(){}*/
-		});
-	}
-	
-	function editmeeting(){
-		var url = 'appointmentTrainingController.do?addorupdate';
-		var rowsData = $('#appointmentTrainingInfoList').datagrid('getSelections');
-		if (!rowsData || rowsData.length==0) {
-			tip('请选择编辑项目');
-			return;
-		}else if (rowsData.length>1) {
-			tip('请选择一条记录再编辑');
-			return;
-		}else if(rowsData[0].appointmentState != '0'){
-			tip('请注意, 只可编辑新建状态下的记录');
-			return;
+		}else if(2 == state){	//直播并录制中
+			btnstate = new Array(true, true, false, false);
+		}else if(3 == state){	//停止录制
+			btnstate = new Array(true, false, true, false);
+		}else if(4 == state){	//已结束
+			btnstate = new Array(true, true, true, true);
+		}else if(5 == state){	//已延时
+			btnstate = new Array(false, true, true, true);
 		}
-		url += ('&id=' + rowsData[0].id);
+		
 		var buttons = [{
-			name: '新建',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-				alert('新建');
-				return false;
-            },
-            focus: true
-		},{
-			name: '启用',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('启用');
-				return false;
-            }
-		},{
-			name: '取消',
-            callback: function(){
-            	iframe = this.iframe.contentWindow;
-            	alert('取消');
-				return false;
-            }
-		}];
-		$.dialog({
-			content: 'url:' + url,
-			lock : true,
-			width : 700,
-			height : 400,
-			title : '编辑直播会议',
-			opacity : 0.3,
-			cache : false,
-			button : buttons,
-		    cancelVal : '关闭',
-		    cancel : true /*为true等价于function(){}*/
-		});
-	}
-	
-	function change2meeting(meetingid){
-		var url = 'trainingInfoController.do?addorupdate';
-		url += '&id=' + meetingid;
-		var buttons = [{
+			id: 'liveBtn',
 			name: '开始直播',
             callback: function(){
             	iframe = this.iframe.contentWindow;
-            	if(iframe.checkDg()){
-			    	iframe.save("live");
+		    	if(iframe.checkDg()){
+			    	iframe.save();
 			    	//控制按钮可用状态
-	            	this.button({
-	            		name: '开始直播',
-	            		disabled: true
-	            	},{
-	            		name: '停止直播',
-	            		disabled: false
-	            	});
+			    	this.button({
+			    			id: 'liveBtn',
+		            		disabled: true
+		            	},{
+		            		id: 'stopLiveBtn',
+		            		disabled: false
+		            	});
+			    	if(1 == isrecord){
+			    		this.button({
+			    			id: 'recordBtn',
+		            		disabled: false
+		            	});
+			    		iframe.initaccord(id);
+			    	}
 		    	}
 				return false;
-            }
+            },
+            disabled: btnstate[0]
 		},{
+			id: 'recordBtn',
 			name: '开始录制',
             callback: function(){
             	iframe = this.iframe.contentWindow;
+            	//禁用开始录制按钮
             	this.button({
-            		name: '开始录制',
+            		id: 'recordBtn',
             		disabled: true
-            	},{
-            		name: '停止录制',
-            		disabled: false
             	});
+        		
+        		iframe.startRecord(id);
 				return false;
             },
-            disabled:true
+            disabled: btnstate[1]
 		},{
+			id: 'stopRecordBtn',
 			name: '停止录制',
             callback: function(){
             	iframe = this.iframe.contentWindow;
+            	//禁用停止录制按钮
+            	this.button({
+            		id: 'stopRecordBtn',
+            		disabled: true
+            	});
+            	iframe.stopRecord(id);
 				return false;
             },
-            disabled:true
+            disabled: btnstate[2]
 		},{
+			id: 'stopLiveBtn',
 			name: '停止直播',
             callback: function(){
             	iframe = this.iframe.contentWindow;
-            	this.close();
+            	//禁用停止直播按钮
+            	this.button({
+            		id: 'stopLiveBtn',
+            		disabled: true
+            	});
+				iframe.stopLive(id);
 				return false;
             },
-            disabled:true
+            disabled: btnstate[3]
 		}];
-		var dia = $.dialog({
-			content: 'url:' + url,
+		
+		$.dialog({
+			content: 'url:'+addurl,
 			lock : true,
-			width : 700,
-			height : 400,
-			title : '培训',
+			width: 700,
+			height: 420,
+			title: title + '直播培训',
 			opacity : 0.3,
-			cache : false,
-			button : buttons,
-		    cancelVal : '关闭',
-		    cancel : true /*为true等价于function(){}*/
+			button: buttons,
+			close: function(){
+				$("#appointmentTrainingInfoList").datagrid('reload');
+				return true;
+			},
+			cancelVal : '关闭',
+		    cancel : true
 		});
 	}
 	
@@ -257,6 +224,4 @@
 		       		   		 
 		return true;	   
 	}
-	
-	
 </script>

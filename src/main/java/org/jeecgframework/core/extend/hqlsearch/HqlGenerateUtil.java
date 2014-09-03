@@ -175,7 +175,7 @@ public class HqlGenerateUtil {
 	}
 
 	/**
-	 * 判断这个类是不是所以属性都为空
+	 * 判断这个类是不是所有属性都为空
 	 * 
 	 * @param param
 	 * @return

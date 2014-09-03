@@ -32,27 +32,30 @@ public class VodSessionServiceImpl extends CommonServiceImpl implements VodSessi
 	public void getSessionByMeetingId(String meetingId) {
 		if(StringUtil.isNotEmpty(meetingId)){
 			MeetingInfoEntity meeting = meetingInfoService.get(MeetingInfoEntity.class, meetingId);
-			List<MeetingLiveSessionEntity> liveSessions = meetingLiveSessionService.findByProperty(MeetingLiveSessionEntity.class, "meetingid", meetingId);
-			Collections.sort(liveSessions, new LiveSessionComparator());
-			int total = liveSessions.size(), index = 1;
-			List<VodSessionEntity> vodSession = new ArrayList<VodSessionEntity>();
-			for(MeetingLiveSessionEntity s : liveSessions){
-				VodSessionEntity vs = new VodSessionEntity();
-				vs.setMeetingid(meetingId);
-				vs.setTypeid(meeting.getTypeid());
-				if(total == 1){
-					vs.setSubject(meeting.getSubject());
-				}else{
-					vs.setSubject(meeting.getSubject() + "_" + index++);
+			if(null != meeting){
+				List<MeetingLiveSessionEntity> liveSessions = meetingLiveSessionService.findByProperty(MeetingLiveSessionEntity.class, "meetingid", meetingId);
+				Collections.sort(liveSessions, new LiveSessionComparator());
+				int total = liveSessions.size(), index = 1;
+				List<VodSessionEntity> vodSession = new ArrayList<VodSessionEntity>();
+				for(MeetingLiveSessionEntity s : liveSessions){
+					VodSessionEntity vs = new VodSessionEntity();
+					vs.setLiveSession(s.getId());
+					vs.setMeetingid(meetingId);
+					vs.setTypeid(meeting.getTypeid());
+					if(total == 1){
+						vs.setSubject(meeting.getSubject());
+					}else{
+						vs.setSubject(meeting.getSubject() + "_" + index++);
+					}
+					vs.setCompere(meeting.getCompere());
+					vs.setIntroduction(meeting.getIntroduction());
+					vs.setBegindt(s.getBegindt());
+					vs.setEnddt(s.getEnddt());
+					
+					vodSession.add(vs);
 				}
-				vs.setCompere(meeting.getCompere());
-				vs.setIntroduction(meeting.getIntroduction());
-				vs.setBegindt(s.getBegindt());
-				vs.setEnddt(s.getEnddt());
-				
-				vodSession.add(vs);
+				this.batchSave(vodSession);
 			}
-			this.batchSave(vodSession);
 		}
 		
 	}

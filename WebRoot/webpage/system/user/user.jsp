@@ -8,7 +8,18 @@
 <script type="text/javascript">
 	$(function() {
 		$("#territoryid").combotree({
-			url : 'terminalInfoController.do?getChildren'
+			url : 'terminalInfoController.do?getChildren',
+			width : 200,
+			onSelect : function(record){
+					$("#territoryid").combo("setValues",record.id).combo("setText",record.text);
+					$("#territoryid").val(record.id);
+			},
+			onLoadSuccess : function(){
+				 var id = "${user.TSTerritory.id}";
+				 var name = "${user.TSTerritory.territoryName}";
+				 $("#territoryid").combotree("setValue",id).combotree("setText",name);
+				 $("#territoryid").val(id);
+			}
 		});
 	});
 </script>
@@ -45,9 +56,9 @@
 		<tr>
 			<td align="right"><label class="Validform_label"> 组织机构: </label></td>
 			<td class="value"><input id="territoryid" name="TSTerritory.id" class="inputxt" style="width:155px" 
-							   value="${user.TSTerritory.id}" /> <span class="Validform_checktip">请选择组织机构</span></td>
+							    /> <span class="Validform_checktip">请选择组织机构</span></td>
 		</tr>
-		<tr>
+		<tr style="display: none;">
 			<td align="right"><label class="Validform_label"> 部门: </label></td>
 			<td class="value"><select id="TSDepart.id" name="TSDepart.id" datatype="*">
 				<c:forEach items="${departList}" var="depart">

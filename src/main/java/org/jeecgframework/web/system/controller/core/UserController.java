@@ -11,19 +11,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jeecgframework.web.system.pojo.base.TSDepart;
-import org.jeecgframework.web.system.pojo.base.TSFunction;
-import org.jeecgframework.web.system.pojo.base.TSRole;
-import org.jeecgframework.web.system.pojo.base.TSRoleFunction;
-import org.jeecgframework.web.system.pojo.base.TSRoleUser;
-import org.jeecgframework.web.system.pojo.base.TSTerritory;
-import org.jeecgframework.web.system.pojo.base.TSUser;
-import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.web.system.service.UserService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Restrictions;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.common.UploadFile;
 import org.jeecgframework.core.common.model.json.AjaxJson;
@@ -32,6 +21,7 @@ import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.common.model.json.ValidForm;
 import org.jeecgframework.core.constant.Globals;
 import org.jeecgframework.core.util.ListtoMenu;
+import org.jeecgframework.core.util.MyBeanUtils;
 import org.jeecgframework.core.util.PasswordUtil;
 import org.jeecgframework.core.util.ResourceUtil;
 import org.jeecgframework.core.util.RoletoJson;
@@ -41,6 +31,17 @@ import org.jeecgframework.core.util.oConvertUtils;
 import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.tag.vo.datatable.DataTableReturn;
 import org.jeecgframework.tag.vo.datatable.DataTables;
+import org.jeecgframework.web.system.pojo.base.TSDepart;
+import org.jeecgframework.web.system.pojo.base.TSFunction;
+import org.jeecgframework.web.system.pojo.base.TSLog;
+import org.jeecgframework.web.system.pojo.base.TSRole;
+import org.jeecgframework.web.system.pojo.base.TSRoleFunction;
+import org.jeecgframework.web.system.pojo.base.TSRoleUser;
+import org.jeecgframework.web.system.pojo.base.TSTerritory;
+import org.jeecgframework.web.system.pojo.base.TSUser;
+import org.jeecgframework.web.system.pojo.base.TSUserPage;
+import org.jeecgframework.web.system.service.SystemService;
+import org.jeecgframework.web.system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -252,7 +253,11 @@ public class UserController {
 	}
 
 	/**
-	 * easyuiAJAX用户列表请求数据 
+	 * easyuiAJAX用户列表请求数据<br>
+	 * admin:超级管理员<br>
+	 * vodadmin:系统管理员<br>
+	 * meeting:会议管理员<br>
+	 * training:培训管理员<br>
 	 * @param request
 	 * @param response
 	 * @param dataGrid
@@ -267,31 +272,93 @@ public class UserController {
 		cq.in("status", userstate);
 		cq.add();
 		this.systemService.getDataGridReturn(cq, true);
+		
+		//获取当前用户
+		TSUser currentU = ResourceUtil.getSessionUserName();
+		//存储当前用户的角色
+		String croles = "";
+		if (user != null) {
+			List<TSRoleUser> rUsers = systemService.findByProperty(
+					TSRoleUser.class, "TSUser.id", currentU.getId());
+			for (TSRoleUser ru : rUsers) {
+				TSRole role = ru.getTSRole();
+				croles += role.getRoleCode() + ",";
+			}
+			if (croles.length() > 0) {
+				croles = croles.substring(0, croles.length() - 1);
+			}
+		}
+		
 		//改造用户的组织机构名称为：从非根机构的顶级机构依次往下直到当前机构的名称相连
 		@SuppressWarnings("unchecked")
+		//超级管理员admin所能看到的用户列表
 		List<TSUser> result = dataGrid.getResults();
-		for(TSUser u : result){
-			TSTerritory self = u.getTSTerritory();
-			String name = "";
-			List<TSTerritory> ts = new ArrayList<TSTerritory>();
-			ts.add(self);
-			TSTerritory parent = self.getTSTerritory();
-			String pid = parent.getId();
-			//当父组织机构不为根机构时，查找父机构
-			while(!"1".equals(pid)){
-				ts.add(parent);
-				parent = parent.getTSTerritory();
-				pid = parent.getId();
+		List<TSUserPage> results = new ArrayList<TSUserPage>();
+		//系统管理员vodadmin所能看到的用户列表
+		List<TSUserPage> vodadmins = new ArrayList<TSUserPage>();
+		//会议管理员meeting所能看到的用户列表
+		List<TSUserPage> meetings = new ArrayList<TSUserPage>();
+		//会议管理员training所能看到的用户列表
+		List<TSUserPage> trainings = new ArrayList<TSUserPage>();
+		try {
+			for(TSUser u : result){
+				TSUserPage up = new TSUserPage();
+				MyBeanUtils.copyBeanNotNull2Bean(u, up);
+				String roles = "";
+				List<TSRoleUser> rUsers = systemService.findByProperty(TSRoleUser.class, "TSUser.id", u.getId());
+				for (TSRoleUser ru : rUsers) {
+					TSRole role = ru.getTSRole();
+					roles += "," + role.getRoleCode();
+				}
+				TSTerritory self = u.getTSTerritory();
+				up.setTerritoryId(self.getId());
+				String name = "";
+				List<TSTerritory> ts = new ArrayList<TSTerritory>();
+				TSTerritory parent = self.getTSTerritory();
+				ts.add(self);
+				String pid = parent.getId();
+				//当父组织机构不为根机构时，查找父机构
+				while(!"1".equals(pid)){
+					parent = systemService.get(TSTerritory.class, pid);
+					ts.add(parent);
+					parent = parent.getTSTerritory();
+					pid = parent.getId();
+				}
+				//按照添加顺序逆序
+				Collections.reverse(ts);
+				for(TSTerritory t : ts){
+					name += "-" + t.getTerritoryName(); 
+				}
+				up.setTerritoryName(name.substring(1));
+				results.add(up);
+				if (roles.length() > 0) {		//对于非超级管理员用户：排除超级管理员角色的账户
+					if(!roles.substring(1).equals("admin")){
+						vodadmins.add(up);
+					}
+					if(roles.substring(1).equals("meeting")){
+						meetings.add(up);
+					}
+					if(roles.substring(1).equals("training")){
+						trainings.add(up);
+					}
+				}
 			}
-			//按照添加顺序逆序
-			Collections.reverse(ts);
-			for(TSTerritory t : ts){
-				name += t.getTerritoryName(); 
-			}
-			self.setTerritoryName(name);
-			
+		} catch (Exception e) {
+			logger.error("获取当前登录用户信息错误");
+			e.printStackTrace();
 		}
-		dataGrid.setResults(result);
+		if(croles.equals("admin")){
+			dataGrid.setResults(results);
+		}else if(croles.equals("vodadmin")){
+			dataGrid.setResults(vodadmins);
+			dataGrid.setTotal(vodadmins.size());
+		}else if(croles.equals("meeting")){
+			dataGrid.setResults(meetings);
+			dataGrid.setTotal(meetings.size());
+		}else if(croles.equals("training")){
+			dataGrid.setResults(trainings);
+			dataGrid.setTotal(trainings.size());
+		}
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -321,6 +388,9 @@ public class UserController {
 				message = "用户：" + user.getUserName() + "删除成功";
 				systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
 			} else {
+				//删除用户前先删除log
+				List<TSLog> logs = systemService.findByProperty(TSLog.class, "TSUser.id", user.getId());
+				systemService.deleteAllEntitie(logs);
 				userService.delete(user);
 				message = "用户：" + user.getUserName() + "删除成功";
 			}
@@ -452,6 +522,37 @@ public class UserController {
 	public void datagridRole(HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
 		CriteriaQuery cq = new CriteriaQuery(TSRole.class, dataGrid);
 		this.systemService.getDataGridReturn(cq, true);
+		List<TSRole> roles = new ArrayList<TSRole>();
+		List<TSRole> temp = new ArrayList<TSRole>();
+		roles = dataGrid.getResults();
+		TSUser user = ResourceUtil.getSessionUserName();
+		String userroles = "", target = "";
+		if (user != null) {
+			List<TSRoleUser> rUsers = systemService.findByProperty(
+					TSRoleUser.class, "TSUser.id", user.getId());
+			for (TSRoleUser ru : rUsers) {
+				TSRole role = ru.getTSRole();
+				userroles += "," + role.getRoleCode();
+			}
+		}
+		if(StringUtil.isNotEmpty(userroles) && userroles.contains("meeting")){	//会议管理员只能创建会议管理员角色用户
+			target = "meeting";
+		}else if(StringUtil.isNotEmpty(userroles) && userroles.contains("training")){	//培训管理员只能创建培训管理员角色用户
+			target = "training";
+		}else if(StringUtil.isNotEmpty(userroles) && userroles.contains("vodadmin")){	//系统管理员只能创建除过超级管理员admin之外的角色用户
+			target = "admin";
+		}
+		for(TSRole r : roles){
+			if(StringUtil.isNotEmpty(target) && !"admin".equals(target) && r.getRoleCode().equals(target)){
+				temp.add(r);
+			}else if(StringUtil.isNotEmpty(target) && "admin".equals(target) && !r.getRoleCode().equals(target)){
+				temp.add(r);
+			}
+		}
+		if(StringUtil.isNotEmpty(target)){
+			dataGrid.setTotal(temp.size());
+			dataGrid.setResults(temp);
+		}
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -754,6 +855,26 @@ public class UserController {
 		}else{
 			j.setMsg("请登录后再操作");
 		}
+		return j;
+	}
+	
+	@RequestMapping(params = "resetpw")
+	@ResponseBody
+	public AjaxJson resetpw(TSUser user, HttpServletRequest request,HttpServletResponse response) {
+		AjaxJson j = new AjaxJson();
+		if(StringUtil.isNotEmpty(user.getId())){
+			user = systemService.get(TSUser.class, user.getId());
+		}
+		if(user!=null){
+			String password = PasswordUtil.encrypt(user.getUserName(), "123456", PasswordUtil.getStaticSalt());
+			user.setPassword(password);
+			systemService.updateEntitie(user);
+			message = "重置密码成功";
+		}else{
+			message = "重置密码失败";
+			
+		}
+		j.setMsg(message);
 		return j;
 	}
 }

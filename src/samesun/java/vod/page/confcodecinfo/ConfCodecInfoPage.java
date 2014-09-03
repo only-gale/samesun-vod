@@ -15,6 +15,7 @@ public class ConfCodecInfoPage {
 	private java.lang.String name;
 	/**地理位置*/
 	private java.lang.String groupid;
+	private java.lang.String groupname;
 	/**路数占用情况*/
 	private java.lang.String resources;
 	/**描述*/
@@ -64,6 +65,12 @@ public class ConfCodecInfoPage {
 	}
 	public void setGroupid(java.lang.String groupid) {
 		this.groupid = groupid;
+	}
+	public java.lang.String getGroupname() {
+		return groupname;
+	}
+	public void setGroupname(java.lang.String groupname) {
+		this.groupname = groupname;
 	}
 	public java.lang.String getResources() {
 		return resources;

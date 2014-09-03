@@ -215,12 +215,16 @@ public class AuthorityUserGroupController extends BaseController {
 			AuthorityUserGroupPage page = new AuthorityUserGroupPage();
 			MyBeanUtils.copyBeanNotNull2Bean(authorityUserGroup, page);
 			List<AuthGroupUserEntity> users = systemService.findByProperty(AuthGroupUserEntity.class, "authid", page.getId());
-			String ids = "";
+			String ids = "", names = "";
 			for(AuthGroupUserEntity u : users){
 				ids += ("," + u.getUserid());
+				TSUser user = systemService.get(TSUser.class, u.getUserid());
+				if(user != null){
+					names += "、" + user.getRealName();
+				}
 			}
 			page.setUserIDs(ids.substring(1));
-			
+			page.setUserNames(names.substring(1));
 			req.setAttribute("authorityUserGroupPage", page);
 		}
 		

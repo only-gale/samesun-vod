@@ -28,6 +28,8 @@ public class VodSessionEntity implements java.io.Serializable {
 	private java.lang.String id;
 	/**会议ID*/
 	private java.lang.String meetingid;
+	/**live session id*/
+	private java.lang.String liveSession;
 	/**会议类型*/
 	private java.lang.Integer typeid;
 	/**会议主题*/
@@ -93,6 +95,16 @@ public class VodSessionEntity implements java.io.Serializable {
 	public void setMeetingid(java.lang.String meetingid){
 		this.meetingid = meetingid;
 	}
+	
+	@Column(name ="liveSession",nullable=true,length=36)
+	public java.lang.String getLiveSession() {
+		return liveSession;
+	}
+
+	public void setLiveSession(java.lang.String liveSession) {
+		this.liveSession = liveSession;
+	}
+
 	/**
 	 *方法: 取得java.lang.Integer
 	 *@return: java.lang.Integer  会议类型

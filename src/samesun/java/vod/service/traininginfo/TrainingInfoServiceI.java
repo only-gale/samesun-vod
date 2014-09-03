@@ -15,4 +15,6 @@ public interface TrainingInfoServiceI extends CommonService{
 	
 	public TrainingInfoEntity getTrainingInfoFromAppointment(
 			AppointmentTrainingEntity app);
+	
+	public void autoRecordTask();
 }

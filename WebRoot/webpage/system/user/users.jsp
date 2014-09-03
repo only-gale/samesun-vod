@@ -7,7 +7,7 @@
 <t:base type="jquery,easyui,tools"></t:base>
 </head>
 <body style="overflow-y: hidden" scroll="no">
-<t:datagrid name="roleList" title="按角色选择" actionUrl="userController.do?datagridRole" idField="id" checkbox="true" showRefresh="false">
+<t:datagrid name="roleList" title="按角色选择" actionUrl="userController.do?datagridRole" idField="id" showRefresh="false">
 	<t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
 	<t:dgCol title="角色名称" field="roleName" width="50"></t:dgCol>
 </t:datagrid>

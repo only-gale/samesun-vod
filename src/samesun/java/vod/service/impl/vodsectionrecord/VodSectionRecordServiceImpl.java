@@ -28,6 +28,7 @@ public class VodSectionRecordServiceImpl extends CommonServiceImpl implements Vo
 			AppointmentChannelInfoEntity channel = this.get(AppointmentChannelInfoEntity.class, lr.getChannelid());
 			
 			VodSectionRecordEntity vodRecord = new VodSectionRecordEntity();
+			vodRecord.setId(lr.getId());
 			vodRecord.setMeetingid(meetingId);
 			vodRecord.setChannelid(lr.getChannelid());
 			vodRecord.setSessionid(lr.getSessionid());

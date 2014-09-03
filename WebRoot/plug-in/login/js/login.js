@@ -155,6 +155,7 @@ function getCookie()
 		$("#on_off").val("0");
 	}
 }
+
 //点击消息关闭提示
 $('#alertMessage').click(function() {
 	hideTop();

@@ -24,7 +24,6 @@ import org.jeecgframework.web.system.pojo.base.TSRoleUser;
 import org.jeecgframework.web.system.pojo.base.TSUser;
 import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.web.system.service.UserService;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jeecgframework.core.common.model.json.AjaxJson;
@@ -35,6 +34,7 @@ import org.jeecgframework.core.util.ContextHolderUtils;
 import org.jeecgframework.core.util.IpUtil;
 import org.jeecgframework.core.util.NumberComparator;
 import org.jeecgframework.core.util.ResourceUtil;
+import org.jeecgframework.core.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -165,20 +165,30 @@ public class LoginController {
 		DataSourceContextHolder
 				.setDataSourceType(DataSourceType.dataSource_jeecg);
 		TSUser user = ResourceUtil.getSessionUserName();
-		String roles = "";
+		String roles = "", roleName = "";
 		if (user != null) {
 			List<TSRoleUser> rUsers = systemService.findByProperty(
 					TSRoleUser.class, "TSUser.id", user.getId());
 			for (TSRoleUser ru : rUsers) {
 				TSRole role = ru.getTSRole();
-				roles += role.getRoleName() + ",";
+				roles += role.getRoleCode() + ",";
+				roleName += role.getRoleName() + ",";
 			}
 			if (roles.length() > 0) {
 				roles = roles.substring(0, roles.length() - 1);
+				roleName = roleName.substring(0, roleName.length() - 1);
 			}
-			request.setAttribute("roleName", roles);
+			request.setAttribute("roles", roles);
+			request.setAttribute("roleName", roleName);
 			request.setAttribute("userName", user.getUserName());
-			request.getSession().setAttribute("CKFinder_UserRole", "admin");
+			request.getSession().setAttribute("CKFinder_UserRole", roles);
+			
+			if(StringUtil.isNotEmpty(roles) && roles.contains("training")){
+				request.setAttribute("title", "直播培训");
+			}else {
+				request.setAttribute("title", "直播会议");
+			}
+			
 			//获取一级菜单列表
 			request.setAttribute("primaryMenuList", getPrimaryMenu(rUsers));
 			// 默认风格
@@ -316,8 +326,13 @@ public class LoginController {
 	 * @return
 	 */
 	@RequestMapping(params = "home")
-	public ModelAndView home(HttpServletRequest request) {
-		return new ModelAndView("main/home");
+	public ModelAndView home(HttpServletRequest request, String role) {
+		//本系统默认每个用户都是单角色
+		if(StringUtil.isNotEmpty(role) && role.contains("training")){		//培训管理员
+			return new ModelAndView("vod/traininginfo/trainingInfoList");
+		}else {	//会议管理员
+			return new ModelAndView("vod/meetinginfo/meetingInfoList");
+		}
 	}
 	/**
 	 * 无权限页面提示跳转

@@ -61,3 +61,7 @@
 [INFO][2014-07-25 17:05:52,644][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:meetingauthgroup_terminal]------- 生成中。。。
 [INFO][2014-07-25 17:05:54,713][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：meetingauthgroup_terminal]------ 生成完成。。。
 [ERROR][2014-07-29 15:31:27,158][vod.samesun.util.VideoPlayConfig]java.io.FileNotFoundException: F:\Program%20Files%20(x86)\Genuitec\MyEclipse2014\workspace\jeecg-framework\WebRoot\WEB-INF\classes\VideoPlay.properties (系统找不到指定的路径。)
+[INFO][2014-08-18 16:13:01,620][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:t_s_type]------- 生成中。。。
+[INFO][2014-08-18 16:13:04,626][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：t_s_type]------ 生成完成。。。
+[INFO][2014-08-22 15:58:53,227][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg---Code----Generation----[单表模型:channel_info]------- 生成中。。。
+[INFO][2014-08-22 15:58:57,208][org.jeecgframework.codegenerate.generate.CodeGenerate]----jeecg----Code----Generation-----[单表模型：channel_info]------ 生成完成。。。

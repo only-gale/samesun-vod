@@ -16,7 +16,7 @@ import org.jeecgframework.tag.vo.datatable.SortDirection;
 public class DataGrid {
 
 	private int page = 1;// 当前页
-	private int rows = 10;// 每页显示记录数
+	private int rows = 15;// 每页显示记录数
 	private String sort = null;// 排序字段名
 	private SortDirection order = SortDirection.asc;// 按什么排序(asc,desc)
 	private String field;//字段

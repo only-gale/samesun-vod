@@ -3,7 +3,7 @@
 	// update-start--Author:gaofeng  Date:2014-01-09：由于不需展示左侧的树，因此降低刷新的延迟时间  
 	setTimeout(InitLeftMenu,100);
 	//update-start--Author:gaofeng  Date:2014-01-09：由于不需展示左侧的树，因此降低刷新的延迟时间 
-	tabClose();
+	//tabClose();
 	tabCloseEven();
 	// 释放内存
 	$.fn.panel.defaults = $.extend({}, $.fn.panel.defaults, {
@@ -129,6 +129,7 @@ function addTab(subtitle, url, icon) {
 	if (!$('#maintabs').tabs('exists', subtitle)) {
 		//判断是否进行iframe方式打开tab，默认为href方式
 		if(url.indexOf('isIframe') != -1){
+			alert(subtitle);
 			$('#maintabs').tabs('add', {
 				title : subtitle,
 				content : '<iframe src="' + url + '" frameborder="0" style="border:0;width:100%;height:99.4%;"></iframe>',
@@ -136,13 +137,46 @@ function addTab(subtitle, url, icon) {
 				icon : icon
 			});			
 		}else{
+			/*$('#maintabs').tabs('close',0);
 			$('#maintabs').tabs('add', {
 				title : subtitle,
 				href : url,
 				closable : true,
 				icon : icon
-			});			
-			
+			});*/
+			var tab = $('#maintabs').tabs('getSelected');  // get selected panel
+			if(!tab){
+				$('#maintabs').tabs('add', {
+					title : subtitle,
+					href : url,
+					closable : false,
+					icon : icon,
+					tools : [{
+						iconCls:'icon-mini-refresh',
+						handler:function(){
+							var tab = $('#maintabs').tabs('getSelected');
+							tab.panel('refresh');
+						}
+					}]
+				});
+			}else{
+				$('#maintabs').tabs('update', {
+					tab: tab,
+					options: {
+						title: subtitle,
+						href: url,  // the new content URL
+						icon : icon,
+						tools : [{
+							iconCls:'icon-mini-refresh',
+							handler:function(){
+								var tab = $('#maintabs').tabs('getSelected');
+								tab.panel('refresh');
+							}
+						}]
+					}
+				});
+			}
+			$.messager.progress('close');
 		}
 
 	} else {
@@ -151,7 +185,7 @@ function addTab(subtitle, url, icon) {
 	}
 
 	// $('#maintabs').tabs('select',subtitle);
-	tabClose();
+	// tabClose();
 
 }
 var title_now;

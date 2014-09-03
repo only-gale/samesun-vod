@@ -119,14 +119,18 @@ public class AppointmentChannelInfoController extends BaseController {
 		dataGrid.setField(fieldStr.substring(1));
 		
 		CriteriaQuery cq = new CriteriaQuery(AppointmentChannelInfoEntity.class, dataGrid);
+		
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, appointmentChannelInfo, request.getParameterMap());
 		this.appointmentChannelInfoService.getDataGridReturn(cq, true);
 		List<AppointmentChannelInfoEntity> list = dataGrid.getResults();
 		List<AppointmentChannelInfoPage> result = new ArrayList<AppointmentChannelInfoPage>();
 		for(AppointmentChannelInfoEntity e : list){
+			//预约id
 			String appid = e.getAppointmentid();
+			//会议id
 			String id = e.getMeetingid();
+			//至少有一个不为空才算有效频道,事实上,不会同时为空,所以不会有丢失数据的情况
 			if((StringUtil.isNotEmpty(appid) && appid.equals(appointmentid)) || (StringUtil.isNotEmpty(id) && id.equals(meetingid))){
 				AppointmentChannelInfoPage p = new AppointmentChannelInfoPage();
 				MyBeanUtils.copyBean2Bean(p, e);
@@ -149,9 +153,6 @@ public class AppointmentChannelInfoController extends BaseController {
 			}
 		}
 		dataGrid.setResults(result);
-		dataGrid.setTotal(result.size());
-//		response.getWriter().write(sb.toString().substring(1));
-		
 		TagUtil.datagrid(response, dataGrid);
 	}
 

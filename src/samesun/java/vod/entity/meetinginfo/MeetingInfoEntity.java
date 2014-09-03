@@ -40,8 +40,8 @@ public class MeetingInfoEntity implements java.io.Serializable {
 	private java.lang.Integer isrecord;
 	/**会议状态*/
 	private java.lang.Integer meetingstate;
-	/**会议有限状态机*/
-	private java.lang.String fsmstate;
+	/**当前录制会话id*/
+	private java.lang.String currentSession;
 	/**预约录制时间*/
 	private java.lang.String appointmentdt;
 	/**预约录制状态*/
@@ -52,7 +52,7 @@ public class MeetingInfoEntity implements java.io.Serializable {
 	private java.lang.String name;
 	/**所属类型*/
 	private java.lang.Integer typeid;
-	/**终端分组*/
+	/**种类：1会议; 2培训*/
 	private java.lang.String rightid;
 	/**会议主题*/
 	private java.lang.String subject;
@@ -211,19 +211,19 @@ public class MeetingInfoEntity implements java.io.Serializable {
 	}
 	/**
 	 *方法: 取得java.lang.String
-	 *@return: java.lang.String  会议有限状态机
+	 *@return: java.lang.String
 	 */
-	@Column(name ="FSMSTATE",nullable=true,length=1)
-	public java.lang.String getFsmstate(){
-		return this.fsmstate;
+	@Column(name ="currentSession",nullable=true)
+	public java.lang.String getCurrentSession(){
+		return this.currentSession;
 	}
 
 	/**
 	 *方法: 设置java.lang.String
-	 *@param: java.lang.String  会议有限状态机
+	 *@param: java.lang.String
 	 */
-	public void setFsmstate(java.lang.String fsmstate){
-		this.fsmstate = fsmstate;
+	public void setCurrentSession(java.lang.String currentSession){
+		this.currentSession = currentSession;
 	}
 	/**
 	 *方法: 取得java.lang.String
@@ -309,7 +309,7 @@ public class MeetingInfoEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  终端分组
 	 */
-	@Column(name ="RIGHTID",nullable=true,length=100)
+	@Column(name ="RIGHTID",nullable=true,length=45)
 	public java.lang.String getRightid(){
 		return this.rightid;
 	}

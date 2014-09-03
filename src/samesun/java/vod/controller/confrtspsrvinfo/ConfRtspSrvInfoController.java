@@ -1,5 +1,7 @@
 package vod.controller.confrtspsrvinfo;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,6 +22,7 @@ import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.core.util.MyBeanUtils;
 
 import vod.entity.confrtspsrvinfo.ConfRtspSrvInfoEntity;
+import vod.entity.recordrtspsrv.ConfRecordRtspSrvEntity;
 import vod.samesun.util.SystemType;
 import vod.service.confrtspsrvinfo.ConfRtspSrvInfoServiceI;
 
@@ -94,9 +97,16 @@ public class ConfRtspSrvInfoController extends BaseController {
 	public AjaxJson del(ConfRtspSrvInfoEntity confRtspSrvInfo, HttpServletRequest request) {
 		AjaxJson j = new AjaxJson();
 		confRtspSrvInfo = systemService.getEntity(ConfRtspSrvInfoEntity.class, confRtspSrvInfo.getId());
-		message = "点播服务器删除成功";
-		confRtspSrvInfoService.delete(confRtspSrvInfo);
-		systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
+		if(confRtspSrvInfo != null){
+			List<ConfRecordRtspSrvEntity> rrs = systemService.findByProperty(ConfRecordRtspSrvEntity.class, "rtspsrvid", confRtspSrvInfo.getId());
+			if(rrs != null && rrs.size() > 0){
+				message = "点播服务器删除失败，该点播服务器已被录播服务器使用";
+			}else if(rrs != null && rrs.size() == 0){
+				message = "点播服务器删除成功";
+				confRtspSrvInfoService.delete(confRtspSrvInfo);
+				systemService.addLog(message, Globals.Log_Type_DEL, Globals.Log_Leavel_INFO);
+			}
+		}
 		
 		j.setMsg(message);
 		return j;

@@ -1,25 +1,41 @@
 package vod.controller.vodsectionrecord;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.json.AjaxJson;
 import org.jeecgframework.core.common.model.json.DataGrid;
 import org.jeecgframework.core.constant.Globals;
+import org.jeecgframework.core.util.MyBeanUtils;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
+import org.jeecgframework.tag.vo.datatable.SortDirection;
 import org.jeecgframework.web.system.service.SystemService;
-import org.jeecgframework.core.util.MyBeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
+import vod.entity.authoritygroup.AuthorityGroupEntity;
+import vod.entity.authorityusergroup.AuthorityUserGroupEntity;
+import vod.entity.confrtspsrvinfo.ConfRtspSrvInfoEntity;
+import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.entity.vodsectionrecord.VodSectionRecordEntity;
+import vod.page.vodsectionrecord.VodSectionRecordPage;
+import vod.samesun.util.SystemType;
+import vod.service.authoritygroup.AuthorityGroupServiceI;
+import vod.service.authorityusergroup.AuthorityUserGroupServiceI;
 import vod.service.vodsectionrecord.VodSectionRecordServiceI;
 
 /**   
@@ -36,11 +52,14 @@ public class VodSectionRecordController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(VodSectionRecordController.class);
 
 	@Autowired
 	private VodSectionRecordServiceI vodSectionRecordService;
+	@Autowired
+	private AuthorityGroupServiceI authorityGroupService;
+	@Autowired
+	private AuthorityUserGroupServiceI authorityUserGroupService;
 	@Autowired
 	private SystemService systemService;
 	private String message;
@@ -60,8 +79,15 @@ public class VodSectionRecordController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(params = "vodSectionRecord")
-	public ModelAndView vodSectionRecord(HttpServletRequest request) {
-		return new ModelAndView("vod/vodsectionrecord/vodSectionRecordList");
+	public ModelAndView vodSectionRecord(HttpServletRequest request, String meetingid, String sessionid, String rightid) {
+		if(StringUtil.isNotEmpty(meetingid)){
+			request.setAttribute("meetingid", meetingid);
+		}
+		if(StringUtil.isNotEmpty(sessionid)){
+			request.setAttribute("sessionid", sessionid);
+		}
+		request.setAttribute("rightid", rightid);
+		return new ModelAndView("vod/vodsectionrecord/vodSectionRecordList" + rightid);
 	}
 
 	/**
@@ -75,11 +101,62 @@ public class VodSectionRecordController extends BaseController {
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
-	public void datagrid(VodSectionRecordEntity vodSectionRecord,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+	public void datagrid(VodSectionRecordEntity vodSectionRecord,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid, String rightid) {
+		dataGrid.setSort("recEndDt");
+		dataGrid.setOrder(SortDirection.desc);
+		
+		//设置dataGrid需要显示的字段
+		Field[] fields = VodSectionRecordPage.class.getDeclaredFields();
+		String fieldStr = "";
+		for(Field f : fields){
+			fieldStr += ("," + f.getName());
+		}
+		dataGrid.setField(fieldStr.substring(1));
+		
 		CriteriaQuery cq = new CriteriaQuery(VodSectionRecordEntity.class, dataGrid);
+		DetachedCriteria cqdc = cq.getDetachedCriteria();
+		cq.eq("recState", new Integer(SystemType.REC_STATE_5));
+		
+		//关联会议种类
+		DetachedCriteria cq_meeting = DetachedCriteria.forClass(MeetingInfoEntity.class);
+		cq_meeting.add(Restrictions.isNotNull("rightid"));
+		cq_meeting.add(Restrictions.eq("rightid", rightid));
+		cq_meeting.setProjection(Property.forName("id"));
+		cqdc.add(Property.forName("meetingid").in(cq_meeting));
+		
+		cq.setDetachedCriteria(cqdc);
+		
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, vodSectionRecord, request.getParameterMap());
 		this.vodSectionRecordService.getDataGridReturn(cq, true);
+		
+		List<VodSectionRecordEntity> vods = dataGrid.getResults();
+		List<VodSectionRecordPage> temp = new ArrayList<VodSectionRecordPage>();
+		for(VodSectionRecordEntity v : vods){
+			VodSectionRecordPage page = new VodSectionRecordPage();
+			try {
+				MyBeanUtils.copyBeanNotNull2Bean(v, page);
+			} catch (Exception e) {
+				logger.error("拷贝属性发生错误");
+				e.printStackTrace();
+			}
+			ConfRtspSrvInfoEntity rtsp = systemService.get(ConfRtspSrvInfoEntity.class, page.getRtspsrvid());
+			if(null != rtsp){
+				page.setRtspsrvname(rtsp.getName());
+			}
+			String authortiyGroupCid = v.getAuthortiyGroupCid(), authortiyUsergroupCid = v.getAuthortiyUsergroupCid();
+			if(StringUtil.isNotEmpty(authortiyGroupCid)){
+				page.setAuthortiyGroupName(((AuthorityGroupEntity)authorityGroupService.getEntity(AuthorityGroupEntity.class, authortiyGroupCid)).getName());
+			}
+			if(StringUtil.isNotEmpty(authortiyUsergroupCid)){
+				page.setAuthortiyUsergroupName(((AuthorityUserGroupEntity)authorityUserGroupService.getEntity(AuthorityUserGroupEntity.class, authortiyUsergroupCid)).getName());
+			}
+			Integer state = page.getRecState();
+			page.setRecStateName(systemService.getType(state.toString(), SystemType.REC_STATE).getTypename());
+			
+			temp.add(page);
+		}
+		dataGrid.setResults(temp);
 		TagUtil.datagrid(response, dataGrid);
 	}
 

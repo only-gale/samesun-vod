@@ -47,6 +47,8 @@ public class AppointmentMeetingInfoEntity implements java.io.Serializable {
 	private java.lang.String introduction;
 	/**是否录制*/
 	private java.lang.Integer isRecord;
+	/**种类：1会议; 2培训*/
+	private java.lang.String rightid;
 	/**创建人*/
 	private java.lang.String createBy;
 	/**创建人名字*/
@@ -243,6 +245,23 @@ public class AppointmentMeetingInfoEntity implements java.io.Serializable {
 
 	public void setIsRecord(java.lang.Integer isRecord) {
 		this.isRecord = isRecord;
+	}
+	
+	/**
+	 *方法: 取得java.lang.String
+	 *@return: java.lang.String
+	 */
+	@Column(name ="RIGHTID",nullable=true,length=45)
+	public java.lang.String getRightid(){
+		return this.rightid;
+	}
+
+	/**
+	 *方法: 设置java.lang.String
+	 *@param: java.lang.String
+	 */
+	public void setRightid(java.lang.String rightid){
+		this.rightid = rightid;
 	}
 
 	/**
