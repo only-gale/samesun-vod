@@ -60,7 +60,7 @@
 		<c:if test="${territory.TSTerritory.territoryLevel > 0}">
 					value="${territory.TSTerritory.territoryName}"</c:if>> <input id="territoryId" name="TSTerritory.id" style="display: none;"
 		value="${territory.TSTerritory.id}"></div>
-	<div class="form" id="funorder"><label class="Validform_label"> 区域码: </label> <input name="territoryCode" class="inputxt" value="${territory.territoryCode}" datatype="*6-16"></div>
+	<%-- <div class="form" id="funorder"><label class="Validform_label"> 区域码: </label> <input name="territoryCode" class="inputxt" value="${territory.territoryCode}" datatype="*6-16"></div> --%>
 	<div class="form" id="funorder"><label class="Validform_label"> 显示顺序: </label> <input name="territorySort" class="inputxt" value="${territory.territorySort}" datatype="n1-3"></div>
 	</fieldset>
 </t:formvalid>

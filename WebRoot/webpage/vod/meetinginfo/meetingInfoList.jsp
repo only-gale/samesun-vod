@@ -2,7 +2,7 @@
 <%@include file="/context/mytags.jsp"%>
 <div class="easyui-layout" fit="true">
   <div region="center" style="padding:1px;">
-  <t:datagrid name="meetingInfoList" title="会议信息" actionUrl="meetingInfoController.do?datagrid" idField="id" fitColumns="true" fit="true" queryMode="group" checkbox="true">
+  <t:datagrid name="meetingInfoList" title="会议信息" actionUrl="meetingInfoController.do?datagrid" idField="id" fitColumns="true" fit="true" queryMode="group">
    <t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
    <t:dgCol title="VRS_ID号" field="billid" hidden="false"></t:dgCol>
    <t:dgCol title="设备名" field="billname" hidden="false" ></t:dgCol>
@@ -10,13 +10,14 @@
    <t:dgCol title="已持续时长(分钟)" field="billduration" align="center" ></t:dgCol>
    <t:dgCol title="Live类型" field="isasflive" replace="直播_1,录播_2" align="center" hidden="false"></t:dgCol>
    <t:dgCol title="是否录制" field="isrecord" replace="否_0,是_1" align="center" ></t:dgCol>
-   <t:dgCol title="会议状态" field="meetingstate" replace="直播中_1,直播并录制中_2,停止录制_3,已结束_4,已延时_5" align="center" ></t:dgCol>
+   <t:dgCol title="会议状态" field="meetingstate" replace="直播中_1,直播并录制中_2,停止录制_3,已结束_4,待直播_5" align="center" ></t:dgCol>
    <t:dgCol title="会议有限状态机" field="fsmstate" hidden="false"></t:dgCol>
    <t:dgCol title="预约录制时间" field="appointmentdt" hidden="false" ></t:dgCol>
    <t:dgCol title="预约状态" field="appointmentstate" hidden="false" ></t:dgCol>
    <t:dgCol title="资源URL" field="asfurl" hidden="false" ></t:dgCol>
    <t:dgCol title="会议名称" field="name" align="center" hidden="false"></t:dgCol>
-   <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3" ></t:dgCol>
+   <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3" hidden="false" ></t:dgCol>
+   <t:dgCol title="所属类型" field="typename" align="center" ></t:dgCol>
    <t:dgCol title="终端分组" field="rightid" align="center" hidden="false" ></t:dgCol>
    <t:dgCol title="会议主题" field="subject" align="center" query="true" width="100" ></t:dgCol>
    <t:dgCol title="会议主持人" field="compere" align="center" ></t:dgCol>
@@ -39,15 +40,13 @@
 		return "<span title='"+value+"'>"+value+"</span>";
 	}
 	
-	var d;//窗口对象
-	
 	function addmeeting(){
 		var title = "创建";
 		var addurl = "meetingInfoController.do?addorupdate";
 		livewindow(title, addurl)
 	}
 	
-	function editmeeting(subject){
+	function editmeeting(){
 		var title = "编辑";
 		var addurl = "meetingInfoController.do?addorupdate";
 		var rowsData = $('#meetingInfoList').datagrid('getSelections');
@@ -188,7 +187,7 @@
             callback: function(){
             	iframe = this.iframe.contentWindow;
 		    	if(iframe.checkDg()){
-			    	iframe.save("live");
+			    	iframe.save();
 			    	//控制按钮可用状态
 			    	this.button({
 			    			id: 'liveBtn',
@@ -197,7 +196,6 @@
 		            		id: 'stopLiveBtn',
 		            		disabled: false
 		            	});
-			    	return false;
 			    	
 			    	if(1 == isrecord){
 			    		this.button({

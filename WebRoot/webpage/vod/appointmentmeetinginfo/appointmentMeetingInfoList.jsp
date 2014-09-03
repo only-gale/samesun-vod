@@ -2,23 +2,23 @@
 <%@include file="/context/mytags.jsp"%>
 <div class="easyui-layout" fit="true">
   <div region="center" style="padding:1px;">
-  <t:datagrid name="appointmentMeetingInfoList" title="会议预约" actionUrl="appointmentMeetingInfoController.do?datagrid" idField="id" fitColumns="true" fit="true" queryMode="group" checkbox="true">
+  <t:datagrid name="appointmentMeetingInfoList" title="会议预约" actionUrl="appointmentMeetingInfoController.do?datagrid" idField="id" fitColumns="true" fit="true" queryMode="group">
    <t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
+   <t:dgCol title="种类" field="rightid" hidden="false"></t:dgCol>
    <t:dgCol title="预约时间" field="appointmentStarttime" formatter="yyyy-MM-dd hh:mm:ss" query="true" queryMode="group"></t:dgCol>
    <t:dgCol title="预约持续时长(分钟)" field="appointmentDuration" align="center"></t:dgCol>
-   <t:dgCol title="预约状态" field="appointmentState" align="center" replace="新建_0,启用_1,过期_2" hidden="false"></t:dgCol>
-   <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3"></t:dgCol>
+   <t:dgCol title="预约状态" field="appointmentState" align="center" replace="新建_0,启用_1,过期_2"></t:dgCol>
+   <t:dgCol title="所属类型" field="typeid" align="center" replace="公共类_1,专题类_2,讨论类_3" hidden="false"></t:dgCol>
+   <t:dgCol title="所属类型" field="typename" align="center"></t:dgCol>
    <t:dgCol title="是否录制" field="isrecord" replace="否_0,是_1" align="center" ></t:dgCol>
    <t:dgCol title="会议主题" field="subject" query="true" width="100"></t:dgCol>
    <t:dgCol title="会议主持人" field="compere" align="center"></t:dgCol>
    <t:dgCol title="会议简介" field="introduction" width="200"></t:dgCol>
    <t:dgCol title="操作" field="opt" width="70"></t:dgCol>
-   <t:dgFunOpt title="启用" funname="tostart(id)" />
-   <%-- <t:dgFunOpt title="取消" funname="tocancel(id, appointmentState)" exp="appointmentState#eq#0" /> --%>
+   <t:dgFunOpt title="启用" funname="tostart(id, rightid)" exp="appointmentState#ne#2" />
    <t:dgDelOpt title="删除" url="appointmentMeetingInfoController.do?del&id={id}" />
-   <t:dgToolBar title="录入" icon="icon-add" url="appointmentMeetingInfoController.do?addorupdate&appointment" funname="add"></t:dgToolBar>
-   <t:dgToolBar title="编辑" icon="icon-edit" url="appointmentMeetingInfoController.do?addorupdate" funname="update"></t:dgToolBar>
-   <%-- <t:dgToolBar title="查看" icon="icon-search" url="appointmentMeetingInfoController.do?addorupdate" funname="detail"></t:dgToolBar> --%>
+   <t:dgToolBar title="录入" icon="icon-add" url="appointmentMeetingInfoController.do?addorupdate&rightid=1" funname="add"></t:dgToolBar>
+   <t:dgToolBar title="编辑" icon="icon-edit" url="appointmentMeetingInfoController.do?addorupdate&rightid=1" funname="update"></t:dgToolBar>
   </t:datagrid>
   </div>
  </div>
@@ -28,11 +28,12 @@
 		$("input[name='appointmentStarttime_end']").attr("class","easyui-datebox");
 	});
 	
-	function tostart(id) {
+	function tostart(id, rightid) {
 		var url = "appointmentMeetingInfoController.do?opa";
 		var jsonData = {
 				id: id,
-				state: 1
+				state: 1,
+				rightid: rightid		//1会议, 2培训
 		};
 		
 		$.ajax({
@@ -56,6 +57,9 @@
 						var contentUrl = 'appointmentMeetingInfoController.do?whouesed&meetingType=live&id=' + id;
 						//var api = frameElement.api, W = api.opener;
 						$.dialog({title:'冲突的会议信息',content: 'url:'+contentUrl,lock:true,width:500,height:300, cancel:true});
+					}else if('failed' == result){
+						tip(msg);
+						return false;
 					}
 				}
 			},
@@ -63,26 +67,6 @@
             complete:function(XHR, TS){
                 $.messager.progress('close');
              }
-		});
-	}
-	
-	function tocancel(id, appointmentState){
-		if(appointmentState != 0){
-			tip("只能取消新建的预约会议");
-			return false;
-		}
-		var url = "appointmentMeetingInfoController.do?opa";
-		var data = {
-				id: id,
-				state: 2
-		}
-		$.post(url, data, function(data){
-			var d = $.parseJSON(data);
-			if (d.success) {
-				var msg = d.msg;
-				tip(msg);
-				reloadTable();
-			}
 		});
 	}
 	
@@ -135,7 +119,6 @@
 			    			id: 'recordBtn',
 		            		disabled: false
 		            	});
-			    		alert("iframe.initaccord(id);  "+id);
 			    		iframe.initaccord(id);
 			    	}
 		    	}
@@ -191,7 +174,7 @@
 			content: 'url:'+addurl,
 			lock : true,
 			width: 700,
-			height: 400,
+			height: 420,
 			title: title + '直播会议',
 			opacity : 0.3,
 			button: buttons,

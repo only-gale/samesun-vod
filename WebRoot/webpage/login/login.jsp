@@ -75,10 +75,10 @@ label.iPhoneCheckLabelOn span {
                 <form name="formLogin" id="formLogin" action="loginController.do?login" check="loginController.do?checkuser" method="post">
                     <input name="userKey" type="hidden" id="userKey" value="D1B5CC2FE46C4CC983C073BCA897935608D926CD32992B5900" />
                     <div class="tip">
-                        <input class="userName" name="userName" type="text" id="userName" title="用户名" iscookie="true" value="admin" nullmsg="请输入用户名!" />
+                        <input class="userName" name="userName" type="text" id="userName" title="用户名" nullmsg="请输入用户名!" />
                     </div>
                     <div class="tip">
-                        <input class="password" name="password" type="password" id="password" title="密码" value="123456" nullmsg="请输入密码!" />
+                        <input class="password" name="password" type="password" id="password" title="密码" nullmsg="请输入密码!" />
                     </div>
                     <%--update-begin--Author:zhangguoming  Date:20140226 for：添加验证码--%>
                     <%--
@@ -92,7 +92,7 @@ label.iPhoneCheckLabelOn span {
                     <%--update-end--Author:zhangguoming  Date:20140226 for：添加验证码--%>
                     <div class="loginButton">
                         <div style="float: left; margin-left: -9px;">
-                            <input type="checkbox" id="on_off" name="remember" checked="ture" class="on_off_checkbox" value="0" />
+                            <input type="checkbox" id="on_off" name="remember" checked="true" iscookie="true" class="on_off_checkbox" value="0" />
                             <span class="f_help">是否记住用户名 ?</span>
                         </div>
 
@@ -103,7 +103,7 @@ label.iPhoneCheckLabelOn span {
                                     <li><a class="uibutton normal" href="#" id="forgetpass">重置</a></li>
                                 </ul>
                             </div>
-                            <div style="float: left; margin-left: 30px;"><a href="init.jsp"><span class="f_help">是否初始化数据</span></a></div>
+                            <!-- <div style="float: left; margin-left: 30px;"><a href="#" onclick="delCookie();"><span class="f_help">是否从本地删除</span></a></div> -->
                         </div>
                         <div class="clear"></div>
                     </div>
@@ -115,7 +115,7 @@ label.iPhoneCheckLabelOn span {
     <!--Login div-->
     <div class="clear"></div>
     <div id="versionBar">
-        <div class="copyright">&copy; 版权所有 <span class="tip"><a href="#">上海斯尚信息科技有限公司</a> (推荐使用IE8+,谷歌浏览器可以获得更快,更安全的页面响应速度)技术支持:<a href="#">上海斯尚信息科技有限公司</a></span></div>
+        <div class="copyright">&copy; 版权所有 <span class="tip"><a href="#">上海斯尚信息科技有限公司</a> (推荐使用IE8+,谷歌浏览器可以获得更快,更安全的页面响应速度)</span></div>
     </div>
     <!-- Link JScript-->
     <script type="text/javascript" src="plug-in/jquery/jquery-1.8.3.min.js"></script>

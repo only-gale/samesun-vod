@@ -26,4 +26,11 @@ public interface AppointmentMeetingInfoServiceI extends CommonService{
 	 * @return
 	 */
 	public boolean checkTime(AppointmentMeetingInfoEntity app);
+	
+	/**
+	 * 检查当前预约会议是否过时
+	 * @param app
+	 * @return
+	 */
+	public boolean checkPastTime(AppointmentMeetingInfoEntity app);
 }

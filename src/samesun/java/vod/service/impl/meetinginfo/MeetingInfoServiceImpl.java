@@ -39,7 +39,7 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 		MeetingInfoEntity meeting = new MeetingInfoEntity();
 		//复制会议信息
 		meeting.setBillid(app.getId());		//预约会议ID
-		meeting.setBillstarttime(DataUtils.str2Date(DataUtils.datetimeFormat.format(DataUtils.getDate()), DataUtils.datetimeFormat));
+//		meeting.setBillstarttime(DataUtils.str2Date(DataUtils.datetimeFormat.format(DataUtils.getDate()), DataUtils.datetimeFormat));
 		meeting.setIsasflive(new Integer(SystemType.LIVE_TYPE_1));
 		meeting.setIsrecord(app.getIsRecord());
 		meeting.setCompere(app.getCompere());
@@ -47,6 +47,7 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 		meeting.setSubject(app.getSubject());
 		meeting.setTypeid(app.getTypeid());
 		meeting.setMeetingstate(new Integer(SystemType.MEETING_STATE_5));
+		meeting.setRightid(app.getRightid());
 		return meeting;
 	}
 
@@ -54,7 +55,7 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 	public boolean isFinish(String id) {
 		if(StringUtil.isNotEmpty(id)){
 			MeetingInfoEntity meeting = get(MeetingInfoEntity.class, id);
-			if(meeting.getMeetingstate().equals(SystemType.MEETING_STATE_3)){
+			if(meeting != null && meeting.getMeetingstate().toString().equals(SystemType.MEETING_STATE_4)){
 				return true;
 			}
 		}
@@ -68,15 +69,15 @@ public class MeetingInfoServiceImpl extends CommonServiceImpl implements Meeting
 			Integer meetingState = m.getMeetingstate();
 			Integer appState = m.getAppointmentstate();
 			String appDate = m.getAppointmentdt();
-			if(meetingState != Integer.valueOf(SystemType.MEETING_STATE_2) &&
+			if(!meetingState.toString().equals(SystemType.MEETING_STATE_2) &&
 					StringUtil.isNotEmpty(appDate) &&
 					StringUtil.isNotEmpty(appState.toString()) &&
-					appState == Integer.valueOf(SystemType.APP_RECORD_1)){
+					appState.toString().equals(SystemType.APP_RECORD_1)){
 				//当预约录制时间不大于当前时间时开始录制
 				if(!DataUtils.getDate().before(DataUtils.str2Date(appDate, DataUtils.datetimeFormat))){
 					try {
 						liveSectionRecordService.StartChannelSectionRecord(m, "MeetingInfoEntity");
-						m.setAppointmentstate(Integer.valueOf(SystemType.APP_RECORD_3));
+						m.setAppointmentstate(new Integer(SystemType.APP_RECORD_3));
 						systemService.updateEntitie(m);
 					} catch (Exception e) {
 						e.printStackTrace();

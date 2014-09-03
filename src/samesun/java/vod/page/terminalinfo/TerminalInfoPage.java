@@ -1,5 +1,7 @@
 package vod.page.terminalinfo;
 
+import org.jeecgframework.poi.excel.annotation.Excel;
+
 /**   
  * @Title: Entity
  * @Description: 终端信息
@@ -13,19 +15,27 @@ public class TerminalInfoPage {
 	/**主键*/
 	private java.lang.String id;
 	/**终端名*/
+	@Excel(exportFieldWidth=30, exportName="终端名")
 	private java.lang.String name;
 	/**终端描述*/
+	@Excel(exportFieldWidth=50, exportName="终端描述")
 	private java.lang.String descript;
 	/**mac地址*/
+	@Excel(exportFieldWidth=20, exportName="mac地址")
 	private java.lang.String macaddress;
 	/**IP地址*/
+	@Excel(exportFieldWidth=20, exportName="IP地址")
 	private java.lang.String ipaddress;
 	/**地理位置*/
 	private java.lang.String groupid;
 	/**地理位置名称*/
+	@Excel(exportFieldWidth=20, exportName="组织机构")
 	private java.lang.String groupname;
 	/**当前状态*/
 	private java.lang.Integer status;
+	/**当前状态*/
+	@Excel(exportFieldWidth=20, exportName="当前状态")
+	private java.lang.String statusname;
 	/**正在观看节目id*/
 	private java.lang.String nowvideo;
 	/**会议主题*/
@@ -93,6 +103,12 @@ public class TerminalInfoPage {
 	}
 	public void setStatus(java.lang.Integer status) {
 		this.status = status;
+	}
+	public java.lang.String getStatusname() {
+		return statusname;
+	}
+	public void setStatusname(java.lang.String statusname) {
+		this.statusname = statusname;
 	}
 	public java.lang.String getNowvideo() {
 		return nowvideo;

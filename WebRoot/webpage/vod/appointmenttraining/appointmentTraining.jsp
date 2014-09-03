@@ -10,9 +10,6 @@
 <body style="overflow-y: hidden" scroll="no">
 
 <!-- 隐藏域 -->
-<input id="commond" name="commond" type="hidden"
-			value="${commond }">
-
 	<t:formvalid formid="formobj" dialog="true" usePlugin="password"
 		layout="table" action="appointmentTrainingInfoController.do?save">
 		<%--会议ID --%>
@@ -54,12 +51,7 @@
 					<input type="hidden" id="appointmentState" name="appointmentState" value="${appointmentMeetingInfoPage.appointmentState }"/>
 					</c:otherwise>
 					</c:choose>
-					<%-- <select id="appointmentState" name="appointmentState" class="easyui-combobox">
-						<c:forEach items="${states}" var="state">
-							<option value="${state.typecode }"
-								<c:if test="${appointmentMeetingInfoPage.appointmentState eq state.typecode}"> selected='selected'</c:if>>${state.typename }</option>
-						</c:forEach>
-				</select>  --%><span class="Validform_checktip"></span>
+					<span class="Validform_checktip"></span>
 				</td>
 				<td align="right"><label class="Validform_label"> 所属类型:
 				</label></td>
@@ -93,7 +85,7 @@
 				<td align="right"><label class="Validform_label"> 培训简介:
 				</label></td>
 				<td class="value" colspan="3">
-				<textarea cols="96" style="margin:5px auto; resize:none" id="introduction" name="introduction" value="${appointmentMeetingInfoPage.introduction}"></textarea>
+				<textarea cols="96" style="margin:5px auto; resize:none" id="introduction" name="introduction" value="${appointmentMeetingInfoPage.introduction}">${appointmentMeetingInfoPage.introduction}</textarea>
 				<span class="Validform_checktip"></span></td>
 			</tr>
 		</table>
@@ -130,7 +122,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
-								url:'confCodecInfoController.do?combox&meetingType=appointment',
+								url:'confCodecInfoController.do?combox4UserCodec&meetingType=appointment',
 								required:true,
 								panelHeight:'auto',
 								onBeforeLoad:function(param){
@@ -141,6 +133,7 @@
 									}
 								},
 								onSelect:function(record){
+									wetheruesed(record.id, 'codec1id');
 									tofixcombox2(record.id);
 								}
 							}
@@ -165,7 +158,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
-								url:'confCodecInfoController.do?combox&meetingType=appointment',
+								url:'confCodecInfoController.do?combox4UserCodec&meetingType=appointment',
 								panelHeight:'auto',
 								onBeforeLoad:function(param){
 									if(check()){
@@ -175,6 +168,7 @@
 									}
 								},
 								onSelect:function(record){
+									wetheruesed(record.id, 'codec2id');
 									tofixcombox2(record.id);
 								}
 							}
@@ -199,6 +193,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
+								required:true,
 								url:'authorityGroupController.do?combox'
 							}
 						},
@@ -211,6 +206,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
+								required:true,
 								url:'authorityUserGroupController.do?combox'
 							}
 						},
@@ -443,5 +439,37 @@
 		var url = "confCodecInfoController.do?combox&meetingType=live&excepts="+excepts;
 		$(codec2id_ed.target).combobox('reload', url);
 		return false;
+	}
+	
+	function wetheruesed(id, field){
+		var flag = false;
+		var appointmentStarttime = $("#appointmentStarttime").val();
+		var appointmentDuration = $("#appointmentDuration").val();
+		var url = "confCodecInfoController.do?wetheruesed&meetingType=appointment&id=" + id + "&appointmentStarttime=" + appointmentStarttime + "&appointmentDuration=" + appointmentDuration;
+		$.ajax({
+			async: false,
+			url : url,
+			success : function(data) {
+				var d = $.parseJSON(data);
+				//成功后事件
+				if (d.success) {
+					var msg = d.msg;
+					if(msg == 'false'){
+						var contentUrl = 'confCodecInfoController.do?whouesed&meetingType=appointment&id=' + id + "&appointmentStarttime=" + appointmentStarttime + "&appointmentDuration=" + appointmentDuration;
+						var api = frameElement.api, W = api.opener;
+						W.$.dialog({title:'冲突的培训信息',content: 'url:'+contentUrl,lock:true,parent:api,width:500,height:300, cancel:true});
+						var codec = $('#dg').datagrid('getEditor', {
+							index : editIndex,
+							field : field
+						});
+						$(codec.target).combobox('setValue', '');
+					}else{
+						excepts = excepts.concat("," + id);
+					};
+				}
+			},
+			cache : false
+		});
+		
 	}
 </script>

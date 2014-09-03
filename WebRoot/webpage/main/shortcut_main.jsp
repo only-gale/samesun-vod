@@ -3,9 +3,9 @@
 <!DOCTYPE html >
 <html>
 <head>
-<title>JEECG 微云快速开发平台</title>
+<title>高清视频录播管理系统</title>
 <t:base type="jquery,easyui,tools,DatePicker,autocomplete"></t:base>
-<link rel="shortcut icon" href="images/favicon.ico">
+<!-- <link rel="shortcut icon" href="images/favicon.ico"> -->
 <style type="text/css">
 a {
 	color: Black;
@@ -19,7 +19,7 @@ a:hover {
 </style>
 <SCRIPT type="text/javascript">
 
-	$(function() {
+	/* $(function() {
 		$('#layout_jeecg_onlineDatagrid').datagrid({
 			url : 'systemController.do?datagridOnline&field=ip,logindatetime,user.userName,',
 			title : '',
@@ -114,8 +114,11 @@ a:hover {
 		onlineInterval = window.setInterval(function() {
 			$('#layout_jeecg_onlineDatagrid').datagrid('load', {});
 		}, 1000 * 20);
+	}  */
+	function reloadTab(){
+		var tab = $('#maintabs').tabs('getSelected');
+		tab.panel('refresh');
 	}
-	
 </SCRIPT>
 </head>
 <body class="easyui-layout" style="overflow-y: hidden" scroll="no">
@@ -130,10 +133,10 @@ a:hover {
 		<td align="right" nowrap>
 		<table border="0" cellpadding="0" cellspacing="0">
 			<tr style="height: 25px;" align="right">
-				<td style="" colspan="2">
+				<td style="">
 				<div style="background: url(plug-in/login/images/top_bg.jpg) no-repeat right center; float: right;">
 				<div style="float: left; line-height: 25px; margin-left: 70px;"><span style="color: #386780">当前用户:</span> <span style="color: #FFFFFF">${userName }</span>&nbsp;&nbsp;&nbsp;&nbsp; <span
-					style="color: #386780">职务:</span> <span style="color: #FFFFFF">${roleName }</span></div>
+					style="color: #386780">角色:</span> <span style="color: #FFFFFF">${roleName }</span></div>
 				<div style="float: left; margin-left: 18px;">
 				<div style="right: 0px; bottom: 0px;"><a href="javascript:void(0);" class="easyui-menubutton" menu="#layout_north_kzmbMenu" iconCls="icon-comturn" style="color: #FFFFFF">控制面板</a>&nbsp;&nbsp;<a
 					href="javascript:void(0);" class="easyui-menubutton" menu="#layout_north_zxMenu" iconCls="icon-exit" style="color: #FFFFFF">注销</a></div>
@@ -142,7 +145,7 @@ a:hover {
 					<div class="menu-sep"></div>
 					<div onclick="add('修改密码','userController.do?changepassword')">修改密码</div>
 					<div class="menu-sep"></div>	
-					<div onclick="add('修改首页风格','userController.do?changestyle')">首页风格</div>
+					<!-- <div onclick="add('修改首页风格','userController.do?changestyle')">首页风格</div> -->
 				</div>
 				<div id="layout_north_zxMenu" style="width: 100px; display: none;">
 					<div class="menu-sep"></div>
@@ -152,8 +155,8 @@ a:hover {
 				</div>
 				</td>
 			</tr>
-			<tr style="height: 80px;">
-				<td colspan="2">
+			<tr style="height: 80px;" align="left">
+				<td align="left">
 				<ul class="shortcut">
 					<!-- 动态生成并赋值过来 -->
 					${primaryMenuList }
@@ -170,14 +173,14 @@ a:hover {
 <!-- 中间-->
 <div id="mainPanle" region="center" style="overflow: hidden;">
 <div id="maintabs" class="easyui-tabs" fit="true" border="false">
-<div class="easyui-tab" title="首页" href="loginController.do?home" style="padding: 2px; overflow: hidden;"></div>
+<div class="easyui-tab" data-options="tools: '#p-tools', icon: 'pictures', plain: true" title="${title }" href="loginController.do?home&role=${roles }" style="padding: 2px; overflow: hidden;"></div>
 <c:if test="${map=='1'}">
 	<div class="easyui-tab" title="地图" style="padding: 1px; overflow: hidden;"><iframe name="myMap" id="myMap" scrolling="no" frameborder="0" src="mapController.do?map"
 		style="width: 100%; height: 99.5%;"></iframe></div>
 </c:if></div>
 </div>
 <!-- 右侧 -->
-<div collapsed="true" region="east" iconCls="icon-reload" title="辅助工具" split="true" style="width: 190px;"
+<!-- <div collapsed="true" region="east" iconCls="icon-reload" title="辅助工具" split="true" style="width: 190px;"
 	data-options="onCollapse:function(){easyPanelCollapase()},onExpand:function(){easyPanelExpand()}">
 <div id="tabs" class="easyui-tabs" border="false" style="height: 240px">
 <div title="日历" style="padding: 0px; overflow: hidden; color: red;">
@@ -187,21 +190,25 @@ a:hover {
 <div id="layout_jeecg_onlinePanel" data-options="fit:true,border:false" title="用户在线列表">
 <table id="layout_jeecg_onlineDatagrid"></table>
 </div>
-</div>
+</div> -->
 <!-- 底部 -->
 <div region="south" border="false" style="height: 25px; overflow: hidden;">
-<div align="center" style="color: #1fa3e5; padding-top: 2px">&copy; 版权所有 <span class="tip"><a href="#">上海斯尚信息科技有限公司</a> (推荐谷歌浏览器，获得更快响应速度) 技术支持:<a href="#">上海斯尚信息科技有限公司</a> </span></div>
+<div align="center" style="color: #1fa3e5; padding-top: 2px">&copy; 版权所有 <span class="tip"><a href="#">上海斯尚信息科技有限公司</a> (推荐谷歌浏览器，获得更快响应速度) </span></div>
 </div>
 <div id="mm" class="easyui-menu" style="width: 150px;">
 <div id="mm-tabupdate">刷新</div>
 <div id="mm-tabclose">关闭</div>
-<div id="mm-tabcloseall">全部关闭</div>
+<!-- <div id="mm-tabcloseall">全部关闭</div>
 <div id="mm-tabcloseother">除此之外全部关闭</div>
 <div class="menu-sep"></div>
 <div id="mm-tabcloseright">当前页右侧全部关闭</div>
-<div id="mm-tabcloseleft">当前页左侧全部关闭</div>
+<div id="mm-tabcloseleft">当前页左侧全部关闭</div> -->
 
 </div>
+<div id="p-tools">
+	<a href="javascript:void(0)" class="icon-mini-refresh" onclick="javascript: reloadTab();"></a>
+</div>
+
 <script type="text/javascript">
 
 </script>

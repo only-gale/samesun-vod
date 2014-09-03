@@ -33,6 +33,9 @@
 			
 		<input id="appointmentstate" name="appointmentstate" type="hidden"
 			value="${meetingInfoPage.appointmentstate }" />
+			
+		<input id="rightid" name="rightid" type="hidden"
+			value="${rightid }" />
 
 		<table style="width: 100%;" cellpadding="0" cellspacing="1"
 			class="formtable">
@@ -317,21 +320,6 @@
 		var appointmentdt = $("#appointmentdt").val();
 		var appointmentstate = $("#appointmentstate").val();
 		var meetingstate = $("#meetingstate").val();
-		/* if("" != appointmentdt && "" != appointmentstate){
-			$('#accord').accordion('add', {
-				title : '预约录制',
-				content : $("#appRec").show(),
-				selected : true
-			});
-			$("#channelInfo").toggle();
-			if(1 == appointmentstate){		//当预约录制状态为启用时，禁用启用按钮，开启取消按钮
-				$("#btn_timercancel").removeAttr("disabled");
-				$("#btn_timerSetting").attr("disabled", "disabled");
-			}else{
-				$("#btn_timerSetting").removeAttr("disabled");
-				$("#btn_timercancel").attr("disabled", "disabled");
-			}
-		} */
 		
 	});
 
@@ -512,7 +500,7 @@
 		var rows = $("#dg").datagrid("getRows");
 		var rowcount = rows.length;
 		if (rowcount == 0) {//记录条数等于0
-			$.messager.alert('错误', '您还没有设置频道!', 'error');
+			$.messager.alert('错误', '您还没有设置频道！', 'error');
 			return false;
 		} else if (editIndex != undefined) {
 			/* for (var i = 0; i < rowcount; i++){
@@ -801,8 +789,8 @@
 	/*
 	 * 开始直播
 	 */
-	function save(flag) {
-		var url = "meetingInfoController.do?save&" + flag;
+	function save() {
+		var url = "meetingInfoController.do?save";
 		var id = $("#id").val();
 		var load = $("#load").val();
 		var tempid = $("#tempid").val();
@@ -812,6 +800,7 @@
 		var introduction = $("#introduction").val();
 		var billid = $("#billid").val();
 		var isrecord = 0;
+		var rightid = $("#rightid").val();
 		var rows = $("#dg").datagrid("getRows");
 		for (var i = 0; i < rows.length; i++) {
 			if (rows[i].isrecord1 == '1' || rows[i].isrecord2 == '1') {
@@ -828,7 +817,8 @@
 			compere : compere,
 			introduction : introduction,
 			isrecord : isrecord,
-			billid : billid
+			billid : billid,
+			rightid: rightid
 		}
 		$.ajax({
 			url : url,
@@ -946,7 +936,6 @@
 	 * 根据直播会议ID设置停止直播
 	 */
 	function stopLive(id) {
-		alert("stopLive " + id);
 		var api = frameElement.api, W = api.opener;
 		$.messager.confirm('确认', '确定要停止直播?', function(r) {
 			if (r) {
@@ -1008,7 +997,6 @@
 	/**窗口按钮操作相关------END------**/
 
 	function initaccord(id) {
-		alert("initaccord: "+id);
 		//当该会议没有开始录制时
 		if(!hasbegin(id)){
 			$('#accord').accordion('add', {
@@ -1050,6 +1038,7 @@
 		return false;
 	} */
 	
+	//判断有没有预约录制信息
 	function hasapp(){
 		var appointmentdt = $("#appointmentdt").val();
 		var appointmentstate = $("#appointmentstate").val();

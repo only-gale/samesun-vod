@@ -121,7 +121,7 @@ public class LiveSectionRecordServiceImpl implements
 			String meetingId = t.getId();
 			// 创建直播session
 			MeetingLiveSessionEntity liveSession = new MeetingLiveSessionEntity();
-
+	
 			try {
 				liveSession.setMeetingid(meetingId);
 				liveSession.setBegindt(DataUtils.parseDate(DataUtils.getDataString(DataUtils.datetimeFormat), DataUtils.datetimeFormat.toPattern()));
@@ -137,7 +137,7 @@ public class LiveSectionRecordServiceImpl implements
 			//清除预约录制信息
 			t.setAppointmentdt("");
 			t.setAppointmentstate(null);
-
+	
 			// 根据codecid查找到录制服务和点播服务，然后对每一个codec生成分段录制记录，但是需要针对相同的codec设置相同的文件名，这样只需发送一次telnet
 			List<AppointmentChannelInfoEntity> channels = commonDao
 					.findByProperty(AppointmentChannelInfoEntity.class,
@@ -176,14 +176,14 @@ public class LiveSectionRecordServiceImpl implements
 					}
 				}
 			}
-
+	
 			commonDao.updateEntitie(t);
 		}else if("TrainingInfoEntity".equals(entityName)){		//培训
 			TrainingInfoEntity t = (TrainingInfoEntity)o;
 			String meetingId = t.getId();
 			// 创建直播session
 			MeetingLiveSessionEntity liveSession = new MeetingLiveSessionEntity();
-
+	
 			try {
 				liveSession.setMeetingid(meetingId);
 				liveSession.setBegindt(DataUtils.parseDate(DataUtils.getDataString(DataUtils.datetimeFormat), DataUtils.datetimeFormat.toPattern()));
@@ -199,7 +199,7 @@ public class LiveSectionRecordServiceImpl implements
 			//清楚预约录制信息
 			t.setAppointmentdt("");
 			t.setAppointmentstate(null);
-
+	
 			// 根据codecid查找到录制服务和点播服务，然后对每一个codec生成分段录制记录，但是需要针对相同的codec设置相同的文件名，这样只需发送一次telnet
 			List<AppointmentChannelInfoEntity> channels = commonDao
 					.findByProperty(AppointmentChannelInfoEntity.class,
@@ -238,7 +238,7 @@ public class LiveSectionRecordServiceImpl implements
 					}
 				}
 			}
-
+	
 			commonDao.updateEntitie(t);
 		}
 		
@@ -470,7 +470,7 @@ public class LiveSectionRecordServiceImpl implements
 			meeting.setAppointmentdt("");
 			
 			//设置状态为结束录制
-			meeting.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_3));
+			meeting.setMeetingstate(Integer.parseInt(SystemType.MEETING_STATE_3));
 			commonDao.updateEntitie(meeting);
 		}else if("TrainingInfoEntity".equals(entityName)){
 			training = (TrainingInfoEntity)o;
@@ -482,7 +482,7 @@ public class LiveSectionRecordServiceImpl implements
 			training.setAppointmentdt("");
 			
 			//设置状态为结束录制
-			training.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_3));
+			training.setMeetingstate(Integer.parseInt(SystemType.MEETING_STATE_3));
 			commonDao.updateEntitie(meeting);
 		}
 		String hql = "from LiveSectionRecordEntity where meetingid=?" + " and sessionid=?";

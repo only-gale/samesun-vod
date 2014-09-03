@@ -25,6 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import vod.entity.heartrequest.HeartRequestEntity;
 import vod.entity.terminalinfo.TerminalInfoEntity;
+import vod.page.terminalinfo.TerminalInfoPage;
 import vod.samesun.util.SystemType;
 import vod.service.heartrequest.HeartRequestServiceI;
 import vod.service.meetinginfo.MeetingInfoServiceI;
@@ -164,7 +165,15 @@ public class HeartRequestController extends BaseController {
 	 */
 	@RequestMapping(params = "toRegiste")
 	public ModelAndView toRegiste(TerminalInfoEntity terminal, HttpServletRequest req) {
-		req.setAttribute("terminalInfoPage", terminal);
+		TerminalInfoPage page = new TerminalInfoPage();
+		try {
+			MyBeanUtils.copyBeanNotNull2Bean(terminal, page);
+		} catch (Exception e) {
+			logger.error("获取心跳信息错误");
+			e.printStackTrace();
+		}
+		
+		req.setAttribute("terminalInfoPage", page);
 		return new ModelAndView("vod/heartrequest/heartRequest");
 	}
 	
@@ -195,7 +204,7 @@ public class HeartRequestController extends BaseController {
 	public void heartBeat(HeartRequestEntity heartRequest, HttpServletRequest request, HttpServletResponse response,String ip, String mac, String playid, String live){
 		PrintWriter write = null;
 		try {
-			heartRequest.setId(ip);
+			heartRequest.setIpaddress(ip);
 			heartRequest.setMacaddress(mac);
 			response.setContentType("text/xml;charset=UTF-8");
 			request.setCharacterEncoding("UTF-8");

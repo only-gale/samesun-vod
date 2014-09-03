@@ -23,12 +23,16 @@ import org.jeecgframework.core.common.entity.IdEntity;
 @Table(name = "t_s_type")
 public class TSType extends IdEntity implements java.io.Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3856978875309498786L;
 	private TSTypegroup TSTypegroup;//类型分组
 	private TSType TSType;//父类型
 	private String typename;//类型名称
 	private String typecode;//类型编码
 //	private List<TPProcess> TSProcesses = new ArrayList();
-	private List<TSType> TSTypes =new ArrayList();
+	private List<TSType> TSTypes = new ArrayList<TSType>();
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "typegroupid")

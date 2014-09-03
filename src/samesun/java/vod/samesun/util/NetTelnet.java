@@ -217,6 +217,82 @@ public class NetTelnet {
 		return false;
 	}
 
+	/**
+	 * 开始删除协议： web->录制服务器 如：D000000000000000001369928886681001001201301E# 其中：
+	 * D：开始标志符； 000000000000000001369928886681001001： id号； 201301：日期； E：结束标志符
+	 * 
+	 * @param strFilename
+	 * @param strDir
+	 * @return
+	 */
+	public static String ReportTelnetMessage4DeleteAudioFile(
+			String strFilename, String strDir) {
+		String result = "";
+		result = "D" + strFilename + strDir + "E#";
+		return result;
+	}
+
+	/**
+	 * 返回结果： 录制服务器->web 如：E0000000000000000013699288866810010010D# 其中：
+	 * E：返回结果的标志符； 000000000000000001369928886681001001： id号； 0：0表示操作成功，1表示操作失败；
+	 * D：结束标志符；
+	 * 
+	 */
+	public static boolean resultTelnetMessage(String strtelnetResult) {
+		String temp = "";
+		if (strtelnetResult != null && strtelnetResult.length() > 3) {
+			temp = strtelnetResult.substring(strtelnetResult.length() - 3);
+		}
+		//
+		if (temp != null && temp.equals("0D#")) {// 成功
+			return true;
+		} else if (temp != null && temp.equals("1D#")) {// 失败
+			return false;
+		}
+		return false;
+	}
+
+	public static String deleteFiles4Telnet(String strIP, String strPort,
+			String dirRelative, String strFileName) {
+		String strMessage = "Telnet通讯成功!";
+
+		String result = "";
+		String codecUrl = dirRelative;
+		try {
+			NetTelnet telnet = new NetTelnet(strIP, strPort); // 需要修改
+			if (telnet.isAvailable()) {
+				String reportMessage = ReportTelnetMessage4DeleteAudioFile(
+						strFileName, codecUrl);
+				result = telnet.sendCommand(reportMessage); // 通讯接口已改变？？？
+				if (resultTelnetMessage(result)) {// 返回成功标志
+					strMessage = "成功删除文件:"
+							+ strFileName
+							+ "."
+							+ VideoPlayConfig.getInstance().videoplay_videoFileExt
+							+ " ！ ";
+				} else {
+					strMessage = "error:删除文件:"
+							+ strFileName
+							+ "."
+							+ VideoPlayConfig.getInstance().videoplay_videoFileExt
+							+ "失败！ ";
+				}
+
+			} else {
+				strMessage = "error:telnet通讯不正常，无法链接，请与技术支持人员联系!";
+			}
+			// 最后一定要关闭
+			telnet.disconnect();
+		} catch (Exception e) {
+			e.printStackTrace();
+			strMessage = "error:删除文件:" + strFileName + "."
+					+ VideoPlayConfig.getInstance().videoplay_videoFileExt
+					+ "失败！ ";
+		}
+
+		return strMessage;
+	}
+
 	public static void main(String[] args) {
 		try {
 			String result = "";

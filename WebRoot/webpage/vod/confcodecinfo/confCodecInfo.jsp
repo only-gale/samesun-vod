@@ -11,12 +11,12 @@
 			<input id="id" name="id" type="hidden" value="${confCodecInfoPage.id }">
 			<table style="width: 600px;" cellpadding="0" cellspacing="1" class="formtable">
 				<tr>
-					<td align="right">
+					<td align="right" width="30%">
 						<label class="Validform_label">
-							Codec名称:
+							<span><font color="red">*</font></span>Codec名称:
 						</label>
 					</td>
-					<td class="value">
+					<td class="value" width="70%">
 						<input class="inputxt" id="name" name="name" 
 							   value="${confCodecInfoPage.name}" datatype="*">
 						<span class="Validform_checktip"></span>
@@ -25,67 +25,43 @@
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							地理位置:
+							<span><font color="red">*</font></span>地理位置:
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="groupid" name="groupid" ignore="ignore" style="width:160px;"
-							   value="${confCodecInfoPage.groupid}">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr>
-				<%-- <tr>
-					<td align="right">
-						<label class="Validform_label">
-							路数占用情况:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="resources" name="resources" ignore="ignore"
-							   value="${confCodecInfoPage.resources}">
-						<span class="Validform_checktip"></span>
-					</td>
-				</tr> --%>
-				<tr>
-					<td align="right">
-						<label class="Validform_label">
-							描述:
-						</label>
-					</td>
-					<td class="value">
-						<input class="inputxt" id="descript" name="descript" 
-							   value="${confCodecInfoPage.descript}" datatype="*">
+						<input class="inputxt" id="groupid" name="groupid" datatype="*" nullmsg="请选择地理位置">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							mac地址:
+							<span><font color="red">*</font></span>mac地址:
 						</label>
 					</td>
 					<td class="value">
 						<input class="inputxt" id="macaddress" name="macaddress" 
-							   value="${confCodecInfoPage.macaddress}" datatype="*">
+							   value="${confCodecInfoPage.macaddress}" datatype="/[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}/"
+							   errormsg="请填写正确的mac地址">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							IP地址:
+							<span><font color="red">*</font></span>IP地址:
 						</label>
 					</td>
 					<td class="value">
 						<input class="inputxt" id="ipaddress" name="ipaddress" 
-							   value="${confCodecInfoPage.ipaddress}" datatype="*">
+							   value="${confCodecInfoPage.ipaddress}" datatype="ipv4" errormsg="请填写正确的ip地址">
 						<span class="Validform_checktip"></span>
 					</td>
 				</tr>
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							直播URL:
+							<span><font color="red">*</font></span>直播URL:
 						</label>
 					</td>
 					<td class="value">
@@ -97,7 +73,7 @@
 				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							录制服务器:
+							<span><font color="red">*</font></span>录制服务器:
 						</label>
 					</td>
 					<td class="value">
@@ -108,25 +84,35 @@
 						</c:forEach>
 				</select>
 				</td>
-				<%-- <tr>
+				<tr>
+				<tr>
 					<td align="right">
 						<label class="Validform_label">
-							是否启用:
+							描述:
 						</label>
 					</td>
 					<td class="value">
-						<input class="inputxt" id="disable" name="disable" 
-							   value="${confCodecInfoPage.disable}" datatype="*">
-						<span class="Validform_checktip"></span>
+						<textarea cols="76" rows="4" style="resize:none" id="descript" name="descript">${confCodecInfoPage.descript}</textarea>
 					</td>
-				</tr> --%>
+				</tr>
 			</table>
 		</t:formvalid>
  </body>
 <script type="text/javascript">
 	$(function() {
 		$('#groupid').combotree({
-			url : 'terminalInfoController.do?getChildren'
+			url : 'terminalInfoController.do?getChildren',
+			width : 200,
+			onSelect : function(record){
+					$("#groupid").combo("setValues",record.id).combo("setText",record.text);
+					$("#groupid").val(record.id);
+			},
+			onLoadSuccess : function(){
+				 var id = "${confCodecInfoPage.groupid}";
+				 var name = "${confCodecInfoPage.groupname}";
+				 $("#groupid").combotree("setValue",id).combotree("setText",name);
+				 $("#groupid").val(id);
+			}
 		});
 	});
 </script>

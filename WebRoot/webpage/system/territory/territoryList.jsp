@@ -10,6 +10,9 @@
 	<t:dgDelOpt url="territoryController.do?del&id={id}" title="删除"></t:dgDelOpt>
 	<t:dgToolBar title="地域录入" icon="icon-add" url="territoryController.do?addorupdate" funname="addFun"></t:dgToolBar>
 	<t:dgToolBar title="地域编辑" icon="icon-edit" url="territoryController.do?addorupdate" funname="update"></t:dgToolBar>
+	<t:dgToolBar title="导出Excel" icon="icon-search" onclick="courseListExportXls();"></t:dgToolBar>
+	<t:dgToolBar title="导入Excel" icon="icon-search" onclick="courseListImportXls()"></t:dgToolBar>
+	<t:dgToolBar title="Excel模板导出" icon="icon-search" onclick="courseListExportXlsByT()"></t:dgToolBar>
 </t:datagrid></div>
 </div>
 
@@ -23,6 +26,19 @@ function addFun(title,url, id) {
 		url += '&TSTerritory.id='+rowData.id;
 	}
 	add(title,url,'territoryList');
+}
+
+/*
+ *	excel导出
+ */
+function courseListExportXls() {
+	JeecgExcelExport("territoryController.do?exportXls","territoryList");
+}
+function courseListExportXlsByT() {
+	JeecgExcelExport("territoryController.do?exportXlsByT","courseList");
+}
+function courseListImportXls() {
+	openuploadwin('Excel导入', 'territoryController.do?upload', "territoryList");
 }
 </script>
 

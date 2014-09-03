@@ -18,9 +18,9 @@ import org.jeecgframework.web.system.pojo.base.TSOperation;
 import org.jeecgframework.web.system.pojo.base.TSRole;
 import org.jeecgframework.web.system.pojo.base.TSRoleFunction;
 import org.jeecgframework.web.system.pojo.base.TSRoleUser;
+import org.jeecgframework.web.system.pojo.base.TSUser;
 import org.jeecgframework.web.system.service.SystemService;
 import org.jeecgframework.web.system.service.UserService;
-
 import org.apache.log4j.Logger;
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
@@ -32,6 +32,7 @@ import org.jeecgframework.core.common.model.json.ValidForm;
 import org.jeecgframework.core.constant.Globals;
 import org.jeecgframework.core.util.ExceptionUtil;
 import org.jeecgframework.core.util.NumberComparator;
+import org.jeecgframework.core.util.ResourceUtil;
 import org.jeecgframework.core.util.SetListSort;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.core.util.oConvertUtils;
@@ -103,6 +104,38 @@ public class RoleController extends BaseController {
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, role);
 		cq.add();
 		this.systemService.getDataGridReturn(cq, true);
+		List<TSRole> roles = new ArrayList<TSRole>();
+		List<TSRole> temp = new ArrayList<TSRole>();
+		roles = dataGrid.getResults();
+		TSUser user = ResourceUtil.getSessionUserName();
+		String userroles = "", target = "";
+		if (user != null) {
+			List<TSRoleUser> rUsers = systemService.findByProperty(
+					TSRoleUser.class, "TSUser.id", user.getId());
+			for (TSRoleUser ru : rUsers) {
+				TSRole r = ru.getTSRole();
+				userroles += "," + r.getRoleCode();
+			}
+		}
+		if(StringUtil.isNotEmpty(userroles) && userroles.contains("meeting")){	//会议管理员只能创建会议管理员角色用户
+			target = "meeting";
+		}else if(StringUtil.isNotEmpty(userroles) && userroles.contains("training")){	//培训管理员只能创建培训管理员角色用户
+			target = "training";
+		}else if(StringUtil.isNotEmpty(userroles) && userroles.contains("vodadmin")){	//系统管理员只能创建除过超级管理员admin之外的角色用户
+			target = "admin";
+		}
+		for(TSRole r : roles){
+			if(StringUtil.isNotEmpty(target) && !"admin".equals(target) && r.getRoleCode().equals(target)){
+				temp.add(r);
+			}else if(StringUtil.isNotEmpty(target) && "admin".equals(target) && !r.getRoleCode().equals(target)){
+				temp.add(r);
+			}
+		}
+		if(StringUtil.isNotEmpty(target)){
+			
+			dataGrid.setTotal(temp.size());
+			dataGrid.setResults(temp);
+		}
 		TagUtil.datagrid(response, dataGrid);;
 	}
 
@@ -230,11 +263,32 @@ public class RoleController extends BaseController {
 		cq.add();
 		List<TSFunction> functionList = systemService.getListByCriteriaQuery(cq,false);
 		Collections.sort(functionList, new NumberComparator());
+		List<TSFunction> temp = new ArrayList<TSFunction>();
 		List<ComboTree> comboTrees = new ArrayList<ComboTree>();
 		String roleId = request.getParameter("roleId");
 		List<TSFunction> loginActionlist = new ArrayList<TSFunction>();// 已有权限菜单
-		role = this.systemService.get(TSRole.class, roleId);
-		if (role != null) {
+		TSUser user = ResourceUtil.getSessionUserName();
+		TSRoleUser ru = systemService.findByProperty(
+				TSRoleUser.class, "TSUser.id", user.getId()).get(0);
+		role = this.systemService.get(TSRole.class, ru.getTSRole().getId());	//显示当前登陆人的已有权限菜单
+		if (role != null && !"admin".equals(role.getRoleCode())) {
+			List<TSRoleFunction> roleFunctionList=systemService.findByProperty(TSRoleFunction.class, "TSRole.id", role.getId());
+			if (roleFunctionList.size() > 0) {
+				for (TSRoleFunction roleFunction : roleFunctionList) {
+					TSFunction function = (TSFunction) roleFunction
+							.getTSFunction();
+					loginActionlist.add(function);
+				}
+			}
+			//非超级管理员只能看到已有权限
+			for(TSFunction f : functionList){
+				if(null == f.getTSFunction() && !loginActionlist.contains(f)){
+					temp.add(f);
+				}
+			}
+			functionList.removeAll(temp);
+		}else if(role != null && "admin".equals(role.getRoleCode())){
+			role = this.systemService.get(TSRole.class, roleId);
 			List<TSRoleFunction> roleFunctionList=systemService.findByProperty(TSRoleFunction.class, "TSRole.id", role.getId());
 			if (roleFunctionList.size() > 0) {
 				for (TSRoleFunction roleFunction : roleFunctionList) {

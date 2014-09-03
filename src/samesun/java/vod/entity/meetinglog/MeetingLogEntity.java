@@ -9,6 +9,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.GenericGenerator;
+import org.jeecgframework.poi.excel.annotation.Excel;
 
 /**   
  * @Title: Entity
@@ -31,16 +32,20 @@ public class MeetingLogEntity implements java.io.Serializable {
 	/**终端MAC*/
 	private java.lang.String edgemac;
 	/**终端名称*/
+	@Excel(exportFieldWidth=30, exportName="终端名称", orderNum="1")
 	private java.lang.String edgename;
 	/**当前状态*/
 	private java.lang.Integer state;
 	/**会议ID*/
 	private java.lang.String meetingid;
 	/**是否是直播*/
+	@Excel(exportFieldWidth=10, exportName="是否是直播", orderNum="2")
 	private java.lang.String isliveflag;
 	/**会议主题*/
+	@Excel(exportFieldWidth=50, exportName="会议主题", orderNum="3")
 	private java.lang.String subject;
 	/**日期*/
+	@Excel(exportFieldWidth=30, exportName="日期", orderNum="4")
 	private java.util.Date date;
 	/**观看时间*/
 	private java.lang.Integer times;

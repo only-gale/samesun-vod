@@ -212,11 +212,17 @@ public class AuthorityGroupController extends BaseController {
 				AuthorityGroupPage page = new AuthorityGroupPage();
 				MyBeanUtils.copyBeanNotNull2Bean(authorityGroup, page);
 				List<AuthGroupTerminalEntity> ts = systemService.findByProperty(AuthGroupTerminalEntity.class, "authid", page.getId());
-				String ids = "";
+				String ids = "", names = "";
 				for(AuthGroupTerminalEntity u : ts){
 					ids += ("," + u.getTerminalid());
+					TerminalInfoEntity t = systemService.get(TerminalInfoEntity.class, u.getTerminalid());
+					if(t != null){
+						names += ("、" + t.getName());
+					}
+					
 				}
 				page.setTerminalIDs(ids.substring(1));
+				page.setTerminalNames(names.substring(1));
 				req.setAttribute("authorityGroupPage", page);
 			}
 		} catch (Exception e) {

@@ -309,7 +309,7 @@ public class MeetingHistoryEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  终端分组
 	 */
-	@Column(name ="RIGHTID",nullable=true,length=100)
+	@Column(name ="RIGHTID",nullable=true,length=45)
 	public java.lang.String getRightid(){
 		return this.rightid;
 	}

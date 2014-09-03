@@ -50,8 +50,6 @@ public class Job {
 		
 		//检测预约录制
 		meetingInfoService.autoRecordTask();
-		
-		trainingInfoService.autoRecordTask();
 	}
     
 }

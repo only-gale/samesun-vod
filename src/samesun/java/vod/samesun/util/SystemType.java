@@ -14,7 +14,7 @@ public class SystemType {
 	public static String MEETING_STATE_3 = "3";
 	/**会议状态: 已结束*/
 	public static String MEETING_STATE_4 = "4";
-	/**会议状态: 已延时*/
+	/**会议状态: 待直播*/
 	public static String MEETING_STATE_5 = "5";
 	
 	/**预约会议状态编码*/
@@ -39,6 +39,10 @@ public class SystemType {
 	/**会议所属类型: 预约*/
 	public static String APP_MEETING_TYPE_3 = "appointment";
 	
+	/**培训所属类型编码*/
+	public static String TRAINING_TYPE = "trainingTp";
+	/**培训所属类型名称*/
+	public static String TRAINING_TYPE_NAME = "培训类型";
 	
 	/**是否录制编码*/
 	public static String IS_RECORD_TYPE = "isRecord";
@@ -56,7 +60,7 @@ public class SystemType {
 	/**直播*/
 	public static String LIVE_TYPE_1 = "1";
 	/**点播*/
-	public static String LIVE_TYPE_2 = "2";
+	public static String LIVE_TYPE_2 = "0";
 	
 	/**编码器是否启用编码*/
 	public static String CODEC_AVILABLE = "isAvilable";
@@ -88,6 +92,15 @@ public class SystemType {
 	public static String MEETING_TYPE_2 = "2";
 	/**会议类型: 讨论类*/
 	public static String MEETING_TYPE_3 = "3";
+	
+	/**会议种类编码*/
+	public static String MEETING_RIGHT = "meetingRit";
+	/**会议种类名称*/
+	public static String MEETING_RIGHT_NAME = "会议种类";
+	/**会议种类: 会议*/
+	public static String MEETING_RIGHT_1 = "1";
+	/**会议种类: 培训*/
+	public static String MEETING_RIGHT_2 = "2";
 	
 	/**预约录制状态编码*/
 	public static String APP_RECORD = "appRecord";

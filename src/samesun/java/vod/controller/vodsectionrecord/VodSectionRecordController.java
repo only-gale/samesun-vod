@@ -8,6 +8,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 import org.jeecgframework.core.common.controller.BaseController;
 import org.jeecgframework.core.common.hibernate.qbc.CriteriaQuery;
 import org.jeecgframework.core.common.model.json.AjaxJson;
@@ -27,6 +30,7 @@ import org.springframework.web.servlet.ModelAndView;
 import vod.entity.authoritygroup.AuthorityGroupEntity;
 import vod.entity.authorityusergroup.AuthorityUserGroupEntity;
 import vod.entity.confrtspsrvinfo.ConfRtspSrvInfoEntity;
+import vod.entity.meetinginfo.MeetingInfoEntity;
 import vod.entity.vodsectionrecord.VodSectionRecordEntity;
 import vod.page.vodsectionrecord.VodSectionRecordPage;
 import vod.samesun.util.SystemType;
@@ -75,14 +79,15 @@ public class VodSectionRecordController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(params = "vodSectionRecord")
-	public ModelAndView vodSectionRecord(HttpServletRequest request, String meetingid, String sessionid) {
+	public ModelAndView vodSectionRecord(HttpServletRequest request, String meetingid, String sessionid, String rightid) {
 		if(StringUtil.isNotEmpty(meetingid)){
 			request.setAttribute("meetingid", meetingid);
 		}
 		if(StringUtil.isNotEmpty(sessionid)){
 			request.setAttribute("sessionid", sessionid);
 		}
-		return new ModelAndView("vod/vodsectionrecord/vodSectionRecordList1");
+		request.setAttribute("rightid", rightid);
+		return new ModelAndView("vod/vodsectionrecord/vodSectionRecordList" + rightid);
 	}
 
 	/**
@@ -96,7 +101,7 @@ public class VodSectionRecordController extends BaseController {
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
-	public void datagrid(VodSectionRecordEntity vodSectionRecord,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+	public void datagrid(VodSectionRecordEntity vodSectionRecord,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid, String rightid) {
 		dataGrid.setSort("recEndDt");
 		dataGrid.setOrder(SortDirection.desc);
 		
@@ -109,6 +114,18 @@ public class VodSectionRecordController extends BaseController {
 		dataGrid.setField(fieldStr.substring(1));
 		
 		CriteriaQuery cq = new CriteriaQuery(VodSectionRecordEntity.class, dataGrid);
+		DetachedCriteria cqdc = cq.getDetachedCriteria();
+		cq.eq("recState", new Integer(SystemType.REC_STATE_5));
+		
+		//关联会议种类
+		DetachedCriteria cq_meeting = DetachedCriteria.forClass(MeetingInfoEntity.class);
+		cq_meeting.add(Restrictions.isNotNull("rightid"));
+		cq_meeting.add(Restrictions.eq("rightid", rightid));
+		cq_meeting.setProjection(Property.forName("id"));
+		cqdc.add(Property.forName("meetingid").in(cq_meeting));
+		
+		cq.setDetachedCriteria(cqdc);
+		
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, vodSectionRecord, request.getParameterMap());
 		this.vodSectionRecordService.getDataGridReturn(cq, true);
@@ -129,21 +146,17 @@ public class VodSectionRecordController extends BaseController {
 			}
 			String authortiyGroupCid = v.getAuthortiyGroupCid(), authortiyUsergroupCid = v.getAuthortiyUsergroupCid();
 			if(StringUtil.isNotEmpty(authortiyGroupCid)){
-				
 				page.setAuthortiyGroupName(((AuthorityGroupEntity)authorityGroupService.getEntity(AuthorityGroupEntity.class, authortiyGroupCid)).getName());
 			}
 			if(StringUtil.isNotEmpty(authortiyUsergroupCid)){
-				
 				page.setAuthortiyUsergroupName(((AuthorityUserGroupEntity)authorityUserGroupService.getEntity(AuthorityUserGroupEntity.class, authortiyUsergroupCid)).getName());
 			}
 			Integer state = page.getRecState();
-			if(Integer.valueOf(SystemType.REC_STATE_5) == state){
-				page.setRecStateName(systemService.getType(state.toString(), SystemType.REC_STATE).getTypename());
-				temp.add(page);
-			}
+			page.setRecStateName(systemService.getType(state.toString(), SystemType.REC_STATE).getTypename());
+			
+			temp.add(page);
 		}
 		dataGrid.setResults(temp);
-		dataGrid.setTotal(temp.size());
 		TagUtil.datagrid(response, dataGrid);
 	}
 

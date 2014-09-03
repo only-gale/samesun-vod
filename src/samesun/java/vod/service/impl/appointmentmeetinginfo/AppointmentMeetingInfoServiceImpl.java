@@ -70,4 +70,10 @@ public class AppointmentMeetingInfoServiceImpl extends CommonServiceImpl impleme
 		return appointmentStarttime.before(DataUtils.getDate());
 	}
 	
+	@Override
+	public boolean checkPastTime(AppointmentMeetingInfoEntity app) {
+		Date appointmentStarttime = app.getAppointmentStarttime();
+		return DataUtils.getDate(appointmentStarttime.getTime() + app.getAppointmentDuration() * 60 * 1000).before(DataUtils.getDate());
+	}
+	
 }

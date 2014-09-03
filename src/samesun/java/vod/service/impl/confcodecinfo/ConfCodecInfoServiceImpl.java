@@ -65,7 +65,6 @@ public class ConfCodecInfoServiceImpl extends CommonServiceImpl implements ConfC
 		List<ConfCodecInfoEntity> tmpList = new ArrayList<ConfCodecInfoEntity>();
 		List<ConfCodecInfoEntity> all = this.loadAll(ConfCodecInfoEntity.class);
 		
-		//
 		//直播会议只选取当前未启用的编码器
 		if(SystemType.APP_MEETING_TYPE_1.replaceAll("\"", "").equals(meetingType)){
 			for(ConfCodecInfoEntity e : all){
@@ -84,7 +83,7 @@ public class ConfCodecInfoServiceImpl extends CommonServiceImpl implements ConfC
 			//当前预约会议结束时间
 			Date appointmentendtime = DataUtils.getDate(appointmentbegintime.getTime() + new Integer(appointmentDuration).intValue() * 60 * 1000);
 			for(AppointmentMeetingInfoEntity e : apps){
-				Date start = e.getAppointmentStarttime(), end = DataUtils.getDate(e.getAppointmentStarttime().getTime() + (e.getAppointmentDuration()) * 60 * 1000);
+				Date start = e.getAppointmentStarttime(), end = DataUtils.getDate(start.getTime() + (e.getAppointmentDuration()) * 60 * 1000);
 				//当已新建的预约会议开始时间在当前创建预约会议的结束时间之后
 				//或者
 				//当已新建的预约会议结束时间在当前创建预约会议的开始时间之前

@@ -18,6 +18,7 @@ public class VodSessionPage {
 	private java.lang.String liveSession;
 	/**会议类型*/
 	private java.lang.Integer typeid;
+	private java.lang.String typename;
 	/**会议主题*/
 	private java.lang.String subject;
 	/**会议主持人*/
@@ -69,6 +70,12 @@ public class VodSessionPage {
 	}
 	public void setTypeid(java.lang.Integer typeid) {
 		this.typeid = typeid;
+	}
+	public java.lang.String getTypename() {
+		return typename;
+	}
+	public void setTypename(java.lang.String typename) {
+		this.typename = typename;
 	}
 	public java.lang.String getSubject() {
 		return subject;

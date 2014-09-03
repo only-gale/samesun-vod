@@ -58,7 +58,7 @@ public class DataGridTag extends TagSupport {
 	private String actionUrl;// 分页提交路径
 	public int allCount;
 	public int curPageNo;
-	public int pageSize = 10;
+	public int pageSize = 15;
 	public boolean pagination = true;// 是否显示分页
 	private String width;
 	private String height;
@@ -311,8 +311,11 @@ public class DataGridTag extends TagSupport {
 				String[] dic = dictionary.split(",");
 				String text = "";
 				String value = "";
-				String sql = "select " + dic[1] + " as field," + dic[2]
-						+ " as text from " + dic[0];
+				/*String sql = "select " + dic[1] + " as field," + dic[2]
+						+ " as text from " + dic[0];*/
+				String sql = "select T1.typecode as field, T1.typename as text"
+						+ " from t_s_type T1, t_s_typegroup T2"
+						+ " where T1.typegroupid=T2.id and T2.typegroupcode='" + dic[0] + "'";
 				systemService = ApplicationContextUtil.getContext().getBean(
 						SystemService.class);
 				List<Map<String, Object>> list = systemService.findForJdbc(sql);
@@ -520,7 +523,7 @@ public class DataGridTag extends TagSupport {
 		sb.append("loadMsg: \'数据加载中...\',");
 		sb.append("pageSize: " + pageSize + ",");
 		sb.append("pagination:" + pagination + ",");
-		sb.append("pageList:[" + pageSize * 1.5 + "," + pageSize * 2 + "," + pageSize * 2.5 + "],");
+		sb.append("pageList:[" + pageSize + "," + pageSize * 2 + "," + pageSize * 3 + "],");
 		if(StringUtils.isNotBlank(sortName)){
 			sb.append("sortName:'" +sortName +"',");
 		}
@@ -636,8 +639,9 @@ public class DataGridTag extends TagSupport {
 							}else if(!StringUtil.isEmpty(col.getDictionary())){
 								if(col.getDictionary().contains(",")){
 									String[] dic = col.getDictionary().split(",");
-									String sql = "select " + dic[1] + " as field," + dic[2]
-											+ " as text from " + dic[0];
+									String sql = "select T1.typecode as field, T1.typename as text"
+											+ " from t_s_type T1, t_s_typegroup T2"
+											+ " where T1.typegroupid=T2.id and T2.typegroupcode='" + dic[0] + "'";
 									systemService = ApplicationContextUtil.getContext().getBean(
 											SystemService.class);
 									List<Map<String, Object>> list = systemService.findForJdbc(sql);

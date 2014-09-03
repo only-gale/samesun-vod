@@ -2,11 +2,12 @@
 <%@include file="/context/mytags.jsp"%>
 <div class="easyui-layout" fit="true">
   <div region="center" style="padding:1px;">
-  <t:datagrid name="vodSessionList" title="点播信息会话" actionUrl="vodSessionController.do?datagrid" idField="id" fit="true" queryMode="group" checkbox="true">
+  <t:datagrid name="vodSessionList" title="点播信息会话" actionUrl="vodSessionController.do?datagrid&rightid=1" idField="id" fit="true" queryMode="group">
    <t:dgCol title="编号" field="id" hidden="false"></t:dgCol>
    <t:dgCol title="会议ID" field="meetingid" hidden="false" ></t:dgCol>
    <t:dgCol title="liveSeesionID" field="liveSession" hidden="false" ></t:dgCol>
-   <t:dgCol title="会议类型" field="typeid" align="center" query="true" replace="公共类_1,专题类_2,讨论类_3" ></t:dgCol>
+   <t:dgCol title="会议类型" field="typeid" align="center" query="true" hidden="false" dictionary="meetingTyp," ></t:dgCol>
+   <t:dgCol title="会议类型" field="typename" align="center"></t:dgCol>
    <t:dgCol title="会议主题" field="subject" align="center" query="true" width="60" ></t:dgCol>
    <t:dgCol title="会议主持人" field="compere" ></t:dgCol>
    <t:dgCol title="会议简介" field="introduction" width="100" ></t:dgCol>
@@ -18,7 +19,6 @@
    <t:dgFunOpt title="明细" funname="details(meetingid, liveSession)" />
    <t:dgToolBar title="录入" icon="icon-add" url="vodSessionController.do?addorupdate" funname="add"></t:dgToolBar>
    <t:dgToolBar title="编辑" icon="icon-edit" url="vodSessionController.do?addorupdate" funname="update"></t:dgToolBar>
-   <t:dgToolBar title="查看" icon="icon-search" url="vodSessionController.do?addorupdate" funname="detail"></t:dgToolBar>
   </t:datagrid>
   </div>
  </div>
@@ -30,7 +30,7 @@
  
  function details(meetingid, liveSession){
 	 var url = "vodSectionRecordController.do?vodSectionRecord";
-	 url = url + ("&sessionid=" + liveSession) + ("&meetingid=" + meetingid);
+	 url = url + ("&sessionid=" + liveSession) + ("&meetingid=" + meetingid) + ("&rightid=" + 1);
 	 $.dialog({
 			content: 'url:' + url,
 			lock : true,

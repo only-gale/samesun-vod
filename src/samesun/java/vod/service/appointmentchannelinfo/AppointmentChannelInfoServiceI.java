@@ -11,7 +11,7 @@ import vod.entity.traininginfo.TrainingInfoEntity;
 public interface AppointmentChannelInfoServiceI extends CommonService{
 
 	/**
-	 * 删除所有meetingId为空的预约频道信息
+	 * 删除所有临时的预约频道信息(删除时间等于创建时间)
 	 */
 	public void delAllNullMeetingId();
 	

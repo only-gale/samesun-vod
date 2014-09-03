@@ -117,6 +117,7 @@ function addTab(subtitle, url, icon) {
 
 	} else {
 		$('#maintabs').tabs('select', subtitle);
+		$('#maintabs').tabs('update', subtitle);
 		$.messager.progress('close');
 	}
 

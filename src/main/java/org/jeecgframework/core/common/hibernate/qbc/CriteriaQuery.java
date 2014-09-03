@@ -34,7 +34,7 @@ public class CriteriaQuery implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private int curPage = 1;// 当前页
-	private int pageSize = 10;// 默认一页条数
+	private int pageSize = 15;// 默认一页条数
 	private String myAction;// 请求的action 地址
 	private String myForm;// form 名字
 	private CriterionList criterionList=new CriterionList();//自定义查询条件集合

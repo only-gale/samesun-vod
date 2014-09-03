@@ -9,7 +9,7 @@
    <t:dgCol title="mac地址" field="macaddress" width="80" align="center" ></t:dgCol>
    <t:dgCol title="IP地址" field="ipaddress" width="80" align="center" ></t:dgCol>
    <t:dgCol title=" Url地址" field="rtspurl" width="80" align="center" ></t:dgCol>
-   <t:dgCol title="是否启用" field="disable" width="50" align="center" replace="未启用_0,已启用_1" ></t:dgCol>
+   <t:dgCol title="是否启用" field="disable" width="50" align="center" replace="未启用_0,已启用_1" hidden="false"></t:dgCol>
    <t:dgCol title="操作" width="50" field="opt" align="center"></t:dgCol>
    <t:dgDelOpt title="删除" url="confRtspSrvInfoController.do?del&id={id}" />
    <t:dgToolBar title="录入" icon="icon-add" url="confRtspSrvInfoController.do?addorupdate" funname="add"></t:dgToolBar>

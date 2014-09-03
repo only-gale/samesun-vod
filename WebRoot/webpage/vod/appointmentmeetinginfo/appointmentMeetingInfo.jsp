@@ -10,16 +10,15 @@
 <body style="overflow-y: hidden" scroll="no">
 
 <!-- 隐藏域 -->
-<input id="commond" name="commond" type="hidden"
-			value="${commond }">
-
 	<t:formvalid formid="formobj" dialog="true" usePlugin="password"
-		layout="table" action="appointmentMeetingInfoController.do?save">
+		layout="table" action="appointmentMeetingInfoController.do?save" beforeSubmit="checkDg">
 		<%--会议ID --%>
 		<input id="id" name="id" type="hidden"
 			value="${appointmentMeetingInfoPage.id }">
 
 		<input id="load" name="load" type="hidden" value="${load }" />
+		
+		<input id="rightid" name="rightid" type="hidden" value="${rightid }" />
 
 		<input id="tempid" name="tempid" type="hidden" />
 
@@ -43,25 +42,6 @@
 					class="Validform_checktip"></span></td>
 			</tr>
 			<tr>
-				<%-- <td align="right"><label class="Validform_label"> 预约状态:
-				</label></td>
-				<td class="value">
-					<c:choose>
-					<c:when test="${appointmentMeetingInfoPage.appointmentState eq null}">${state }
-					<input type="hidden" id="appointmentState" name="appointmentState" value="${statecode }"/>
-					</c:when>
-					<c:otherwise>${state }
-					<input type="hidden" id="appointmentState" name="appointmentState" value="${appointmentMeetingInfoPage.appointmentState }"/>
-					</c:otherwise>
-					</c:choose>
-					<select id="appointmentState" name="appointmentState" class="easyui-combobox">
-						<c:forEach items="${states}" var="state">
-							<option value="${state.typecode }"
-								<c:if test="${appointmentMeetingInfoPage.appointmentState eq state.typecode}"> selected='selected'</c:if>>${state.typename }</option>
-						</c:forEach>
-				</select> <span class="Validform_checktip"></span>
-				</td> --%>
-				
 				<td align="right"><label class="Validform_label"> <span><font color="red">*</font></span>会议主题:
 				</label></td>
 				<td class="value"><input class="inputxt" id="subject" datatype="*"
@@ -72,10 +52,7 @@
 				<td align="right"><label class="Validform_label"> 所属类型:
 				</label></td>
 				<td class="value">
-					<%-- <input class="inputxt" id="typeid"
-					name="typeid" ignore="ignore"
-					value="${appointmentMeetingInfoPage.typeid}" datatype="n"> --%> <select
-					id="typeid" name="typeid" class="easyui-combobox" data-options="panelHeight:'auto'">
+					<select id="typeid" name="typeid" class="easyui-combobox" data-options="panelHeight:'auto'">
 						<c:forEach items="${appTypes}" var="type">
 							<option value="${type.typecode }"
 								<c:if test="${appointmentMeetingInfoPage.typeid eq type.typecode}"> selected='selected'</c:if>>${type.typename }</option>
@@ -102,15 +79,6 @@
 				<textarea cols="96" style="margin:5px auto; resize:none" id="introduction" name="introduction" value="${appointmentMeetingInfoPage.introduction}">${appointmentMeetingInfoPage.introduction}</textarea>
 				<span class="Validform_checktip"></span></td>
 			</tr>
-			<%-- <tr>
-				<td align="right"><label class="Validform_label"> 会议简介:
-				</label></td>
-				<td class="value" colspan="3">
-				<input class="inputxt" id="introduction"
-					name="introduction" ignore="ignore"
-					value="${appointmentMeetingInfoPage.introduction}">
-				<span class="Validform_checktip"></span></td>
-			</tr> --%>
 		</table>
 		<div class="easyui-accordion" style="width:700px;height:230px;">
 			<div title="频道信息" style="padding:10px"
@@ -133,7 +101,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
-								url:'confCodecInfoController.do?combox&meetingType=appointment',
+								url:'confCodecInfoController.do?combox4UserCodec&meetingType=appointment',
 								required:true,
 								panelHeight:'auto',
 								onBeforeLoad:function(param){
@@ -169,7 +137,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
-								url:'confCodecInfoController.do?combox&meetingType=appointment',
+								url:'confCodecInfoController.do?combox4UserCodec&meetingType=appointment',
 								panelHeight:'auto',
 								onBeforeLoad:function(param){
 									if(check()){
@@ -204,6 +172,7 @@
 							options:{
 								valueField:'id',
 								textField:'name',
+								required:true,
 								url:'authorityGroupController.do?combox'
 							}
 						},
@@ -452,7 +421,9 @@
 	
 	function wetheruesed(id, field){
 		var flag = false;
-		var url = "confCodecInfoController.do?wetheruesed&meetingType=live&id=" + id;
+		var appointmentStarttime = $("#appointmentStarttime").val();
+		var appointmentDuration = $("#appointmentDuration").val();
+		var url = "confCodecInfoController.do?wetheruesed&meetingType=appointment&id=" + id + "&appointmentStarttime=" + appointmentStarttime + "&appointmentDuration=" + appointmentDuration;
 		$.ajax({
 			async: false,
 			url : url,
@@ -462,7 +433,7 @@
 				if (d.success) {
 					var msg = d.msg;
 					if(msg == 'false'){
-						var contentUrl = 'confCodecInfoController.do?whouesed&meetingType=appointment&id=' + id;
+						var contentUrl = 'confCodecInfoController.do?whouesed&meetingType=appointment&id=' + id + "&appointmentStarttime=" + appointmentStarttime + "&appointmentDuration=" + appointmentDuration;
 						var api = frameElement.api, W = api.opener;
 						W.$.dialog({title:'冲突的会议信息',content: 'url:'+contentUrl,lock:true,parent:api,width:500,height:300, cancel:true});
 						var codec = $('#dg').datagrid('getEditor', {
@@ -478,5 +449,27 @@
 			cache : false
 		});
 		
+	}
+	
+	/* 校验会议必须设置有频道 */
+	function checkDg() {
+		var rows = $("#dg").datagrid("getRows");
+		var rowcount = rows.length;
+		if (rowcount == 0) {//记录条数等于0
+			$.messager.alert('错误', '您还没有设置频道！', 'error');
+			return false;
+		} else if (editIndex != undefined) {
+			/* for (var i = 0; i < rowcount; i++){
+				var row = rows[i]; 
+				if (row.editing){
+					$.messager.alert('错误','第' + (i+1) + '个频道设置，请先保存一下!', 'error');
+					break;
+					return false;
+				}
+			} */
+			$.messager.alert('错误', '请先保存频道信息', 'error');
+			return false;
+		} else
+			return true;
 	}
 </script>

@@ -2,6 +2,7 @@ package vod.controller.terminalinfo;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ import org.jeecgframework.tag.core.easyui.TagUtil;
 import org.jeecgframework.tag.vo.datatable.SortDirection;
 import org.jeecgframework.tag.vo.easyui.ComboTreeModel;
 import org.jeecgframework.web.system.pojo.base.TSTerritory;
+import org.jeecgframework.web.system.pojo.base.TSType;
 import org.jeecgframework.web.system.pojo.base.TSUser;
 import org.jeecgframework.web.system.service.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +58,6 @@ public class TerminalInfoController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TerminalInfoController.class);
 
 	@Autowired
@@ -121,13 +122,27 @@ public class TerminalInfoController extends BaseController {
 		//添加地理位置
 		for(TerminalInfoEntity t : terminals){
 			if(StringUtil.isNotEmpty(t.getGroupid())){
-				List<TSTerritory> territories = systemService.findByProperty(TSTerritory.class, "id", t.getGroupid());
 				TerminalInfoPage page = new TerminalInfoPage();
 				MyBeanUtils.copyBeanNotNull2Bean(t, page);
-				if(territories != null && territories.size() > 0){
-					TSTerritory territofy = territories.get(0);
-					page.setGroupname(territofy.getTerritoryName());
+				TSTerritory self = systemService.get(TSTerritory.class, t.getGroupid());
+				String territoryName = "";
+				List<TSTerritory> ts = new ArrayList<TSTerritory>();
+				TSTerritory parent = self.getTSTerritory();
+				ts.add(self);
+				String pid = parent.getId();
+				//当父组织机构不为根机构时，查找父机构
+				while(!"1".equals(pid)){
+					parent = systemService.get(TSTerritory.class, pid);
+					ts.add(parent);
+					parent = parent.getTSTerritory();
+					pid = parent.getId();
 				}
+				//按照添加顺序逆序
+				Collections.reverse(ts);
+				for(TSTerritory te : ts){
+					territoryName += "-" + te.getTerritoryName(); 
+				}
+				page.setGroupname(territoryName.substring(1));
 				results.add(page);
 			}
 		}
@@ -177,6 +192,7 @@ public class TerminalInfoController extends BaseController {
 			}
 		} else {
 			message = "终端信息添加成功";
+			terminalInfo.setStatus(Integer.valueOf(SystemType.TERMINAL_STATE_0));
 			terminalInfoService.save(terminalInfo);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
@@ -192,8 +208,34 @@ public class TerminalInfoController extends BaseController {
 	@RequestMapping(params = "addorupdate")
 	public ModelAndView addorupdate(TerminalInfoEntity terminalInfo, HttpServletRequest req) {
 		if (StringUtil.isNotEmpty(terminalInfo.getId())) {
-			terminalInfo = terminalInfoService.getEntity(TerminalInfoEntity.class, terminalInfo.getId());
-			req.setAttribute("terminalInfoPage", terminalInfo);
+			try {
+				terminalInfo = terminalInfoService.getEntity(TerminalInfoEntity.class, terminalInfo.getId());
+				TerminalInfoPage page = new TerminalInfoPage();
+				MyBeanUtils.copyBeanNotNull2Bean(terminalInfo, page);
+				TSTerritory self = systemService.get(TSTerritory.class, page.getGroupid());
+				String territoryName = "";
+				List<TSTerritory> ts = new ArrayList<TSTerritory>();
+				TSTerritory parent = self.getTSTerritory();
+				ts.add(self);
+				String pid = parent.getId();
+				//当父组织机构不为根机构时，查找父机构
+				while(!"1".equals(pid)){
+					parent = systemService.get(TSTerritory.class, pid);
+					ts.add(parent);
+					parent = parent.getTSTerritory();
+					pid = parent.getId();
+				}
+				//按照添加顺序逆序
+				Collections.reverse(ts);
+				for(TSTerritory te : ts){
+					territoryName += "-" + te.getTerritoryName(); 
+				}
+				page.setGroupname(territoryName.substring(1));
+				req.setAttribute("terminalInfoPage", page);
+			} catch (Exception e) {
+				logger.error("获取终端信息错误");
+				e.printStackTrace();
+			}
 		}
 		return new ModelAndView("vod/terminalinfo/terminalInfo");
 	}
@@ -329,9 +371,31 @@ public class TerminalInfoController extends BaseController {
 			org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, terminalInfo, request.getParameterMap());
 			
 			List<TerminalInfoEntity> courses = systemService.getListByCriteriaQuery(cq,false);
+			List<TerminalInfoPage> pages = new ArrayList<TerminalInfoPage>();
+			//转换代码为汉字
+			for(TerminalInfoEntity t : courses){
+				TerminalInfoPage p = new TerminalInfoPage();
+				MyBeanUtils.copyBeanNotNull2Bean(t, p);
+				
+				//组织结构
+				TSTerritory te = systemService.get(TSTerritory.class, t.getGroupid());
+				if(te != null){
+					p.setGroupname(te.getTerritoryName());
+				}
+				
+				//状态
+				TSType tp = systemService.getType(p.getStatus() == null ? null : p.getStatus().toString(), SystemType.TERMINAL_STATE);
+				if(tp != null){
+					p.setStatusname(tp.getTypename());
+				}
+				
+				pages.add(p);
+			}
+			
+			
 			TSUser user = ResourceUtil.getSessionUserName();
 			workbook = ExcelExportUtil.exportExcel(new ExcelTitle("终端状态", "导出人:" + user.getRealName(),
-					"导出信息"), TerminalInfoEntity.class, courses);
+					"导出信息"), TerminalInfoPage.class, pages);
 			fOut = response.getOutputStream();
 			workbook.write(fOut);
 		} catch (Exception e) {

@@ -52,7 +52,7 @@ public class MeetingInfoEntity implements java.io.Serializable {
 	private java.lang.String name;
 	/**所属类型*/
 	private java.lang.Integer typeid;
-	/**终端分组*/
+	/**种类：1会议; 2培训*/
 	private java.lang.String rightid;
 	/**会议主题*/
 	private java.lang.String subject;
@@ -309,7 +309,7 @@ public class MeetingInfoEntity implements java.io.Serializable {
 	 *方法: 取得java.lang.String
 	 *@return: java.lang.String  终端分组
 	 */
-	@Column(name ="RIGHTID",nullable=true,length=100)
+	@Column(name ="RIGHTID",nullable=true,length=45)
 	public java.lang.String getRightid(){
 		return this.rightid;
 	}

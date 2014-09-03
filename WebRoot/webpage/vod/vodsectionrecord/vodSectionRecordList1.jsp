@@ -11,7 +11,7 @@
 	<input id="meetingid" type="hidden" value="${meetingid }">
 	<input id="sessionid" type="hidden" value="${sessionid }">
 	<table id="dg" class="easyui-datagrid"
-		data-options="toolbar: '#tb', fit:true,fitColumns:true,pagination:true,pageSize:15,pageList:[15, 20, 25],singleSelect:true,url:'vodSectionRecordController.do?datagrid',
+		data-options="toolbar: '#tb', fit:true,fitColumns:true,pagination:true,pageSize:15,pageList:[15, 20, 25],singleSelect:true,url:'vodSectionRecordController.do?datagrid&rightid=${rightid }',
 		   queryParams:{
 		           meetingid: meetingid,
 		           sessionid: sessionid
@@ -83,9 +83,9 @@
 						title : '成功'
 					});
 					editRow = undefined;
-					/* $('#dg').datagrid('reload'); */
+					$('#dg').datagrid('reload');
 				} else {
-					/* datagrid.datagrid('rejectChanges'); */
+					datagrid.datagrid('rejectChanges');
 					$('#dg').datagrid('beginEdit', editRow);
 					$.messager.alert('错误', r.msg, 'error');
 				}

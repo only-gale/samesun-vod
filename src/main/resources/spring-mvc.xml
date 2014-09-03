@@ -107,6 +107,14 @@
 						<value>loginController.do?checkuser</value>
 						<value>repairController.do?repair</value>
 						<value>repairController.do?deleteAndRepair</value>
+						<!-- 过滤转码结束访问地址 -->
+						<value>meetingInfoController.do?hint</value>
+						<!-- 过滤转码错误访问地址 -->
+						<value>meetingInfoController.do?recordError</value>
+						<!-- 过滤心跳访问地址 -->
+						<value>heartRequestController.do?heartBeat</value>
+						<!-- 过滤EPG访问地址 -->
+						<value>heartRequestController.do?epg</value>
 					</list>
 				</property>
 			</bean>

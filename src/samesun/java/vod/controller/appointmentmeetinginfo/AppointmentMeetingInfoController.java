@@ -30,7 +30,7 @@ import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.appointmentmeetinginfo.AppointmentMeetingInfoEntity;
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
-import vod.samesun.util.CommandUtil;
+import vod.page.traininginfo.AppointmentMeetingInfoPage;
 import vod.samesun.util.SystemType;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
 import vod.service.appointmentmeetinginfo.AppointmentMeetingInfoServiceI;
@@ -51,7 +51,6 @@ public class AppointmentMeetingInfoController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AppointmentMeetingInfoController.class);
 
 	@Autowired
@@ -102,16 +101,40 @@ public class AppointmentMeetingInfoController extends BaseController {
 		dataGrid.setOrder(SortDirection.desc);
 		
 		CriteriaQuery cq = new CriteriaQuery(AppointmentMeetingInfoEntity.class, dataGrid);
+		
+		//查询预约会议
+		cq.eq("rightid", SystemType.MEETING_RIGHT_1);
+		cq.add();
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, appointmentMeetingInfo, request.getParameterMap());
 		this.appointmentMeetingInfoService.getDataGridReturn(cq, true);
-		//转换AppointmentMeetingInfoEntity到AppointmentMeetingInfoPage
 		
+		List<AppointmentMeetingInfoEntity> apps = new ArrayList<AppointmentMeetingInfoEntity>();
+		List<AppointmentMeetingInfoPage> temp = new ArrayList<AppointmentMeetingInfoPage>();
+		
+		apps = dataGrid.getResults();
+		for(AppointmentMeetingInfoEntity e : apps){
+			//预约状态为新建，但预约时间已过期，则设置预约状态为过期
+			if(SystemType.APP_MEETING_STATE_1.equals(e.getAppointmentState().toString()) && appointmentMeetingInfoService.checkPastTime(e)){
+				e.setAppointmentState(Integer.parseInt(SystemType.APP_MEETING_STATE_3));
+			}
+			AppointmentMeetingInfoPage page = new AppointmentMeetingInfoPage();
+			try {
+				MyBeanUtils.copyBeanNotNull2Bean(e, page);
+			} catch (Exception e1) {
+				logger.error("获取会议预约信息错误");
+				e1.printStackTrace();
+			}
+			//设置会议类型名称
+			page.setTypename(systemService.getType(page.getTypeid().toString(), SystemType.MEETING_TYPE).getTypename());
+			temp.add(page);
+		}
+		dataGrid.setResults(temp);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
 	/**
-	 * 删除会议预约
+	 * 启用会议预约
 	 * 
 	 * @return
 	 */
@@ -134,7 +157,11 @@ public class AppointmentMeetingInfoController extends BaseController {
 				
 				//复制预约信息到直播信息
 				MeetingInfoEntity meeting = meetingInfoService.getMeetingInfoFromAppointment(appointmentMeetingInfo);
-				meetingInfoService.save(meeting);
+				systemService.save(meeting);
+				
+				//设置预约信息过期
+				appointmentMeetingInfo.setAppointmentState(Integer.valueOf(SystemType.APP_MEETING_STATE_3));
+				systemService.updateEntitie(appointmentMeetingInfo);
 				
 				//记录ID
 				meetingid = meeting.getId();
@@ -209,6 +236,7 @@ public class AppointmentMeetingInfoController extends BaseController {
 			}
 		} else {
 			message = "会议预约添加成功";
+			appointmentMeetingInfo.setAppointmentState(Integer.valueOf(SystemType.APP_MEETING_STATE_1));
 			appointmentMeetingInfoService.save(appointmentMeetingInfo);
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
@@ -232,7 +260,8 @@ public class AppointmentMeetingInfoController extends BaseController {
 		}
 		
 		//设置是否录制
-		appointmentMeetingInfo.setIsRecord(new Integer(appointmentMeetingInfoService.isRecord(appointmentMeetingInfo)));
+		appointmentMeetingInfo = appointmentMeetingInfoService.get(AppointmentMeetingInfoEntity.class, meetingID);
+		appointmentMeetingInfo.setIsRecord(Integer.parseInt(appointmentMeetingInfoService.isRecord(appointmentMeetingInfo)));
 		appointmentMeetingInfoService.updateEntitie(appointmentMeetingInfo);
 		
 		j.setMsg(message);
@@ -245,28 +274,29 @@ public class AppointmentMeetingInfoController extends BaseController {
 	 * @return
 	 */
 	@RequestMapping(params = "addorupdate")
-	public ModelAndView addorupdate(AppointmentMeetingInfoEntity appointmentMeetingInfo, HttpServletRequest req) {
+	public ModelAndView addorupdate(AppointmentMeetingInfoEntity appointmentMeetingInfo, HttpServletRequest req, String rightid) {
 		if (StringUtil.isNotEmpty(appointmentMeetingInfo.getId())) {
 			appointmentMeetingInfo = appointmentMeetingInfoService.getEntity(AppointmentMeetingInfoEntity.class, appointmentMeetingInfo.getId());
 			req.setAttribute("appointmentMeetingInfoPage", appointmentMeetingInfo);
-			req.setAttribute("commond", CommandUtil.CMD_APPOINTMENT_MEETING_UPDATE);
-			req.setAttribute("state", systemService.getType(appointmentMeetingInfo.getAppointmentState().toString(), SystemType.APP_MEETING_STATE).getTypename());
-		}else{
-			String create = systemService.getType(SystemType.APP_MEETING_STATE_1, SystemType.APP_MEETING_STATE).getTypename();
-			req.setAttribute("state", create);
-			req.setAttribute("statecode", SystemType.APP_MEETING_STATE_1);
-			req.setAttribute("commond", CommandUtil.CMD_APPOINTMENT_MEETING_NEW);
 		}
 		//获取数据字典信息,用于渲染下拉框
 		//预约会议状态
 		List<TSType> states = systemService.getTypes(systemService.getTypeGroup(SystemType.APP_MEETING_STATE, SystemType.APP_MEETING_STATE_NAME));
 		//会议所属类型
-		List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.APP_MEETING_TYPE, SystemType.APP_MEETING_TYPE_NAME));
+		if(SystemType.MEETING_RIGHT_1.equals(rightid)){
+			List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.MEETING_TYPE, SystemType.MEETING_TYPE_NAME));
+			req.setAttribute("appTypes", appTypes);
+		}else if(SystemType.MEETING_RIGHT_2.equals(rightid)){
+			List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.TRAINING_TYPE, SystemType.TRAINING_TYPE_NAME));
+			req.setAttribute("appTypes", appTypes);
+		}
 		req.setAttribute("states", states);
-		req.setAttribute("appTypes", appTypes);
 		String load = req.getParameter("load");
 		if(StringUtil.isNotEmpty(load)){
 			req.setAttribute("load", load);
+		}
+		if(StringUtil.isNotEmpty(rightid)){
+			req.setAttribute("rightid", rightid);
 		}
 		return new ModelAndView("vod/appointmentmeetinginfo/appointmentMeetingInfo");
 	}

@@ -3,7 +3,7 @@
 <!DOCTYPE html >
 <html>
 <head>
-<title>JEECG 微云快速开发平台</title>
+<title>高清视频录播管理系统</title>
 <t:base type="jquery,easyui,tools,DatePicker,autocomplete"></t:base>
 <link rel="shortcut icon" href="images/favicon.ico">
 <style type="text/css">
@@ -160,7 +160,7 @@ a:hover {
 <!-- 中间-->
 <div id="mainPanle" region="center" style="overflow: hidden;">
 <div id="maintabs" class="easyui-tabs" fit="true" border="false">
-<div class="easyui-tab" title="首页" href="loginController.do?home" style="padding: 2px; overflow: hidden;"></div>
+<%-- <div class="easyui-tab" title="${title }" href="loginController.do?home&role=${roleName }" style="padding: 2px; overflow: hidden;"></div> --%>
 <c:if test="${map=='1'}">
 	<div class="easyui-tab" title="地图" style="padding: 1px; overflow: hidden;"><iframe name="myMap" id="myMap" scrolling="no" frameborder="0" src="mapController.do?map"
 		style="width: 100%; height: 99.5%;"></iframe></div>

@@ -34,6 +34,7 @@ import org.springframework.web.servlet.ModelAndView;
 import vod.entity.appointmentchannelinfo.AppointmentChannelInfoEntity;
 import vod.entity.confcodecinfo.ConfCodecInfoEntity;
 import vod.entity.meetinginfo.MeetingInfoEntity;
+import vod.page.meetinginfo.MeetingInfoPage;
 import vod.samesun.util.SystemType;
 import vod.service.appointmentchannelinfo.AppointmentChannelInfoServiceI;
 import vod.service.confcodecinfo.ConfCodecInfoServiceI;
@@ -125,24 +126,37 @@ public class MeetingInfoController extends BaseController {
 		if(StringUtil.isNotEmpty(subject)){
 			meetingInfo.setSubject("*"+ subject +"*");
 		}
-		
+		//查询会议
+		cq.eq("rightid", SystemType.MEETING_RIGHT_1);
+		//查询未结束的会议
+		cq.notEq("meetingstate", new Integer(SystemType.MEETING_STATE_4));
+		cq.add();
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, meetingInfo, request.getParameterMap());
 		this.meetingInfoService.getDataGridReturn(cq, true);
 		List<MeetingInfoEntity> mts = dataGrid.getResults();
-		List<MeetingInfoEntity> temp = new ArrayList<MeetingInfoEntity>();
+		List<MeetingInfoPage> temp = new ArrayList<MeetingInfoPage>();
 		for(MeetingInfoEntity m : mts){
-			String strsubject = m.getSubject(), strintroduction = m.getIntroduction();
-			m.setSubject("<span title=\""+strsubject+"\">" + strsubject +"</span>");
-			m.setIntroduction("<span title=\""+strintroduction+"\">" + strintroduction +"</span>");
-			if(Integer.valueOf(SystemType.MEETING_STATE_4) != m.getMeetingstate()){
+			if(!SystemType.MEETING_STATE_5.equals(m.getMeetingstate().toString())){
 				//设置已持续时长，单位分钟
 				m.setBillduration((int) ((DataUtils.getMillis() - m.getBillstarttime().getTime()) / (60 * 1000)));
-				temp.add(m);
 			}
+			MeetingInfoPage page = new MeetingInfoPage();
+			try {
+				MyBeanUtils.copyBeanNotNull2Bean(m, page);
+			} catch (Exception e) {
+				logger.error("获取会议信息错误");
+				e.printStackTrace();
+			}
+			//设置会议类型名称
+			page.setTypename(systemService.getType(page.getTypeid().toString(), SystemType.MEETING_TYPE).getTypename());
+			//格式化主题和简介,使其在页面显示时有alt效果
+			String strsubject = page.getSubject(), strintroduction = page.getIntroduction();
+			page.setSubject("<span title=\""+strsubject+"\">" + strsubject +"</span>");
+			page.setIntroduction("<span title=\""+strintroduction+"\">" + strintroduction +"</span>");
+			temp.add(page);
 		}
 		dataGrid.setResults(temp);
-		dataGrid.setTotal(temp.size());
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -197,7 +211,6 @@ public class MeetingInfoController extends BaseController {
 	@RequestMapping(params = "save")
 	@ResponseBody
 	public AjaxJson save(MeetingInfoEntity meetingInfo, HttpServletRequest request, HttpServletResponse response, String tempid, String typeid, String subject, String compere, String introduction, String isrecord, String billid) throws IOException, ParseException {
-		System.out.println(request.getParameter("flag"));
 		AjaxJson j = new AjaxJson();
 		message = "会议直播成功";
 		//记录会议ID值
@@ -220,15 +233,17 @@ public class MeetingInfoController extends BaseController {
 					message = "会议直播成功";
 					t.setBillid(null);
 					t.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_1));
+					//设置直播开始时间为现在
+					t.setBillstarttime(DataUtils.parseDate(DataUtils.getDataString(DataUtils.datetimeFormat), DataUtils.datetimeFormat.toPattern()));
 					//启用编码器
 					List<AppointmentChannelInfoEntity> list = new ArrayList<AppointmentChannelInfoEntity>();
-					list = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingID);
+					list = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingID);
 					//开始更新频道信息
 					for(AppointmentChannelInfoEntity e : list){
 						appointmentChannelInfoService.linkCodec(e, SystemType.CODEC_AVILABLE_1);
 						//删除时间置空
 						e.setDelDate(null);
-						meetingInfoService.updateEntitie(e);
+						systemService.updateEntitie(e);
 					}
 				}
 				meetingInfoService.saveOrUpdate(t);
@@ -248,7 +263,7 @@ public class MeetingInfoController extends BaseController {
 			//设置是否录制标志
 			meetingInfo.setIsrecord(new Integer(isrecord));
 			
-			meetingInfoService.save(meetingInfo);
+			systemService.save(meetingInfo);
 			
 			systemService.addLog(message, Globals.Log_Type_INSERT, Globals.Log_Leavel_INFO);
 		}
@@ -258,7 +273,7 @@ public class MeetingInfoController extends BaseController {
 		//根据前台页面传回来的临时会议ID值tempid获取频道信息
 		List<AppointmentChannelInfoEntity> list = new ArrayList<AppointmentChannelInfoEntity>();
 		if(StringUtil.isNotEmpty(tempid)){
-			list = meetingInfoService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", tempid);
+			list = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", tempid);
 			//开始更新频道信息
 			for(AppointmentChannelInfoEntity e : list){
 				if(!tempid.equals(meetingID)){
@@ -269,10 +284,11 @@ public class MeetingInfoController extends BaseController {
 				}
 				//删除时间置空
 				e.setDelDate(null);
-				meetingInfoService.updateEntitie(e);
+				systemService.updateEntitie(e);
 			}
 		}
 		
+		//关联设备部分的功能由心跳信息完成
 		/*//关联设备
 		List<AppointmentChannelInfoEntity> channels = systemService.findByProperty(AppointmentChannelInfoEntity.class, "meetingid", meetingID);
 		List<AuthGroupTerminalEntity> tids = new ArrayList<AuthGroupTerminalEntity>();
@@ -292,7 +308,6 @@ public class MeetingInfoController extends BaseController {
 		Map<String, Object> attrs = new HashMap<String, Object>();
 		attrs.put("meetingid", meetingID);
 		j.setAttributes(attrs);
-//		response.sendRedirect("meetingInfoController.do?addorupdate&id=" + meetingID);
 		return j;
 	}
 
@@ -309,35 +324,37 @@ public class MeetingInfoController extends BaseController {
 		}
 		//获取数据字典信息,用于渲染下拉框
 		//会议所属类型
-		List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.APP_MEETING_TYPE, SystemType.APP_MEETING_TYPE_NAME));
+		List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.MEETING_TYPE, SystemType.MEETING_TYPE_NAME));
 		req.setAttribute("appTypes", appTypes);
 		String load = req.getParameter("load");
 		if(StringUtil.isNotEmpty(load)){
 			req.setAttribute("load", load);
 		}
+		req.setAttribute("rightid", SystemType.MEETING_RIGHT_1);
 		return new ModelAndView("vod/meetinginfo/meetingInfo");
 	}
 	
 	/**
-	 * 开始直播
+	 * 会议信息列表页面跳转
 	 * 
 	 * @return
 	 */
-	@RequestMapping(params = "startLive")
-	public AjaxJson startLive(MeetingInfoEntity meetingInfo, HttpServletRequest req, String flag) {
-		AjaxJson j = new AjaxJson();
-		String meetingid = "", meetinginfoId = meetingInfo.getId(), reqId = req.getParameter("meetingid");
-		if(StringUtil.isNotEmpty(meetinginfoId)){
-			meetingid = meetinginfoId;
-		}else if(StringUtil.isNotEmpty(reqId)){
-			meetingid = reqId;
+	@RequestMapping(params = "addorupdateT")
+	public ModelAndView addorupdateT(MeetingInfoEntity meetingInfo, HttpServletRequest req) {
+		if (StringUtil.isNotEmpty(meetingInfo.getId())) {
+			meetingInfo = meetingInfoService.getEntity(MeetingInfoEntity.class, meetingInfo.getId());
+			req.setAttribute("meetingInfoPage", meetingInfo);
 		}
-		if(StringUtil.isNotEmpty(meetingid)){
-			meetingInfo = meetingInfoService.getEntity(MeetingInfoEntity.class, meetingid);
+		//获取数据字典信息,用于渲染下拉框
+		//会议所属类型
+		List<TSType> appTypes = systemService.getTypes(systemService.getTypeGroup(SystemType.TRAINING_TYPE, SystemType.TRAINING_TYPE_NAME));
+		req.setAttribute("appTypes", appTypes);
+		String load = req.getParameter("load");
+		if(StringUtil.isNotEmpty(load)){
+			req.setAttribute("load", load);
 		}
-		message = flag;
-		j.setMsg(message);
-		return j;
+		req.setAttribute("rightid", SystemType.MEETING_RIGHT_2);
+		return new ModelAndView("vod/meetinginfo/meetingInfo");
 	}
 	
 	/**
@@ -422,7 +439,8 @@ public class MeetingInfoController extends BaseController {
 		Map<String, Object> attr = new HashMap<String, Object>();
 		if(StringUtil.isNotEmpty(id)){
 			message = "结束直播";
-			MeetingInfoEntity t = meetingInfoService.get(MeetingInfoEntity.class, id);
+			MeetingInfoEntity t = systemService.get(MeetingInfoEntity.class, id);
+			
 			if(null != t){
 				String state = t.getMeetingstate().toString();
 				String isrecord = t.getIsrecord().toString();
@@ -432,7 +450,7 @@ public class MeetingInfoController extends BaseController {
 				attr.put("isrecord", isrecord);
 				
 				//改变状态
-				t.setMeetingstate(new Integer(SystemType.MEETING_STATE_4));
+				t.setMeetingstate(Integer.valueOf(SystemType.MEETING_STATE_4));
 				t.setBillduration((int) ((DataUtils.getMillis() - t.getBillstarttime().getTime()) / (60 * 1000)));
 				
 				//如果当前直播会议状态为“直播并录制中”，则在执行“结束直播”时要先执行“结束录制”，然后生成点播信息
@@ -606,7 +624,8 @@ public class MeetingInfoController extends BaseController {
 			if(StringUtil.isNotEmpty(message)){
 				message = new String(message.getBytes("ISO-8859-1"),"utf-8" );
 			}else message = "";
-			
+			res.setContentType("text/xml;charset=UTF-8");
+			req.setCharacterEncoding("UTF-8");
 			String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
 			String Rec_State = "";
 			
@@ -653,7 +672,8 @@ public class MeetingInfoController extends BaseController {
 			if(StringUtil.isNotEmpty(message)){
 				message = new String(message.getBytes("ISO-8859-1"),"utf-8" );
 			}else message = "";
-			
+			res.setContentType("text/xml;charset=UTF-8");
+			req.setCharacterEncoding("UTF-8");
 			String strXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
 			
 			String sqllive = "update meeting_live_section_record set Rec_State=" + SystemType.REC_STATE_3 + " where filename='"+id+"'";

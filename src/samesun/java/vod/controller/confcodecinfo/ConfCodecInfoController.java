@@ -19,6 +19,7 @@ import org.jeecgframework.core.util.DataUtils;
 import org.jeecgframework.core.util.MyBeanUtils;
 import org.jeecgframework.core.util.StringUtil;
 import org.jeecgframework.tag.core.easyui.TagUtil;
+import org.jeecgframework.web.system.pojo.base.TSTerritory;
 import org.jeecgframework.web.system.service.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -54,7 +55,6 @@ public class ConfCodecInfoController extends BaseController {
 	/**
 	 * Logger for this class
 	 */
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ConfCodecInfoController.class);
 
 	@Autowired
@@ -95,10 +95,51 @@ public class ConfCodecInfoController extends BaseController {
 	@SuppressWarnings("unchecked")
 	@RequestMapping(params = "datagrid")
 	public void datagrid(ConfCodecInfoEntity confCodecInfo,HttpServletRequest request, HttpServletResponse response, DataGrid dataGrid) {
+		dataGrid.setSort("createDate");
 		CriteriaQuery cq = new CriteriaQuery(ConfCodecInfoEntity.class, dataGrid);
 		//查询条件组装器
 		org.jeecgframework.core.extend.hqlsearch.HqlGenerateUtil.installHql(cq, confCodecInfo, request.getParameterMap());
 		this.confCodecInfoService.getDataGridReturn(cq, true);
+		List<ConfCodecInfoEntity> codecs = dataGrid.getResults();
+		List<ConfCodecInfoPage> pages = new ArrayList<ConfCodecInfoPage>();
+		try {
+			for(ConfCodecInfoEntity c : codecs){
+				ConfCodecInfoPage page = new ConfCodecInfoPage();
+				MyBeanUtils.copyBeanNotNull2Bean(c, page);
+				TSTerritory self = systemService.get(TSTerritory.class, c.getGroupid());
+				String name = "";
+				List<TSTerritory> ts = new ArrayList<TSTerritory>();
+				TSTerritory parent = self.getTSTerritory();
+				ts.add(self);
+				String pid = parent.getId();
+				//当父组织机构不为根机构时，查找父机构
+				while(!"1".equals(pid)){
+					parent = systemService.get(TSTerritory.class, pid);
+					ts.add(parent);
+					parent = parent.getTSTerritory();
+					pid = parent.getId();
+				}
+				//按照添加顺序逆序
+				Collections.reverse(ts);
+				for(TSTerritory t : ts){
+					name += "-" + t.getTerritoryName(); 
+				}
+				page.setGroupname(name.substring(1));
+				
+				ConfCodecRecordSrvEntity cr = systemService.get(ConfCodecRecordSrvEntity.class, page.getCr());
+				if(cr != null){
+					ConfRecordSrvInfoEntity rs = systemService.get(ConfRecordSrvInfoEntity.class, cr.getRecordsrvid());
+					if(rs != null){
+						page.setRecord(rs.getName());
+					}
+				}
+				pages.add(page);
+			}
+		} catch (Exception e) {
+			logger.error("获取编码器信息错误");
+			e.printStackTrace();
+		}
+		dataGrid.setResults(pages);
 		TagUtil.datagrid(response, dataGrid);
 	}
 
@@ -182,6 +223,27 @@ public class ConfCodecInfoController extends BaseController {
 			MyBeanUtils.copyBeanNotNull2Bean(confCodecInfo, page);
 			ConfCodecRecordSrvEntity cr = confCodecInfoService.get(ConfCodecRecordSrvEntity.class, confCodecInfo.getCr());
 			page.setRecord(cr.getRecordsrvid());
+			
+			TSTerritory self = systemService.get(TSTerritory.class, page.getGroupid());
+			String name = "";
+			List<TSTerritory> ts = new ArrayList<TSTerritory>();
+			TSTerritory parent = self.getTSTerritory();
+			ts.add(self);
+			String pid = parent.getId();
+			//当父组织机构不为根机构时，查找父机构
+			while(!"1".equals(pid)){
+				parent = systemService.get(TSTerritory.class, pid);
+				ts.add(parent);
+				parent = parent.getTSTerritory();
+				pid = parent.getId();
+			}
+			//按照添加顺序逆序
+			Collections.reverse(ts);
+			for(TSTerritory t : ts){
+				name += "-" + t.getTerritoryName(); 
+			}
+			page.setGroupname(name.substring(1));
+			
 			req.setAttribute("confCodecInfoPage", page);
 		}
 		
@@ -293,14 +355,15 @@ public class ConfCodecInfoController extends BaseController {
 //			List<ConfCodecInfoEntity> allUnAvailable = confCodecInfoService.getUNAvailableCodecs(meetingType, appointmentStarttime, appointmentDuration);
 			//按照会议类型查询所有冲突的会议
 			if(SystemType.APP_MEETING_TYPE_1.equals(meetingType)){
+				//------直播会议部分
 				List<MeetingInfoEntity> meetings = systemService.loadAll(MeetingInfoEntity.class);
 				List<MeetingInfoEntity> result = new ArrayList<MeetingInfoEntity>();
 				for(MeetingInfoEntity m : meetings){
 					Integer state = m.getMeetingstate();
 					//当有直播会议冲突时
-					if(state == Integer.valueOf(SystemType.MEETING_STATE_1) ||
-							state == Integer.valueOf(SystemType.MEETING_STATE_2) ||
-							state == Integer.valueOf(SystemType.MEETING_STATE_3)){
+					if(state.toString().equals(SystemType.MEETING_STATE_1) ||
+							state.toString().equals(SystemType.MEETING_STATE_2) ||
+							state.toString().equals(SystemType.MEETING_STATE_3)){
 						//获取该会议的所有编码器
 						List<ConfCodecInfoEntity> codecs = meetingInfoService.getCodecs(m);
 						//当该会议占用当前被选择的编码器时记录该会议
@@ -310,10 +373,14 @@ public class ConfCodecInfoController extends BaseController {
 						req.setAttribute("conflictMeetings", result);
 					}
 				}
+				//------直播培训部分
+				
+				
 			}else if(SystemType.APP_MEETING_TYPE_3.equals(meetingType) && StringUtil.isNotEmpty(appointmentStarttime) && StringUtil.isNotEmpty(appointmentDuration)){
+				//------预约会议部分
 				List<AppointmentMeetingInfoEntity> result = new ArrayList<AppointmentMeetingInfoEntity>();
 				//所有启用的预约会议
-				List<AppointmentMeetingInfoEntity> apps = systemService.findByProperty(AppointmentMeetingInfoEntity.class, "appointmentState", SystemType.APP_MEETING_STATE_2);
+				List<AppointmentMeetingInfoEntity> apps = systemService.findByProperty(AppointmentMeetingInfoEntity.class, "appointmentState", Integer.valueOf(SystemType.APP_MEETING_STATE_1));
 				List<AppointmentMeetingInfoEntity> temp = new ArrayList<AppointmentMeetingInfoEntity>();
 				Date appointmentbegintime = DataUtils.str2Date(appointmentStarttime, DataUtils.datetimeFormat);
 				//当前预约会议结束时间
@@ -333,6 +400,9 @@ public class ConfCodecInfoController extends BaseController {
 						result.add(a);
 					}
 				}
+				
+				//------预约培训部分
+				
 				req.setAttribute("conflictMeetings", result);
 			}
 		}

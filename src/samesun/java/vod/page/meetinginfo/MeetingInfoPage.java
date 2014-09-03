@@ -30,6 +30,8 @@ public class MeetingInfoPage {
 	private java.lang.String name;
 	/**所属类型*/
 	private java.lang.Integer typeid;
+	/**所属类型*/
+	private java.lang.String typename;
 	/**终端分组*/
 	private java.lang.String rightid;
 	/**会议主题*/
@@ -138,6 +140,12 @@ public class MeetingInfoPage {
 	}
 	public void setTypeid(java.lang.Integer typeid) {
 		this.typeid = typeid;
+	}
+	public java.lang.String getTypename() {
+		return typename;
+	}
+	public void setTypename(java.lang.String typename) {
+		this.typename = typename;
 	}
 	public java.lang.String getRightid() {
 		return rightid;
